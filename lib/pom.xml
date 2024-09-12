@@ -16,6 +16,8 @@
         <sVersionMongoDb>4.3.4</sVersionMongoDb>
         <sVersionGeoTools>20.0</sVersionGeoTools>
         <sVersionCommonsValidator>1.4.1</sVersionCommonsValidator>
+        <sVersionMongoDb>4.3.4</sVersionMongoDb>
+        <sVersionJackson>2.14.1</sVersionJackson>
     </properties>
     
     <build>
@@ -82,6 +84,18 @@
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
             <version>${sVersionCommonsValidator}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>${sVersionMongoDb}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${sVersionJackson}</version>
         </dependency>
         
   </dependencies>

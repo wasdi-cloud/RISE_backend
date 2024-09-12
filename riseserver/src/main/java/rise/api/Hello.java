@@ -7,6 +7,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import rise.lib.business.Organization;
 import rise.lib.utils.Utils;
+import rise.lib.utils.log.RiseLog;
 
 /**
  * Root resource (exposed at "hello" path)
@@ -17,6 +18,8 @@ public class Hello {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String hello(@QueryParam("name") String sName) {
+    	
+    	RiseLog.debugLog("Hello.hello");
     	
     	String sReturn = "";
     	
