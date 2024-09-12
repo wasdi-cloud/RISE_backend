@@ -1,0 +1,13 @@
+/.metadata/
+lib/.classpath
+lib/.flattened-pom.xml
+lib/.gitignore
+lib/.project
+lib/.settings/
+riseserver/.classpath
+riseserver/.gitignore
+riseserver/.project
+riseserver/.settings/.jsdtscope
+riseserver/.settings/
+Servers/.project
+Servers/
