@@ -1,7 +1,18 @@
 package rise.lib.business;
 
 public class Organization {
+	
+	private String id;
+	
 	private String name;
+	
+	private String type;
+	
+	private String phone;
+	
+	private String country;
+	
+	private String city;
 	
 	private String street;
 	
@@ -9,13 +20,17 @@ public class Organization {
 	
 	private String postalCode;
 	
-	private String city;
+	private String vat;
 	
-	private String phone;
-	
-	private String country;
-	
-	private String type;
+	private Double creationDate;
+
+	public Double getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(Double creationDate) {
+		this.creationDate = creationDate;
+	}
 
 	public String getName() {
 		return name;
@@ -79,6 +94,22 @@ public class Organization {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public String getVat() {
+		return vat;
+	}
+
+	public void setVat(String vat) {
+		this.vat = vat;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 		
 }

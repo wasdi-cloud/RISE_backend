@@ -13,7 +13,7 @@ import rise.lib.utils.log.RiseLog;
  * Root resource (exposed at "hello" path)
  */
 @Path("hello")
-public class Hello {
+public class HelloResource {
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -31,7 +31,7 @@ public class Hello {
     }
     
     @GET
-    @Path("org")
+    @Path("json")
     @Produces(MediaType.APPLICATION_JSON)
     public Organization jsonTest() {
     	Organization oOrganization = new Organization();

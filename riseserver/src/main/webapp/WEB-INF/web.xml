@@ -36,7 +36,7 @@
 				
          <init-param>
             <param-name>ConfigFilePath</param-name>
-            <param-value>C:/Temp/wasdi/wasdiLocalConfig.json</param-value>
+            <param-value>C:/Temp/wasdi/riseLocalTESTConfig.json</param-value>
          </init-param>		
 				
 		<load-on-startup>1</load-on-startup>

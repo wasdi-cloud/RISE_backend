@@ -74,6 +74,8 @@ public class MongoRepository {
      */
     protected String m_sRepoDb = "wasdi";
     
+    protected Class<?> m_oEntityClass;
+    
     /**
      * Flag to notify with a log if the repository has no local connection and 
      * reverts to the default wasdi connection
@@ -291,7 +293,7 @@ public class MongoRepository {
      * @param oNewDocument Object to add
      * @return Mongo Object id (_id)
      */
-    protected String add(Object oNewDocument) {
+    public String add(Object oNewDocument) {
 		return add(oNewDocument, m_sThisCollection, "MongoRepository.add");
 	}
     
@@ -428,4 +430,29 @@ public class MongoRepository {
         return  false;
     }
 	
+    /**
+     * Get a document from the collection
+     * @param oNewDocument Object to add
+     * @return Mongo Object id (_id)
+     */
+    protected Object get(BasicDBObject oCriteria) {
+        try {
+            Document oDocument = getCollection(m_sThisCollection).find(oCriteria).first();
+            if(oDocument == null)
+            {
+            	return null;
+            }
+            String sJSON = oDocument.toJson();
+
+            Object oEntity = (Object) s_oMapper.readValue(sJSON, m_oEntityClass);
+
+            return oEntity;
+        } catch (Exception oEx) {
+        	RiseLog.errorLog("UserRepository.getUser : error ", oEx);
+        }
+
+        return  null;		
+	}
+    
+    
 }
