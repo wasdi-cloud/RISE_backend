@@ -29,7 +29,20 @@ public class DateUtils {
 		long lLong = (long) dDate;
 		return new Date(lLong);
 	}
+	
+	/**
+	 * Gets now as double
+	 * @return
+	 */
+	public static Double getNowAsDouble() {
+		return getDateAsDouble(new Date());
+	}
 
+	/**
+	 * Get a date as a Double timestamp
+	 * @param oDate
+	 * @return
+	 */
 	public static Double getDateAsDouble(Date oDate) {
 		if (oDate == null) {
 			return null;

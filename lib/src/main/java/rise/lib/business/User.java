@@ -41,6 +41,10 @@ public class User {
 	private String defaultLanguage;
 	
 	private String organizationId;
+	
+	private String confirmationCode;
+	
+	private String password;
 
 	public String getUserId() {
 		return userId;
@@ -200,6 +204,22 @@ public class User {
 
 	public void setOrganizationId(String organizationId) {
 		this.organizationId = organizationId;
+	}
+
+	public String getConfirmationCode() {
+		return confirmationCode;
+	}
+
+	public void setConfirmationCode(String confirmationCode) {
+		this.confirmationCode = confirmationCode;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 }

@@ -18,6 +18,7 @@
         <sVersionCommonsValidator>1.4.1</sVersionCommonsValidator>
         <sVersionMongoDb>4.3.4</sVersionMongoDb>
         <sVersionJackson>2.14.1</sVersionJackson>
+        <sVersionMercurius>1.0</sVersionMercurius>
     </properties>
     
     <build>
@@ -97,6 +98,23 @@
             <artifactId>jackson-databind</artifactId>
             <version>${sVersionJackson}</version>
         </dependency>
-        
+        <!-- WASDI's REPOSITORY OR LOCAL BUILD -->
+        <dependency>
+            <groupId>it.fadeout</groupId>
+            <artifactId>mercurius</artifactId>
+            <version>${sVersionMercurius}</version>
+        </dependency>		  
   </dependencies>
+  
+      <!--
+        HERE WE CONFIGURE OUR OWN NEXUS REPOSITORY
+        TO DOWNLOAD LIBRARIES NOT AVAILABLE ON INTERNET
+    -->
+    <repositories>
+        <repository>
+            <id>wasdi-all-libraries</id>
+            <name>WASDI - INTERNAL REPOSITORY - LIBRARIES</name>
+            <url>${sWasdiNexusRepositoryLibrariesUrl}</url>
+        </repository>
+    </repositories>
 </project>

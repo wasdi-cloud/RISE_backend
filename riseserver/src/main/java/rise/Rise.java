@@ -48,4 +48,6 @@ public class Rise extends ResourceConfig {
 		RiseLog.debugLog("RISE is closing, bye bye!");
 	}
 	
+	
+	
 }
