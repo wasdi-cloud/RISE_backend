@@ -27,7 +27,7 @@ public class Rise extends ResourceConfig {
 	@PostConstruct
 	public void initRise() {
 		
-		RiseLog.debugLog("----------- Welcome to WASDI - Web Advanced Space Developer Interface");
+		RiseLog.debugLog("----------- Welcome to RISE Remote Imaging Support for Emergencies -----------");
 
 		String sConfigFilePath = "/etc/wasdi/wasdiConfig.json";
 
