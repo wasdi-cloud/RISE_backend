@@ -41,4 +41,14 @@ public class UserRepository extends MongoRepository {
 		return update(oCriteria, oUser);
 	}
 	
+	public User getUserByEmain(String sUserEmail) {
+		
+		if (Utils.isNullOrEmpty(sUserEmail)) return null;
+		
+		BasicDBObject oCriteria = new BasicDBObject();
+		oCriteria.append("email", sUserEmail);
+
+        return (User) get(oCriteria);		
+	}	
+	
 }

@@ -1,7 +1,6 @@
 package rise.api;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -18,7 +17,6 @@ import rise.lib.config.RiseConfig;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.utils.MailUtils;
-import rise.lib.utils.PasswordAuthentication;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.i8n.LangUtils;
@@ -27,7 +25,6 @@ import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.InviteViewModel;
-import rise.lib.viewmodels.RegisterViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 
 @Path("org")
@@ -51,102 +48,68 @@ public class OrganizationResource {
 				RiseLog.warnLog("OrganizationResource.invite: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();      			
     		}
-
-    		if (!oUser.getOrganizationId().equals(oInviteVM.organizationId)) {
-				RiseLog.warnLog("OrganizationResource.invite: not your org");
-				return Response.status(Status.UNAUTHORIZED).build();      			
-    		}
     		
     		if (oInviteVM == null) {
 				RiseLog.warnLog("OrganizationResource.invite: invite info null");
 				return Response.status(Status.BAD_REQUEST).build();
+    		}    		
+    		
+    		if (Utils.isNullOrEmpty(oInviteVM.organizationId)) {
+				RiseLog.warnLog("OrganizationResource.invite: no org received");
+				return Response.status(Status.UNAUTHORIZED).build();    			
     		}
+
+    		if (!oUser.getOrganizationId().equals(oInviteVM.organizationId)) {
+				RiseLog.warnLog("OrganizationResource.invite: not your org");
+				return Response.status(Status.UNAUTHORIZED).build();      			
+    		}    		
     		
     		if (Utils.isNullOrEmpty(oInviteVM.email)) {
 				RiseLog.warnLog("OrganizationResource.invite: invite user null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}
     		
-    		// Check if we have a conflict in org or user name
-    		boolean bConflict = false;
-    		
-    		ArrayList<String> asErrors = new ArrayList<>();
     		
     		OrganizationRepository oOrganizationRepository = new OrganizationRepository();
     		
-    		// Check if we have organizations with the same name
-    		List<Organization> aoSameNameOrganizations = oOrganizationRepository.getOrganizationsByName(oRegisterVM.organization.name);
+    		// Check if we have the organisation
+    		Organization oOrganization = oOrganizationRepository.getOrganization(oInviteVM.organizationId);
     		
-    		if (aoSameNameOrganizations.size()>0) {
-    			RiseLog.errorLog("AuthResource.register: there are already organization with this name, impossible to proceed");
-    			asErrors.add(StringCodes.ERROR_API_ORG_ALREADY_EXISTS.name());
-    			bConflict = true;
+    		if (oOrganization == null) {
+    			RiseLog.errorLog("OrganizationResource.invite: org not found, impossible to proceed");
+    			return Response.status(Status.UNAUTHORIZED).build();
     		}
     		
     		// Check if we have an existing user with same user id
     		UserRepository oUserRepository = new UserRepository();
     		
-    		User oPotentialExistingUser = oUserRepository.getUser(oRegisterVM.admin.userId);
+    		User oPotentialExistingUser = oUserRepository.getUserByEmain(oInviteVM.email);
     		
-    		if (oPotentialExistingUser == null) {
-    			RiseLog.errorLog("AuthResource.register: there are already a user with this name, impossible to proceed");
-    			asErrors.add(StringCodes.ERROR_API_ORG_ALREADY_EXISTS.name());
-    			bConflict = true;    			
-    		}
-    		
-    		// In case of a conflict, we exit and notify this to the user
-    		if (bConflict) {
+    		if (oPotentialExistingUser != null) {
+    			RiseLog.errorLog("OrganizationResource.invite: there are already a user with this mail, impossible to proceed");
+    			ArrayList<String> asErrors = new ArrayList<>();
+    			asErrors.add(StringCodes.ERROR_API_MAIL_ALREADY_EXISTS.name());
     			ErrorViewModel oErrorViewModel = new ErrorViewModel(asErrors, Status.CONFLICT.getStatusCode());
     			return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();
     		}
     		
-    		if (oRegisterVM.admin.acceptedPrivacy == false || oRegisterVM.admin.acceptedTermsAndConditions == false) {
-    			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_MISSING_ACCEPT_TERMS_AND_PRIVACY.name(), Status.CONFLICT.getStatusCode());
-    			return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();    			
-    		}
+    		// Now translate the user
+    		User oInvitedUser = (User) RiseViewModel.copyToEntity(User.class.getName(), oInviteVM);
     		
-    		// Get now timestamp
     		double dNow = DateUtils.getNowAsDouble();
     		
-    		// Assign it to creation date of the org
-    		oRegisterVM.organization.creationDate = dNow;
-    		
-    		// Convert view model in entity
-    		Organization oOrganization = (Organization) RiseViewModel.copyToEntity(Organization.class.getName(), oRegisterVM.organization);
-    		// Create the id for the org
-    		oOrganization.setId(Utils.getRandomName());
-    		// Add the org to the repo
-    		oOrganizationRepository.add(oOrganization);
-    		
-    		// Now translate the user
-    		User oAdminUser = (User) RiseViewModel.copyToEntity(User.class.getName(), oRegisterVM.admin);
-    		
-    		// We can now assign the org id
-    		oAdminUser.setOrganizationId(oOrganization.getId());
-    		
     		// Initialize the dates as now
-    		oAdminUser.setRegistrationDate(dNow);
-    		oAdminUser.setLastLoginDate(dNow);
-    		oAdminUser.setLastPasswordUpdateDate(dNow);
-    		oAdminUser.setPrivacyAcceptedDate(dNow);
-    		oAdminUser.setTermsAndConditionAcceptedDate(dNow);
-    		
-    		
-    		// Initialize the notifications
-    		oAdminUser.setNotifyActivities(true);
-    		oAdminUser.setNotifyMaintenance(true);
-    		oAdminUser.setNotifyNewsletter(true);
+    		oInvitedUser.setRegistrationDate(dNow);
     		
     		// Generate the Confirmation Code
     		String sConfirmationCode = Utils.getRandomName();
     		
     		// Save it
-    		oAdminUser.setConfirmationDate(null);
-    		oAdminUser.setConfirmationCode(sConfirmationCode);
+    		oInvitedUser.setConfirmationDate(null);
+    		oInvitedUser.setConfirmationCode(sConfirmationCode);
     		
-    		oAdminUser.setPassword(oPasswordAuthentication.hash(oRegisterVM.password.toCharArray()));
-    		
-    		oUserRepository.updateUser(oAdminUser);
+    		// Save the invited user
+    		oUserRepository.updateUser(oInvitedUser);
     		
     		// Get localized title and message
     		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_ADMIN_CONFIRM_MAIL_TITLE.name() , Languages.EN.name());
@@ -154,16 +117,16 @@ public class OrganizationResource {
     		
     		
     		// Generate the confirmation Link
-    		String sLink = RiseConfig.Current.serverApiAddress;
+    		String sLink = RiseConfig.Current.security.inviteConfirmAddress;
     		
-    		if (!sLink.endsWith("/")) sLink += "/";
-    		sLink += "user/confirmadm?code=" + sConfirmationCode + "&usr=" + oAdminUser.getUserId();
+    		sLink += "?code=" + sConfirmationCode + "&mail=" + oInvitedUser.getEmail();
     		
-    		// We replace the link in the message
+    		// We replace the link and org name in the message
     		sMessage = sMessage.replace("%%LINK%%", sLink);
+    		sMessage = sMessage.replace("%%ORG%%", oOrganization.getName());
     		
     		// And we send an email to the user waiting for him to confirm!
-    		MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oAdminUser.getEmail(), sTitle, sMessage, true);
+    		MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oInvitedUser.getEmail(), sTitle, sMessage, true);
     		
     		return Response.ok().build();
     	}

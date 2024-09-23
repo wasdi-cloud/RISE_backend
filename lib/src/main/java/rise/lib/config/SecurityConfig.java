@@ -15,4 +15,6 @@ public class SecurityConfig {
 	public boolean mustContainSymbol = true;
 	
 	public double maxOTPAgeSeconds = 60*30;
+	
+	public String inviteConfirmAddress = "rise.wasdi.net/user/confirm";
 }

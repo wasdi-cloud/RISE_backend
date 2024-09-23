@@ -258,6 +258,11 @@ public class AuthResource {
 				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
 			}
 			
+			if (!oDbOTP.getOperation().equals(OTPOperations.LOGIN.name())) {
+				RiseLog.warnLog("AuthResource.login_verify: otp action not correct, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+			}
+			
 	    	// Check if we have a user
 	    	UserRepository oUserRepository =  new UserRepository();
 	    	User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
@@ -388,11 +393,19 @@ public class AuthResource {
     		
     		User oPotentialExistingUser = oUserRepository.getUser(oRegisterVM.admin.userId);
     		
-    		if (oPotentialExistingUser == null) {
+    		if (oPotentialExistingUser != null) {
     			RiseLog.errorLog("AuthResource.register: there are already a user with this name, impossible to proceed");
-    			asErrors.add(StringCodes.ERROR_API_ORG_ALREADY_EXISTS.name());
+    			asErrors.add(StringCodes.ERROR_API_USER_ALREADY_EXISTS.name());
     			bConflict = true;    			
     		}
+    		
+    		oPotentialExistingUser = oUserRepository.getUserByEmain(oRegisterVM.admin.email);
+    		
+    		if (oPotentialExistingUser != null) {
+    			RiseLog.errorLog("AuthResource.register: there are already a user with this email, impossible to proceed");
+    			asErrors.add(StringCodes.ERROR_API_MAIL_ALREADY_EXISTS.name());
+    			bConflict = true;    			
+    		}    		
     		
     		// In case of a conflict, we exit and notify this to the user
     		if (bConflict) {
@@ -457,7 +470,7 @@ public class AuthResource {
     		String sLink = RiseConfig.Current.serverApiAddress;
     		
     		if (!sLink.endsWith("/")) sLink += "/";
-    		sLink += "user/confirmadm?code=" + sConfirmationCode + "&usr=" + oAdminUser.getUserId();
+    		sLink += "user/confirm_adm?code=" + sConfirmationCode + "&usr=" + oAdminUser.getUserId();
     		
     		// We replace the link in the message
     		sMessage = sMessage.replace("%%LINK%%", sLink);
