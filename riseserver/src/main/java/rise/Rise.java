@@ -6,7 +6,11 @@ import org.glassfish.jersey.server.ResourceConfig;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.core.Context;
+import rise.lib.business.Session;
+import rise.lib.business.User;
 import rise.lib.config.RiseConfig;
+import rise.lib.data.SessionRepository;
+import rise.lib.data.UserRepository;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
 import rise.providers.JerseyMapperProvider;
@@ -43,6 +47,46 @@ public class Rise extends ResourceConfig {
 		}
 	}
 	
+	
+	/**
+	 * Get the User object from the session Id
+	 * It checks first in Key Cloak and later on the local session mechanism.
+	 * @param sSessionId
+	 * @return
+	 */
+	public static User getUserFromSession(String sSessionId) {
+		
+		if (Utils.isNullOrEmpty(sSessionId));
+		
+		User oUser = null;
+		String sUserId = "";
+		
+		try {
+			
+			SessionRepository oSessionRepository = new SessionRepository();
+			Session oUserSession = oSessionRepository.getSession(sSessionId);
+			
+			if(null==oUserSession) {
+				return null;
+			} else {
+				sUserId = oUserSession.getUserId();
+			}
+			
+			if(!Utils.isNullOrEmpty(sUserId)){
+				sUserId = sUserId.toLowerCase();
+				UserRepository oUserRepository = new UserRepository();
+				oUser = oUserRepository.getUser(sUserId);
+			} 
+			else {
+				return null;
+			}			
+
+		} catch (Exception oE) {
+			RiseLog.errorLog("Rise.getUserFromSession: something bad happened: " + oE);
+		}
+
+		return oUser;
+	}	
 		
 	public static void shutDown() {
 		RiseLog.debugLog("RISE is closing, bye bye!");

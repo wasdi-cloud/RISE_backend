@@ -222,6 +222,19 @@ public class Utils {
 	public static int getRandomNumber(int iMin, int iMax) {
 		return iMin + new SecureRandom().nextInt(iMax - iMin);
 	}
+	
+	/**
+	 * Generates and OPT Password composed buy six numbers
+	 * @return
+	 */
+	public static String getOTPPassword() {
+		int iNumber1 = getRandomNumber(0, 999);
+		int iNumber2 = getRandomNumber(0, 999);
+		
+		String sOTPPassword= "" + iNumber1 + "" + iNumber2;
+		
+		return sOTPPassword;
+	}
 
 	/**
 	 * Get a clone of the workspace name.

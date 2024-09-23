@@ -13,4 +13,6 @@ public class SecurityConfig {
 	public boolean mustContainNumber = true;
 	
 	public boolean mustContainSymbol = true;
+	
+	public double maxOTPAgeSeconds = 60*30;
 }

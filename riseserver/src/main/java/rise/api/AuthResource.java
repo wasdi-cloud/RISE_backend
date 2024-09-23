@@ -12,10 +12,13 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import rise.lib.business.OTP;
+import rise.lib.business.OTPOperations;
 import rise.lib.business.Organization;
 import rise.lib.business.Session;
 import rise.lib.business.User;
 import rise.lib.config.RiseConfig;
+import rise.lib.data.OTPRepository;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.SessionRepository;
 import rise.lib.data.UserRepository;
@@ -28,6 +31,8 @@ import rise.lib.utils.i8n.Languages;
 import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.ErrorViewModel;
+import rise.lib.viewmodels.OTPVerifyViewModel;
+import rise.lib.viewmodels.OTPViewModel;
 import rise.lib.viewmodels.RegisterViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.lib.viewmodels.SessionTokenViewModel;
@@ -37,8 +42,8 @@ import rise.lib.viewmodels.UserCredentialsViewModel;
  * User's related APIs
  * 
  */
-@Path("user")
-public class UserResource {
+@Path("auth")
+public class AuthResource {
 
 	/**
 	 * Login API
@@ -56,15 +61,15 @@ public class UserResource {
     		
 			// Validate inputs
 			if (oUserCredentialsVM == null) {
-				RiseLog.warnLog("UserResource.login: login info null, user not authenticated");
+				RiseLog.warnLog("AuthResource.login: login info null, user not authenticated");
 				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
 			}
 			if(Utils.isNullOrEmpty(oUserCredentialsVM.userId)){
-				RiseLog.warnLog("UserResource.login: userId null or empty, user not authenticated");
+				RiseLog.warnLog("AuthResource.login: userId null or empty, user not authenticated");
 				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
 			}
 			if(Utils.isNullOrEmpty(oUserCredentialsVM.password)){
-				RiseLog.warnLog("UserResource.login: password null or empty, user not authenticated");
+				RiseLog.warnLog("AuthResource.login: password null or empty, user not authenticated");
 				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
 			}
 	    	
@@ -73,16 +78,16 @@ public class UserResource {
 	    	User oUser = oUserRepository.getUser(oUserCredentialsVM.userId);
 	    	
 	    	if (oUser == null) {
-	    		RiseLog.warnLog("UserResource.login: user not found");
+	    		RiseLog.warnLog("AuthResource.login: user not found");
 	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
 	    	}
 	    	
-	    	RiseLog.debugLog("UserResource.login");
+	    	RiseLog.debugLog("AuthResource.login");
 	    		    	
 	    	
 	    	// Check if is confirmed
 	    	if (oUser.getConfirmationDate() == null) {
-	    		RiseLog.warnLog("UserResource.login: user not confirmed yet");
+	    		RiseLog.warnLog("AuthResource.login: user not confirmed yet");
 	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();	    		
 	    	}
 	    	
@@ -92,13 +97,189 @@ public class UserResource {
 	    	String sProvidedPw = oUserCredentialsVM.password;
 	    	String sEncryptedProvidedPassword = oPasswordAuthentication.hash(sProvidedPw.toCharArray());
 	    	if ( ! oUser.getPassword().equals(sEncryptedProvidedPassword)) {
-	    		RiseLog.warnLog("UserResource.login: password not valid");
+	    		RiseLog.warnLog("AuthResource.login: password not valid");
+	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();	    		
+	    	}
+	    	
+	    	// Create the OTP Entity
+	    	OTP oOTP = new OTP();
+	    	oOTP.setId(Utils.getRandomName());
+	    	oOTP.setSecretCode(Utils.getOTPPassword());
+	    	oOTP.setUserId(oUser.getUserId());
+	    	oOTP.setValidated(false);
+	    	oOTP.setOperation(OTPOperations.LOGIN.name());
+	    	oOTP.setTimestamp(DateUtils.getNowAsDouble());
+	    	
+	    	// Add it to the Db
+	    	OTPRepository oOTPRepository = new OTPRepository();
+	    	oOTPRepository.add(oOTP);
+	    	
+	    	// Create the view model
+	    	OTPViewModel oOTPViewModel = new OTPViewModel();
+	    	oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
+	    	
+	    	// Create the verify API address
+	    	oOTPViewModel.verifyAPI = RiseConfig.Current.serverApiAddress;
+	    	if (!oOTPViewModel.verifyAPI.endsWith("/")) oOTPViewModel.verifyAPI += "/";
+	    	oOTPViewModel.verifyAPI += "user/login_verify";
+	    	
+    		// Get localized title and message
+    		String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name() , Languages.EN.name());
+    		String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name() , Languages.EN.name());
+    		
+    		// We replace the code in the message
+    		sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());    		
+	    	
+    		// Send the OTP
+	    	MailUtils.sendEmail(oUser.getUserId(), sTitle, sMessage);
+	    	
+	    	// Return the OTP View Mode
+	    	return Response.ok(oOTPViewModel).build();
+    	}
+		catch (Exception oEx) {
+			RiseLog.errorLog("AuthResource.login: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+    }
+    
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("otp")
+    public Response otp(OTPViewModel oOTPVM) {
+    	try {
+    		ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.UNAUTHORIZED.getStatusCode());
+    		
+			// Validate inputs
+			if (oOTPVM == null) {
+				RiseLog.warnLog("AuthResource.otp: otp null, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if(Utils.isNullOrEmpty(oOTPVM.id)){
+				RiseLog.warnLog("AuthResource.otp: otp id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if(Utils.isNullOrEmpty(oOTPVM.operation)){
+				RiseLog.warnLog("AuthResource.otp: otp operation null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if(Utils.isNullOrEmpty(oOTPVM.userProvidedCode)){
+				RiseLog.warnLog("AuthResource.otp: otp user provided code null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+    		
+			OTPRepository oOTPRepository = new OTPRepository();
+			
+			OTP oDbOTP = oOTPRepository.getOTP(oOTPVM.id);
+			if (oDbOTP == null) {
+				RiseLog.warnLog("AuthResource.otp: otp not found, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			
+			if (!oDbOTP.getUserId().equals(oOTPVM.userId)) {
+				RiseLog.warnLog("AuthResource.otp: otp user id does not match, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+			}			
+			
+			if (!oDbOTP.getOperation().equals(oOTPVM.operation)) {
+				RiseLog.warnLog("AuthResource.otp: otp operation does not match, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+			}
+			
+			if (!oDbOTP.getSecretCode().equals(oOTPVM.userProvidedCode)) {
+				RiseLog.warnLog("AuthResource.otp: otp code does not match, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+			}
+			
+			Double dNow = DateUtils.getNowAsDouble();
+			double dSpan = dNow - oDbOTP.getTimestamp();
+			dSpan /= 1000;
+			if (dSpan>RiseConfig.Current.security.maxConfirmationAgeSeconds) {
+				RiseLog.warnLog("AuthResource.otp: otp code too old, user not authenticated");
+				
+				oOTPRepository.delete(oOTPVM.id);
+				
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();								
+			}
+			
+			// If we are here, user, operation and code are the same!
+			oDbOTP.setValidated(true);
+			oOTPRepository.updateOPT(oDbOTP);
+			
+			RiseLog.infoLog("AuthResource.otp: operation authorized id: " + oOTPVM.id + " user: " + oOTPVM.userId + " Op: " + oOTPVM.operation);
+    		
+    		return Response.ok().build();
+    	}
+		catch (Exception oEx) {
+			RiseLog.errorLog("AuthResource.otp: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}    	
+    }
+    
+    
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("login_verify")
+    public Response login_verify(OTPVerifyViewModel oOTPVerifyVM) {
+    	
+    	try {
+    		
+    		ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.UNAUTHORIZED.getStatusCode());
+    		
+			// Validate inputs
+			if (oOTPVerifyVM == null) {
+				RiseLog.warnLog("AuthResource.login_verify: OTP info null, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if(Utils.isNullOrEmpty(oOTPVerifyVM.id)){
+				RiseLog.warnLog("AuthResource.login_verify: operation id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if(Utils.isNullOrEmpty(oOTPVerifyVM.userId)){
+				RiseLog.warnLog("AuthResource.login_verify: user Id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			
+			OTPRepository oOTPRepository = new OTPRepository();
+			
+			OTP oDbOTP = oOTPRepository.getOTP(oOTPVerifyVM.id);
+			
+			if (oDbOTP == null) {
+				RiseLog.warnLog("AuthResource.login_verify: otp not found, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			
+			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog("AuthResource.login_verify: otp user id does not match, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+			}
+			
+			if (!oDbOTP.isValidated()) {
+				RiseLog.warnLog("AuthResource.login_verify: otp not validated, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+			}
+			
+	    	// Check if we have a user
+	    	UserRepository oUserRepository =  new UserRepository();
+	    	User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
+	    	
+	    	if (oUser == null) {
+	    		RiseLog.warnLog("AuthResource.login_verify: user not found");
+	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+	    	}			
+			
+			oOTPRepository.delete(oOTPVerifyVM.id);
+	    	
+	    	RiseLog.debugLog("AuthResource.login_verify");	
+	    	
+	    	// Check if is confirmed
+	    	if (oUser.getConfirmationDate() == null) {
+	    		RiseLog.warnLog("AuthResource.login_verify: user not confirmed yet");
 	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();	    		
 	    	}
 	    	
 	    	oUser.setLastLoginDate(DateUtils.getNowAsDouble());
 	    	if (!oUserRepository.updateUser(oUser)) {
-	    		RiseLog.warnLog("UserResource.login: Error updating users' last login");
+	    		RiseLog.warnLog("AuthResource.login_verify: Error updating users' last login");
 	    	}
 	    	
 	    	double dLastPwChange = oUser.getLastPasswordUpdateDate();
@@ -108,7 +289,7 @@ public class UserResource {
 	    	dTimePassed /= 1000.0;
 	    	
 	    	if (dTimePassed>RiseConfig.Current.security.maxPasswordAgeSeconds) {
-	    		RiseLog.warnLog("UserResource.login: password expired for user " + oUserCredentialsVM.userId);
+	    		RiseLog.warnLog("AuthResource.login_verify: password expired for user " + oOTPVerifyVM.userId);
 	    		
 	    		oErrorViewModel = new ErrorViewModel(StringCodes.WARNING_API_PASSWORD_EXPIRED.name(), Status.TEMPORARY_REDIRECT.getStatusCode());
 	    		
@@ -121,7 +302,7 @@ public class UserResource {
 	    	oSession.setLoginDate(DateUtils.getDateAsDouble(new Date()));
 	    	oSession.setLastTouch(DateUtils.getDateAsDouble(new Date()));
 	    	oSession.setToken(Utils.getRandomName());
-	    	oSession.setUserId(oUserCredentialsVM.userId);
+	    	oSession.setUserId(oOTPVerifyVM.userId);
 	    	
 	    	SessionRepository oSessionRepository = new SessionRepository();
 	    	oSessionRepository.add(oSession);
@@ -133,10 +314,10 @@ public class UserResource {
 	    	return Response.ok(oSessionTokenViewModel).build();
     	}
 		catch (Exception oEx) {
-			RiseLog.errorLog("UserResource.login: " + oEx);
+			RiseLog.errorLog("AuthResource.login_verify: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
-    }
+    }    
     
     /**
      * Register a new user/organization
@@ -150,39 +331,39 @@ public class UserResource {
     	try {
     		
     		if (oRegisterVM == null) {
-				RiseLog.warnLog("UserResource.register: register info null");
+				RiseLog.warnLog("AuthResource.register: register info null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}
     		
     		if (oRegisterVM.admin == null) {
-				RiseLog.warnLog("UserResource.register: register admin null");
+				RiseLog.warnLog("AuthResource.register: register admin null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}
     		
     		if (oRegisterVM.organization == null) {
-				RiseLog.warnLog("UserResource.register: register organization null");
+				RiseLog.warnLog("AuthResource.register: register organization null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}
     		
     		if (oRegisterVM.organization.name == null) {
-				RiseLog.warnLog("UserResource.register: register organization name null");
+				RiseLog.warnLog("AuthResource.register: register organization name null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}    		
     		
     		if (oRegisterVM.admin.userId == null) {
-				RiseLog.warnLog("UserResource.register: register admin id null");
+				RiseLog.warnLog("AuthResource.register: register admin id null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}
     		
     		if (oRegisterVM.password == null) {
-				RiseLog.warnLog("UserResource.register: register password null");
+				RiseLog.warnLog("AuthResource.register: register password null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}
     		
     		PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
     		
     		if (!oPasswordAuthentication.isValidPassword(oRegisterVM.password)) {
-				RiseLog.warnLog("UserResource.register: password invalid");
+				RiseLog.warnLog("AuthResource.register: password invalid");
 				return Response.status(Status.BAD_REQUEST).build();		
     		}
     		
@@ -197,7 +378,7 @@ public class UserResource {
     		List<Organization> aoSameNameOrganizations = oOrganizationRepository.getOrganizationsByName(oRegisterVM.organization.name);
     		
     		if (aoSameNameOrganizations.size()>0) {
-    			RiseLog.errorLog("UserResource.register: there are already organization with this name, impossible to proceed");
+    			RiseLog.errorLog("AuthResource.register: there are already organization with this name, impossible to proceed");
     			asErrors.add(StringCodes.ERROR_API_ORG_ALREADY_EXISTS.name());
     			bConflict = true;
     		}
@@ -208,7 +389,7 @@ public class UserResource {
     		User oPotentialExistingUser = oUserRepository.getUser(oRegisterVM.admin.userId);
     		
     		if (oPotentialExistingUser == null) {
-    			RiseLog.errorLog("UserResource.register: there are already a user with this name, impossible to proceed");
+    			RiseLog.errorLog("AuthResource.register: there are already a user with this name, impossible to proceed");
     			asErrors.add(StringCodes.ERROR_API_ORG_ALREADY_EXISTS.name());
     			bConflict = true;    			
     		}
@@ -287,22 +468,22 @@ public class UserResource {
     		return Response.ok().build();
     	}
 		catch (Exception oEx) {
-			RiseLog.errorLog("UserResource.register: " + oEx);
+			RiseLog.errorLog("AuthResource.register: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
     }
     
     @GET
-    @Path("confirmadm")
+    @Path("confirm_adm")
     public Response confirmAdminUser(@QueryParam("code") String sConfirmationCode, @QueryParam("usr") String sUserId) {
     	try {
     		if (Utils.isNullOrEmpty(sUserId)) {
-				RiseLog.warnLog("UserResource.confirmAdminUser: user id null");
+				RiseLog.warnLog("AuthResource.confirmAdminUser: user id null");
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
     		
     		if (Utils.isNullOrEmpty(sConfirmationCode)) {
-				RiseLog.warnLog("UserResource.confirmAdminUser: confirmation code null");
+				RiseLog.warnLog("AuthResource.confirmAdminUser: confirmation code null");
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
     		
@@ -310,12 +491,12 @@ public class UserResource {
     		User oUser = oUserRepository.getUser(sUserId);
     		
     		if (oUser == null) {
-				RiseLog.warnLog("UserResource.confirmAdminUser: cannot find user " + sUserId);
+				RiseLog.warnLog("AuthResource.confirmAdminUser: cannot find user " + sUserId);
 				return Response.status(Status.BAD_REQUEST).build();    			    			
     		}
     		
     		if (!oUser.getConfirmationCode().equals(sConfirmationCode)) {
-				RiseLog.warnLog("UserResource.confirmAdminUser: wrong confirmation code " + sConfirmationCode);
+				RiseLog.warnLog("AuthResource.confirmAdminUser: wrong confirmation code " + sConfirmationCode);
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
     		
@@ -323,7 +504,7 @@ public class UserResource {
     		double dNow = DateUtils.getNowAsDouble();
     		
     		if ((dNow-dRegistrationDate)> ( RiseConfig.Current.security.maxConfirmationAgeSeconds * 1000 ) ) {
-				RiseLog.warnLog("UserResource.confirmAdminUser: expired confirmation code " + sConfirmationCode);
+				RiseLog.warnLog("AuthResource.confirmAdminUser: expired confirmation code " + sConfirmationCode);
 				return Response.status(Status.FORBIDDEN).build();    			
     		}
     		
@@ -333,7 +514,7 @@ public class UserResource {
     		return Response.ok().build();
     	}
 		catch (Exception oEx) {
-			RiseLog.errorLog("UserResource.confirmAdminUser: " + oEx);
+			RiseLog.errorLog("AuthResource.confirmAdminUser: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
     }

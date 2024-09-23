@@ -338,7 +338,18 @@ public class MongoRepository {
 		}
 		return sResult;
 	}
-
+	
+	/**
+	 * Delete using default id key
+	 * @param sId
+	 * @return
+	 */
+	public int delete(String sId) {
+		BasicDBObject oCriteria = new BasicDBObject();
+		oCriteria.append("id", sId);
+		return delete(oCriteria);
+	}
+	
 	/**
 	 * Deletes an object that match the criteria in the repo default collection
 	 * @param oCriteria Mongo db Criteria
