@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import rise.lib.utils.Utils;
 
-public class ErrorViewModel {
+public class ErrorViewModel extends RiseViewModel {
 	
 	public ErrorViewModel() {
 		

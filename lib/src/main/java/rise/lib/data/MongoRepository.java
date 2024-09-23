@@ -442,6 +442,18 @@ public class MongoRepository {
         return  false;
     }
 	
+	/**
+	 * Delete using default id key
+	 * @param sId
+	 * @return
+	 */
+	public Object get(String sId) {
+		BasicDBObject oCriteria = new BasicDBObject();
+		oCriteria.append("id", sId);
+		return get(oCriteria);
+	}
+	
+	
     /**
      * Get a document from the collection
      * @param oNewDocument Object to add

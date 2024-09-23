@@ -55,7 +55,7 @@ public class MailUtils {
 				oMessage.setTilte(sTitle);
 				
 				if (Utils.isNullOrEmpty(sSender)) {
-					sSender = RiseConfig.Current.notifications.sftpManagementMailSender;
+					sSender = RiseConfig.Current.notifications.riseAdminMail;
 					if (Utils.isNullOrEmpty(sSender)) {
 						sSender = "info@wasdi.net";
 					}

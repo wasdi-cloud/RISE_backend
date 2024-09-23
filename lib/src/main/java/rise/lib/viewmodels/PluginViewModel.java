@@ -1,6 +1,6 @@
 package rise.lib.viewmodels;
 
-public class PluginViewModel {
+public class PluginViewModel extends RiseViewModel {
 	private String id;
 	
 	private String name;

@@ -8,6 +8,8 @@ public class SecurityConfig {
 	
 	public int minPwLenght = 8;
 	
+	public int minUserIdLenght = 8;
+	
 	public boolean mustMixUpperLowerCase = true;
 	
 	public boolean mustContainNumber = true;
@@ -17,4 +19,6 @@ public class SecurityConfig {
 	public double maxOTPAgeSeconds = 60*30;
 	
 	public String inviteConfirmAddress = "rise.wasdi.net/user/confirm";
+	
+	public String registerConfirmAddress = "rise.wasdi.net/user/confirm";
 }

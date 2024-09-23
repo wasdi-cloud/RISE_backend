@@ -1,9 +1,18 @@
 package rise.lib.data;
 
-import com.mongodb.BasicDBObject;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.bson.Document;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
+
+import rise.lib.business.Organization;
 import rise.lib.business.User;
 import rise.lib.utils.Utils;
+import rise.lib.utils.log.RiseLog;
 
 public class UserRepository extends MongoRepository {
 	
@@ -41,7 +50,7 @@ public class UserRepository extends MongoRepository {
 		return update(oCriteria, oUser);
 	}
 	
-	public User getUserByEmain(String sUserEmail) {
+	public User getUserByEmail(String sUserEmail) {
 		
 		if (Utils.isNullOrEmpty(sUserEmail)) return null;
 		
@@ -50,5 +59,24 @@ public class UserRepository extends MongoRepository {
 
         return (User) get(oCriteria);		
 	}	
+	
+	public List<User> getAdminsOfOrganization(String sOrganizationId) {
+		
+    	List<User> aoReturnList = new ArrayList<User>();
+
+        try {
+
+        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("organizationId", sOrganizationId));        	
+        	
+        	fillList(aoReturnList, oWSDocument, User.class);
+        	
+        	return aoReturnList;
+        	
+        } catch (Exception oEx) {
+        	RiseLog.errorLog("UserRepository.getAdminsOfOrganization: error", oEx);
+        }
+
+        return aoReturnList;	
+	}		
 	
 }

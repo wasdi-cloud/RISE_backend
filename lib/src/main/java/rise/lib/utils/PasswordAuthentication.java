@@ -153,7 +153,19 @@ public final class PasswordAuthentication
 		  }
 		  
 		  return true;
-
+	  }
+	  
+	  /**
+	   * Check if it is a valid User Id
+	   * @param sUserId
+	   * @return
+	   */
+	  public boolean isValidUserId(String sUserId) {
+		  if (Utils.isNullOrEmpty(sUserId)) return false;
+		  
+		  if (sUserId.length()<RiseConfig.Current.security.minUserIdLenght) return false;
+		  
+		  return true;
 	  }
 
 }

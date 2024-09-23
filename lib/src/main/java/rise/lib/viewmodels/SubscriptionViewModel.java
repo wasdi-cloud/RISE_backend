@@ -2,7 +2,7 @@ package rise.lib.viewmodels;
 
 import rise.lib.business.PaymentType;
 
-public class SubscriptionViewModel {
+public class SubscriptionViewModel extends RiseViewModel  {
 	public String id;
 	
 	public String organizationId;

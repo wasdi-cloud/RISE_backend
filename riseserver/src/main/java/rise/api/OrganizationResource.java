@@ -83,7 +83,7 @@ public class OrganizationResource {
     		// Check if we have an existing user with same user id
     		UserRepository oUserRepository = new UserRepository();
     		
-    		User oPotentialExistingUser = oUserRepository.getUserByEmain(oInviteVM.email);
+    		User oPotentialExistingUser = oUserRepository.getUserByEmail(oInviteVM.email);
     		
     		if (oPotentialExistingUser != null) {
     			RiseLog.errorLog("OrganizationResource.invite: there are already a user with this mail, impossible to proceed");
@@ -131,9 +131,11 @@ public class OrganizationResource {
     		return Response.ok().build();
     	}
 		catch (Exception oEx) {
-			RiseLog.errorLog("AuthResource.register: " + oEx);
+			RiseLog.errorLog("OrganizationResource.invite: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
     }
+    
+    
     	
 }

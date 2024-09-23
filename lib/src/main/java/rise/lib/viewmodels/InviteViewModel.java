@@ -2,7 +2,7 @@ package rise.lib.viewmodels;
 
 import rise.lib.business.UserRole;
 
-public class InviteViewModel {
+public class InviteViewModel extends RiseViewModel {
 	
 	public String email;
 		

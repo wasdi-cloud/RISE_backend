@@ -30,6 +30,7 @@ import rise.lib.utils.i8n.LangUtils;
 import rise.lib.utils.i8n.Languages;
 import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
+import rise.lib.viewmodels.ConfirmInviteViewModel;
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.OTPVerifyViewModel;
 import rise.lib.viewmodels.OTPViewModel;
@@ -372,6 +373,11 @@ public class AuthResource {
 				return Response.status(Status.BAD_REQUEST).build();		
     		}
     		
+    		if (!oPasswordAuthentication.isValidUserId(oRegisterVM.admin.userId)) {
+				RiseLog.warnLog("AuthResource.register: user Id invalid");
+				return Response.status(Status.BAD_REQUEST).build();		
+    		}
+    		
     		// Check if we have a conflict in org or user name
     		boolean bConflict = false;
     		
@@ -399,7 +405,7 @@ public class AuthResource {
     			bConflict = true;    			
     		}
     		
-    		oPotentialExistingUser = oUserRepository.getUserByEmain(oRegisterVM.admin.email);
+    		oPotentialExistingUser = oUserRepository.getUserByEmail(oRegisterVM.admin.email);
     		
     		if (oPotentialExistingUser != null) {
     			RiseLog.errorLog("AuthResource.register: there are already a user with this email, impossible to proceed");
@@ -467,10 +473,9 @@ public class AuthResource {
     		
     		
     		// Generate the confirmation Link
-    		String sLink = RiseConfig.Current.serverApiAddress;
+    		String sLink = RiseConfig.Current.security.registerConfirmAddress;
     		
-    		if (!sLink.endsWith("/")) sLink += "/";
-    		sLink += "user/confirm_adm?code=" + sConfirmationCode + "&usr=" + oAdminUser.getUserId();
+    		sLink += "?code=" + sConfirmationCode + "&usr=" + oAdminUser.getUserId();
     		
     		// We replace the link in the message
     		sMessage = sMessage.replace("%%LINK%%", sLink);
@@ -532,5 +537,123 @@ public class AuthResource {
 		}
     }
     
+    
+    @POST
+    @Path("confirm_usr")
+    public Response confirmInvitedUser(ConfirmInviteViewModel oConfirmVM) {
+    	try {
+    		
+    		// Check we have VM
+    		if (oConfirmVM == null) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: confirm VM null");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		// Need mail
+    		if (Utils.isNullOrEmpty(oConfirmVM.mail)) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: user mail null");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		// And code 
+    		if (Utils.isNullOrEmpty(oConfirmVM.code)) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: confirmation code null");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		// And user Id
+    		if (Utils.isNullOrEmpty(oConfirmVM.userId)) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: user id null");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		// The user should already be here
+    		UserRepository oUserRepository = new UserRepository();
+    		User oUser = oUserRepository.getUser(oConfirmVM.mail);
+    		
+    		if (oUser == null) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: cannot find user " + oConfirmVM.mail);
+				return Response.status(Status.BAD_REQUEST).build();    			    			
+    		}
+    		
+    		PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
+    		
+    		if (!oPasswordAuthentication.isValidPassword(oConfirmVM.password)) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: password invalid");
+				return Response.status(Status.BAD_REQUEST).build();		
+    		}
+    		
+    		if (!oPasswordAuthentication.isValidUserId(oConfirmVM.userId)) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: user Id invalid");
+				return Response.status(Status.BAD_REQUEST).build();		
+    		}    		
+    		
+    		User oPotentialExistingUser = oUserRepository.getUser(oConfirmVM.userId);
+    		
+    		if (oPotentialExistingUser != null) {
+    			RiseLog.errorLog("AuthResource.register: there are already a user with this email, impossible to proceed");
+    			ArrayList<String> asErrors = new ArrayList<>();
+    			asErrors.add(StringCodes.ERROR_API_MAIL_ALREADY_EXISTS.name());
+    			ErrorViewModel oErrorViewModel = new ErrorViewModel(asErrors, Status.CONFLICT.getStatusCode());
+    			return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();    			
+    		}    		
+    		    		
+    		if (oConfirmVM.acceptedPrivacy == false || oConfirmVM.acceptedTermsAndConditions == false) {
+    			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_MISSING_ACCEPT_TERMS_AND_PRIVACY.name(), Status.CONFLICT.getStatusCode());
+    			return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();    			
+    		}    		
+    		
+    		// The confirmation code should be the same
+    		if (!oUser.getConfirmationCode().equals(oConfirmVM.code)) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: wrong confirmation code " + oConfirmVM.code);
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		double dRegistrationDate = oUser.getRegistrationDate();
+    		double dNow = DateUtils.getNowAsDouble();
+    		
+    		if ((dNow-dRegistrationDate)> ( RiseConfig.Current.security.maxConfirmationAgeSeconds * 1000 ) ) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: expired confirmation code ");
+				ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_CONFIRM_EXPIRED.name(), Status.CONFLICT.getStatusCode());
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();    			
+    		}
+    		    		
+    		oUser = (User) RiseViewModel.copyToEntity(User.class.getName(), oConfirmVM);
+    		oUser.setConfirmationDate(dNow);
+    		oUser.setLastLoginDate(dNow);
+    		
+    		oUserRepository.updateUser(oUser);
+    		
+    		// Get localized title and message
+    		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_TITLE.name() , Languages.EN.name());
+    		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_MESSAGE.name() , Languages.EN.name());
+    		
+    		// We set the new user registerd mail
+    		sMessage = sMessage.replace("%%USER%%", oConfirmVM.mail);
+    		
+    		// Get the mails ofthe organizers
+    		List<User> aoAdmins = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
+    		String sAdmins = "";
+    		for (User oAdmin : aoAdmins) {
+    			sAdmins += oAdmin.getEmail() + ";";
+			}
+    		
+    		// Send!
+    		MailUtils.sendEmail(sAdmins, sTitle, sMessage);
+
+    		// Write also to WASDI Admins
+    		sTitle = "New RISE User";
+    		sMessage = "Added user to RISE " + oConfirmVM.mail;
+    		
+    		// Just send!
+    		MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, sTitle, sMessage);
+
+    		return Response.ok().build();
+    	}
+		catch (Exception oEx) {
+			RiseLog.errorLog("AuthResource.confirmInvitedUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+    }
 
 }

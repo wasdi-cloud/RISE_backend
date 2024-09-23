@@ -14,33 +14,6 @@ public class NotificationsConfig {
 	public String mercuriusAPIAddress;
 	
 	/**
-	 * Title of the mail for password recovery
-	 */
-	public String pwRecoveryMailTitle;
-	
-	/**
-	 * Sender of the mail for password recovery
-	 */
-	public String pwRecoveryMailSender;
-	
-	/**
-	 * Text of the mail for password recovery
-	 */
-	public String pwRecoveryMailText;
-	
-	/**
-	 * Title of the mail for a new sftp account 
-	 */
-	public String sftpMailTitle;
-	/**
-	 * Sender of the mail for a new sftp account
-	 */
-	public String sftpManagementMailSender;
-	/**
-	 * Text of the mail for a new sftp account
-	 */
-	public String sftpMailText;
-	/**
 	 * Declared WASDI admin mail
 	 */
 	public String riseAdminMail;

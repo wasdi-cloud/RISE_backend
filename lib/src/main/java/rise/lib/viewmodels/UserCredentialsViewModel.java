@@ -1,6 +1,6 @@
 package rise.lib.viewmodels;
 
-public class UserCredentialsViewModel {
+public class UserCredentialsViewModel extends RiseViewModel {
 	
 	public String userId;
 	
