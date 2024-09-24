@@ -7,4 +7,6 @@ public class AreaListViewModel extends RiseViewModel {
 	public String bbox;
 	
 	public boolean supportArchive;
+	
+	public String markerCoordinates;
 }

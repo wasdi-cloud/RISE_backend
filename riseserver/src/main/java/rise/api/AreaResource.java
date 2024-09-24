@@ -3,6 +3,7 @@ package rise.api;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -13,14 +14,19 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
+import rise.lib.business.Subscription;
 import rise.lib.business.User;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
+import rise.lib.utils.date.DateUtils;
+import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.AreaListViewModel;
 import rise.lib.viewmodels.AreaViewModel;
+import rise.lib.viewmodels.ErrorViewModel;
+import rise.lib.viewmodels.OverlappingAreaViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.lib.viewmodels.UserOfAreaViewModel;
 
@@ -87,12 +93,6 @@ public class AreaResource {
 				return Response.status(Status.UNAUTHORIZED).build();    			
     		}
     		
-    		// We need an admin here!
-    		if (!PermissionsUtils.hasHQRights(oUser)) {
-				RiseLog.warnLog("AreaResource.getById: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();      			
-    		}
-    		
     		if (Utils.isNullOrEmpty(sId)) {
 				RiseLog.warnLog("AreaResource.getById: id null");
 				return Response.status(Status.BAD_REQUEST).build();      			    			
@@ -105,6 +105,11 @@ public class AreaResource {
     		if (oArea == null) {
 				RiseLog.warnLog("AreaResource.getById: area " + sId + " not found");
 				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("AreaResource.getById: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();     			
     		}
     		
     		AreaViewModel oAreaViewModel = (AreaViewModel) RiseViewModel.getFromEntity(AreaViewModel.class.getName(), oArea);
@@ -154,6 +159,11 @@ public class AreaResource {
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
     		
+    		if (!PermissionsUtils.canUserAccessArea(oFromDbArea, oUser)) {
+				RiseLog.warnLog("AreaResource.update: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();     			
+    		}    		
+    		
     		// Create the updated entity
     		Area oArea = (Area) RiseViewModel.copyToEntity(Area.class.getName(), oAreaViewModel);
     		
@@ -170,6 +180,59 @@ public class AreaResource {
     		else {
     			return Response.ok().build();
     		}
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("AreaResource.update: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}		
+	}
+	
+	@POST
+	public Response add(@HeaderParam("x-session-token") String sSessionId, AreaViewModel oAreaViewModel) {
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+			
+    		if (oUser == null) {
+				RiseLog.warnLog("AreaResource.add: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();    			
+    		}
+    		
+    		if (!PermissionsUtils.hasHQRights(oUser)) {
+				RiseLog.warnLog("AreaResource.add: not an HQ level");
+				return Response.status(Status.UNAUTHORIZED).build();      			
+    		}
+    		
+    		if (oAreaViewModel == null) {
+				RiseLog.warnLog("AreaResource.add: Area null");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		Subscription oValidSubscription = PermissionsUtils.getValidSubscription(oUser);
+    		
+    		if (oValidSubscription==null) {
+    			RiseLog.warnLog("AreaResource.add: user " + oUser.getUserId() + " does not have a valid subscription");
+    			ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
+    			return Response.status(Status.FORBIDDEN).entity(oError).build();
+    		}
+			
+    		// Check if we have this subscription
+    		AreaRepository oAreaRepository = new AreaRepository();
+    		
+    		// Create the updated entity
+    		Area oArea = (Area) RiseViewModel.copyToEntity(Area.class.getName(), oAreaViewModel);
+    		
+    		Double dNow = DateUtils.getNowAsDouble();
+    		oArea.setCreationDate(dNow);
+    		oArea.setId(Utils.getRandomName());
+    		oArea.setSubscriptionId(oValidSubscription.getId());
+    		
+    		// Create it
+    		oAreaRepository.add(oArea);
+    		
+    		AreaViewModel oNewAreaViewModel = (AreaViewModel) RiseViewModel.getFromEntity(AreaViewModel.class.getName(), oArea);
+    		
+    		return Response.ok(oNewAreaViewModel).build();
 		}
 		catch (Exception oEx) {
 			RiseLog.errorLog("AreaResource.update: " + oEx);
@@ -209,6 +272,11 @@ public class AreaResource {
 				RiseLog.warnLog("AreaResource.getUsers: area " + sId + " not found");
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
+    		
+    		if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("AreaResource.getUsers: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();     			
+    		}    		
     		
     		UserRepository oUserRepository = new UserRepository();
     		
@@ -285,6 +353,11 @@ public class AreaResource {
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
     		
+    		if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("AreaResource.addUser: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();     			
+    		}        		
+    		
     		UserRepository oUserRepository = new UserRepository();
     		User oFieldUser = oUserRepository.getUser(oUserToAdd.userId);
     		
@@ -305,9 +378,99 @@ public class AreaResource {
 			return Response.ok().build();
     	}
 		catch (Exception oEx) {
-			RiseLog.errorLog("AreaResource.getById: " + oEx);
+			RiseLog.errorLog("AreaResource.addUser: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}		
+	
+	@DELETE
+	@Path("users")
+	public Response deleteUser(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId, UserOfAreaViewModel oUserToDelete) {
+		
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+			
+    		if (oUser == null) {
+				RiseLog.warnLog("AreaResource.deleteUser: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();    			
+    		}
+    		
+    		// We need an admin here!
+    		if (!PermissionsUtils.hasHQRights(oUser)) {
+				RiseLog.warnLog("AreaResource.deleteUser: not an HQ level");
+				return Response.status(Status.UNAUTHORIZED).build();      			
+    		}
+    		
+    		if (Utils.isNullOrEmpty(sId)) {
+				RiseLog.warnLog("AreaResource.deleteUser: id null");
+				return Response.status(Status.BAD_REQUEST).build();      			    			
+    		}
+    		
+    		if (oUserToDelete==null) {
+				RiseLog.warnLog("AreaResource.deleteUser: user view model null");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		if (Utils.isNullOrEmpty(oUserToDelete.userId)) {
+				RiseLog.warnLog("AreaResource.deleteUser: user view model has user id null");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		// Get the this area
+    		AreaRepository oAreaRepository = new AreaRepository();
+    		Area oArea = (Area) oAreaRepository.get(sId);
+    		
+    		if (oArea == null) {
+				RiseLog.warnLog("AreaResource.deleteUser: area " + sId + " not found");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("AreaResource.deleteUser: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();     			
+    		}     		
+    		
+    		UserRepository oUserRepository = new UserRepository();
+    		User oFieldUser = oUserRepository.getUser(oUserToDelete.userId);
+    		
+    		if (oFieldUser == null) {
+				RiseLog.warnLog("AreaResource.deleteUser: user " + oUserToDelete.userId + " not found");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		if (!oArea.getFieldOperators().contains(oFieldUser.getUserId())) {
+				RiseLog.warnLog("AreaResource.deleteUser: user " + oUserToDelete.userId + " is already not in the area");
+				return Response.ok().build();    			
+    		}
+    		
+    		oArea.getFieldOperators().remove(oUserToDelete.userId);
+    		oAreaRepository.update(oArea);
+    
+			// return the list to the client
+			return Response.ok().build();
+    	}
+		catch (Exception oEx) {
+			RiseLog.errorLog("AreaResource.deleteUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+	
+	@POST
+	@Path("check_area")
+	public Response getOverlappingAreas(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId, AreaViewModel oArea) {
+		
+		try {
+			ArrayList<OverlappingAreaViewModel> aoOverlappingAreas = new ArrayList<>();
+			
+			// TODO
+			
+			return Response.ok(aoOverlappingAreas).build();
+    	}
+		catch (Exception oEx) {
+			RiseLog.errorLog("AreaResource.deleteUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 
 }
