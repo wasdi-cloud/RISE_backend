@@ -1,9 +1,10 @@
 package rise.lib.viewmodels;
 
+import java.util.ArrayList;
+
 import rise.lib.business.PaymentType;
 
 public class SubscriptionViewModel extends RiseViewModel  {
-	public String id;
 	
 	public String organizationId;
 	
@@ -28,4 +29,6 @@ public class SubscriptionViewModel extends RiseViewModel  {
 	public String currency;
 	
 	public boolean supportsArchive;
+	
+	public ArrayList<String> plugins;
 }

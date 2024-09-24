@@ -21,6 +21,7 @@ import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
+import rise.lib.business.RiseEntity;
 import rise.lib.config.RiseConfig;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
@@ -406,6 +407,12 @@ public class MongoRepository {
         }
 
         return 0;
+	}
+	
+	public boolean update(RiseEntity oNewDocument) {
+		BasicDBObject oCriteria = new BasicDBObject();
+		oCriteria.append("id", oNewDocument.getId());
+		return update(oCriteria, oNewDocument);
 	}
 	
 	/**

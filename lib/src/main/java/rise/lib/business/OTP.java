@@ -1,7 +1,6 @@
 package rise.lib.business;
 
-public class OTP {
-	private String id;
+public class OTP extends RiseEntity {
 	
 	private String userId;
 	
@@ -12,14 +11,6 @@ public class OTP {
 	private String operation;
 	
 	private Double timestamp;
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	public String getUserId() {
 		return userId;

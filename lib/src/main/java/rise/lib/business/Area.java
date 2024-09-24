@@ -2,9 +2,7 @@ package rise.lib.business;
 
 import java.util.ArrayList;
 
-public class Area {
-	
-	private String id;
+public class Area extends RiseEntity {
 	
 	private String name;
 	
@@ -29,14 +27,6 @@ public class Area {
 	private Double archiveStartDate;
 	
 	private Double archiveEndDate;
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	public String getName() {
 		return name;

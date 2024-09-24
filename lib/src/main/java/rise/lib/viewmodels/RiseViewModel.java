@@ -3,15 +3,31 @@ package rise.lib.viewmodels;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import rise.lib.business.RiseEntity;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
 
+/**
+ * Parent of all the RISE View Models
+ */
 public class RiseViewModel {
+	
+	/**
+	 * Default Id
+	 */
+	public String id;
 	
 	public RiseViewModel() {
 		
 	}
 	
+	/**
+	 * Find the setter method starting from the name of the corresponding 
+	 * getter method
+	 * @param aoMethods
+	 * @param sGetterName
+	 * @return
+	 */
 	protected Method getSetterFromGetter(Method [] aoMethods, String sGetterName)  {
 		try {
 			
@@ -52,7 +68,7 @@ public class RiseViewModel {
 	 * @param oEntity Instance of the entity to copy fields from
 	 * @return An Instance of the View Model with the fields that match naming convention filled
 	 */
-	public static Object getFromEntity(String sViewModelClass, Object oEntity) {
+	public static Object getFromEntity(String sViewModelClass, RiseEntity oEntity) {
 		
 		try {
 			Object oViewModel = (Object) Class.forName(sViewModelClass).getDeclaredConstructor().newInstance();

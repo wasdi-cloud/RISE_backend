@@ -1,17 +1,18 @@
 package rise.lib.viewmodels;
 
 public class PluginViewModel extends RiseViewModel {
-	private String id;
 	
-	private String name;
+	public String name;
 	
-	private String shortDescription;
+	public String shortDescription;
 	
-	private String longDescription;
+	public String longDescription;
 	
-	private boolean supportArchive;
+	public boolean supportArchive;
 	
-	private Double archivePrice;
+	public Double archivePrice;
 	
-	private Double emergencyPrice;
+	public Double emergencyPrice;
+	
+	public String stringCode;
 }

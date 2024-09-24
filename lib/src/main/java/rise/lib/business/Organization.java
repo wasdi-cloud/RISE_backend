@@ -1,8 +1,6 @@
 package rise.lib.business;
 
-public class Organization {
-	
-	private String id;
+public class Organization extends RiseEntity {
 	
 	private String name;
 	
@@ -102,14 +100,6 @@ public class Organization {
 
 	public void setVat(String vat) {
 		this.vat = vat;
-	}
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
 	}
 		
 }

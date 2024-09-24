@@ -1,6 +1,6 @@
 package rise.lib.business;
 
-public class Session {
+public class Session extends RiseEntity {
 	
     /**
      * Unique session ID

@@ -1,8 +1,6 @@
 package rise.lib.business;
 
-public class Event {
-	
-	private String id;
+public class Event extends RiseEntity {
 
 	private String name;
 	
@@ -15,14 +13,6 @@ public class Event {
 	private double endDate;
 	
 	private double peakDate;
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	public String getName() {
 		return name;

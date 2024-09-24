@@ -1,6 +1,6 @@
 package rise.lib.business;
 
-public class User {
+public class User extends RiseEntity {
 	
 	private String userId;
 	

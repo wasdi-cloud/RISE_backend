@@ -2,9 +2,7 @@ package rise.lib.business;
 
 import java.util.ArrayList;
 
-public class Plugin {
-	
-	private String id;
+public class Plugin extends RiseEntity {
 	
 	private String name;
 	
@@ -17,6 +15,8 @@ public class Plugin {
 	private Double archivePrice;
 	
 	private Double emergencyPrice;
+	
+	private String stringCode;
 	
 	private ArrayList<String> maps = new ArrayList<>(); 
 
@@ -82,5 +82,13 @@ public class Plugin {
 
 	public void setMaps(ArrayList<String> maps) {
 		this.maps = maps;
+	}
+
+	public String getStringCode() {
+		return stringCode;
+	}
+
+	public void setStringCode(String stringCode) {
+		this.stringCode = stringCode;
 	}
 }
