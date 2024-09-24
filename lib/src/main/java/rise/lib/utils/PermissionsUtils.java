@@ -103,7 +103,7 @@ public class PermissionsUtils {
 	public static boolean canUserAccessArea(String sAreaId, User oUser) {
 		AreaRepository oAreaRepository = new AreaRepository();
 		Area oArea = (Area) oAreaRepository.get(sAreaId);
-		return canUserAccessArea(oArea);
+		return canUserAccessArea(oArea, oUser);
 	}
 	
 	public static boolean canUserAccessArea(Area oArea, User oUser) {

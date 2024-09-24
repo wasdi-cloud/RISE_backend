@@ -134,7 +134,6 @@ public class AreaResource {
 				return Response.status(Status.UNAUTHORIZED).build();    			
     		}
     		
-    		// We need an admin here!
     		if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("AreaResource.update: not an HQ level");
 				return Response.status(Status.UNAUTHORIZED).build();      			
