@@ -1,5 +1,7 @@
 package rise.lib.viewmodels;
 
+import java.util.ArrayList;
+
 public class AreaViewModel extends RiseViewModel  {
 
 	/**
@@ -26,4 +28,8 @@ public class AreaViewModel extends RiseViewModel  {
 	public Double archiveStartDate;
 	
 	public Double archiveEndDate;
+	
+	public ArrayList<String> plugins = new ArrayList<>();
+	
+	public ArrayList<String> fieldOperators = new ArrayList<>();
 }

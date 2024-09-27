@@ -187,6 +187,7 @@ public class SubscriptionResource {
     		Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(), oSubscriptionViewModel);
     		
     		// We do not want to be cheated: the buy date, exire date and valid flag DOES NOT come from the client!
+    		oSubscription.setCreationDate(oFromDbSub.getCreationDate());
     		oSubscription.setBuyDate(oFromDbSub.getBuyDate());
     		oSubscription.setExpireDate(oFromDbSub.getExpireDate());
     		oSubscription.setValid(oFromDbSub.isValid());

@@ -231,6 +231,7 @@ public class AreaResource {
     		oArea.setCreationDate(dNow);
     		oArea.setId(Utils.getRandomName());
     		oArea.setSubscriptionId(oValidSubscription.getId());
+    		oArea.setOrganizationId(oUser.getOrganizationId());
     		
     		// Create it
     		oAreaRepository.add(oArea);

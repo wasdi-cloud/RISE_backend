@@ -16,6 +16,8 @@ public class Area extends RiseEntity {
 	
 	private String subscriptionId;
 	
+	private String organizationId;
+	
 	private String bbox;
 	
 	private String markerCoordinates;
@@ -132,6 +134,14 @@ public class Area extends RiseEntity {
 
 	public void setArchiveEndDate(Double archiveEndDate) {
 		this.archiveEndDate = archiveEndDate;
+	}
+
+	public String getOrganizationId() {
+		return organizationId;
+	}
+
+	public void setOrganizationId(String organizationId) {
+		this.organizationId = organizationId;
 	}
 	
 
