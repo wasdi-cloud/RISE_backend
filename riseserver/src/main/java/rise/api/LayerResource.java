@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
@@ -26,6 +28,7 @@ import rise.lib.viewmodels.RiseViewModel;
 public class LayerResource {
 	
 	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getLayer(@HeaderParam("x-session-token") String sSessionId, @QueryParam("map_id") String sMapId, @QueryParam("area_id") String sAreaId, @QueryParam("date") long lDate) {
 		try {
 			// Check the session

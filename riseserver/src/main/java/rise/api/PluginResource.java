@@ -6,6 +6,8 @@ import java.util.List;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
@@ -21,6 +23,7 @@ public class PluginResource {
 	
 	@GET
 	@Path("list")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getList(@HeaderParam("x-session-token") String sSessionId) {
 		try {
 			// Check the session

@@ -8,7 +8,9 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
@@ -17,7 +19,6 @@ import rise.lib.business.Plugin;
 import rise.lib.business.Subscription;
 import rise.lib.business.SubscriptionType;
 import rise.lib.business.User;
-import rise.lib.business.UserRole;
 import rise.lib.data.PluginRepository;
 import rise.lib.data.SubscriptionRepository;
 import rise.lib.data.SubscriptionTypeRepository;
@@ -42,6 +43,7 @@ public class SubscriptionResource {
 	 */
 	@GET
 	@Path("list")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getList(@HeaderParam("x-session-token") String sSessionId, @QueryParam("valid") Boolean bValid) {
 		
 		try {
@@ -95,6 +97,7 @@ public class SubscriptionResource {
 	 * @return
 	 */
 	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getById(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId) {
 		
 		try {
@@ -144,6 +147,7 @@ public class SubscriptionResource {
 	 * @return
 	 */
 	@PUT
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response update(@HeaderParam("x-session-token") String sSessionId, SubscriptionViewModel oSubscriptionViewModel) {
 		try {
 			// Check the session
@@ -240,6 +244,7 @@ public class SubscriptionResource {
 	 */
 	@POST
 	@Path("price")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getPrice(@HeaderParam("x-session-token") String sSessionId, SubscriptionViewModel oSubscriptionViewModel) {
 		try {
 			// Check the session
@@ -281,6 +286,7 @@ public class SubscriptionResource {
 	 */
 	@GET
 	@Path("types")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getTypes(@HeaderParam("x-session-token") String sSessionId) {
 		try {
 			// Check the session
@@ -317,6 +323,7 @@ public class SubscriptionResource {
 	
 	
 	@POST
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response buy(@HeaderParam("x-session-token") String sSessionId, SubscriptionViewModel oSubscriptionViewModel) {
 		try {
 			

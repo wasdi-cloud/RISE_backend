@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
@@ -27,6 +29,7 @@ public class MapResource {
 
 	@GET
 	@Path("by_area")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getMapsForArea(@HeaderParam("x-session-token") String sSessionId, @QueryParam("area_id") String sAreaId) {
 		try {
 			// Check the session

@@ -507,6 +507,7 @@ public class AuthResource {
     
     @GET
     @Path("confirm_adm")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response confirmAdminUser(@QueryParam("code") String sConfirmationCode, @QueryParam("usr") String sUserId) {
     	try {
     		if (Utils.isNullOrEmpty(sUserId)) {
@@ -554,6 +555,7 @@ public class AuthResource {
     
     @POST
     @Path("confirm_usr")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response confirmInvitedUser(ConfirmInviteViewModel oConfirmVM) {
     	try {
     		
@@ -583,7 +585,7 @@ public class AuthResource {
     		
     		// The user should already be here
     		UserRepository oUserRepository = new UserRepository();
-    		User oUser = oUserRepository.getUser(oConfirmVM.mail);
+    		User oUser = oUserRepository.getUserByEmail(oConfirmVM.mail);
     		
     		if (oUser == null) {
 				RiseLog.warnLog("AuthResource.confirmInvitedUser: cannot find user " + oConfirmVM.mail);

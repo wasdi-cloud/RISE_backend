@@ -9,7 +9,9 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
@@ -35,6 +37,7 @@ public class AreaResource {
 	
 	@GET
 	@Path("list")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getList(@HeaderParam("x-session-token") String sSessionId) {
 		
 		try {
@@ -82,6 +85,7 @@ public class AreaResource {
 	 * @return
 	 */
 	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getById(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId) {
 		
 		try {
@@ -124,6 +128,7 @@ public class AreaResource {
 	}	
 	
 	@PUT
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response update(@HeaderParam("x-session-token") String sSessionId, AreaViewModel oAreaViewModel) {
 		try {
 			// Check the session
@@ -187,6 +192,7 @@ public class AreaResource {
 	}
 	
 	@POST
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response add(@HeaderParam("x-session-token") String sSessionId, AreaViewModel oAreaViewModel) {
 		try {
 			// Check the session
@@ -242,6 +248,7 @@ public class AreaResource {
 	
 	@GET
 	@Path("users")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getUsers(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId) {
 		
 		try {
@@ -311,6 +318,7 @@ public class AreaResource {
 	
 	@POST
 	@Path("users")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response addUser(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId, UserOfAreaViewModel oUserToAdd) {
 		
 		try {
@@ -384,6 +392,7 @@ public class AreaResource {
 	
 	@DELETE
 	@Path("users")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response deleteUser(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId, UserOfAreaViewModel oUserToDelete) {
 		
 		try {
@@ -457,6 +466,7 @@ public class AreaResource {
 	
 	@POST
 	@Path("check_area")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response getOverlappingAreas(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId, AreaViewModel oArea) {
 		
 		try {
