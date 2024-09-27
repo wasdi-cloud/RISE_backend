@@ -11,6 +11,7 @@ import com.mongodb.client.model.Filters;
 
 import rise.lib.business.Organization;
 import rise.lib.business.User;
+import rise.lib.business.UserRole;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
 
@@ -66,7 +67,30 @@ public class UserRepository extends MongoRepository {
 
         try {
 
-        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("organizationId", sOrganizationId));        	
+        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.and(Filters.eq("organizationId", sOrganizationId), Filters.or(Filters.eq("role", UserRole.ADMIN.name()), Filters.eq("role", UserRole.RISE_ADMIN.name()))));        	
+        	
+        	fillList(aoReturnList, oWSDocument, User.class);
+        	
+        	return aoReturnList;
+        	
+        } catch (Exception oEx) {
+        	RiseLog.errorLog("UserRepository.getAdminsOfOrganization: error", oEx);
+        }
+
+        return aoReturnList;	
+	}	
+	
+	public List<User> getHQOperatorsOfOrganization(String sOrganizationId) {
+		
+    	List<User> aoReturnList = new ArrayList<User>();
+
+        try {
+
+        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.and(
+        																				Filters.eq("organizationId", sOrganizationId), 
+        																				Filters.eq("role", UserRole.HQ.name()
+        																						)
+        																				));        	
         	
         	fillList(aoReturnList, oWSDocument, User.class);
         	

@@ -307,7 +307,25 @@ public class AreaResource {
     			oUserAreaVM.areaId = sId;
     			aoUsersVM.add(oUserAreaVM);
 			}
+    		
+    		List<User> aoAdmins = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
+    		
+    		for (User oAdminUser : aoAdmins) {
+    			
+    			UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel.getFromEntity(UserOfAreaViewModel.class.getName(), oAdminUser);
+    			oUserAreaVM.areaId = sId;
+    			aoUsersVM.add(oUserAreaVM);
+			}    		
+    		
+    		List<User> aoHQOperators = oUserRepository.getHQOperatorsOfOrganization(oUser.getOrganizationId());
 			
+    		for (User oHQOperator : aoHQOperators) {
+    			
+    			UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel.getFromEntity(UserOfAreaViewModel.class.getName(), oHQOperator);
+    			oUserAreaVM.areaId = sId;
+    			aoUsersVM.add(oUserAreaVM);
+			}
+    		
 			// return the list to the client
 			return Response.ok(aoUsersVM).build();
     	}
@@ -405,7 +423,7 @@ public class AreaResource {
 				return Response.status(Status.UNAUTHORIZED).build();    			
     		}
     		
-    		// We need an admin here!
+    		// We need some one that can handle the area here
     		if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("AreaResource.deleteUser: not an HQ level");
 				return Response.status(Status.UNAUTHORIZED).build();      			
