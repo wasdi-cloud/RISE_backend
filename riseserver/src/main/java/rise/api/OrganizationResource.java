@@ -2,10 +2,12 @@ package rise.api;
 
 import java.util.ArrayList;
 
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -16,6 +18,7 @@ import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.UserRepository;
+import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.i8n.LangUtils;
@@ -25,11 +28,81 @@ import rise.lib.utils.log.RiseLog;
 import rise.lib.utils.mail.MailUtils;
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.InviteViewModel;
+import rise.lib.viewmodels.OrganizationViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 
 @Path("org")
 public class OrganizationResource {
 
+	@GET	
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("by_usr")
+    public Response getByUser(@HeaderParam("x-session-token") String sSessionId, InviteViewModel oInviteVM) {
+    	try {
+    		User oUser = Rise.getUserFromSession(sSessionId);
+    		
+    		if (oUser == null) {
+				RiseLog.warnLog("OrganizationResource.getByUser: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();    			
+    		}
+    		
+    		if (Utils.isNullOrEmpty(oUser.getOrganizationId())) {
+				RiseLog.warnLog("OrganizationResource.getByUser: not valid org for the user");
+				return Response.status(Status.UNAUTHORIZED).build();    			    			
+    		}
+    		
+    		OrganizationRepository oOrganizationRepository = new OrganizationRepository();
+    		Organization oOrganization = oOrganizationRepository.getOrganization(oUser.getOrganizationId());
+    		
+    		if (oOrganization==null) {
+				RiseLog.warnLog("OrganizationResource.getByUser: the org " + oUser.getOrganizationId() + " of user " + oUser.getUserId() + " does not exists in the db");
+				return Response.status(Status.BAD_REQUEST).build();    			    			    			
+    		}
+    		
+    		OrganizationViewModel oOrganizationViewModel = (OrganizationViewModel) RiseViewModel.getFromEntity(OrganizationViewModel.class.getName(), oOrganization);
+    		
+    		return Response.ok(oOrganizationViewModel).build();
+    	}
+		catch (Exception oEx) {
+			RiseLog.errorLog("OrganizationResource.getByUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}    		    	
+	}
+	
+	@GET	
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response get(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId) {
+    	try {
+    		User oUser = Rise.getUserFromSession(sSessionId);
+    		
+    		if (oUser == null) {
+				RiseLog.warnLog("OrganizationResource.get: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();    			
+    		}
+    		
+    		OrganizationRepository oOrganizationRepository = new OrganizationRepository();
+    		Organization oOrganization = oOrganizationRepository.getOrganization(sId);
+    		
+    		if (!PermissionsUtils.canUserAccessOrganization(oOrganization, oUser)) {
+				RiseLog.warnLog("OrganizationResource.get: user cannot access org");
+				return Response.status(Status.UNAUTHORIZED).build();    			    			
+    		}
+    		
+    		if (oOrganization==null) {
+				RiseLog.warnLog("OrganizationResource.getByUser: the org " + oUser.getOrganizationId() + " of user " + oUser.getUserId() + " does not exists in the db");
+				return Response.status(Status.BAD_REQUEST).build();    			    			    			
+    		}
+    		
+    		OrganizationViewModel oOrganizationViewModel = (OrganizationViewModel) RiseViewModel.getFromEntity(OrganizationViewModel.class.getName(), oOrganization);
+    		
+    		return Response.ok(oOrganizationViewModel).build();
+    	}
+		catch (Exception oEx) {
+			RiseLog.errorLog("OrganizationResource.getByUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}    		    	
+	}	
+	
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("invite")

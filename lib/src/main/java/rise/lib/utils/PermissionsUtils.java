@@ -3,10 +3,12 @@ package rise.lib.utils;
 import java.util.List;
 
 import rise.lib.business.Area;
+import rise.lib.business.Organization;
 import rise.lib.business.Subscription;
 import rise.lib.business.User;
 import rise.lib.business.UserRole;
 import rise.lib.data.AreaRepository;
+import rise.lib.data.OrganizationRepository;
 import rise.lib.data.SubscriptionRepository;
 import rise.lib.utils.date.DateUtils;
 
@@ -108,9 +110,25 @@ public class PermissionsUtils {
 	
 	public static boolean canUserAccessArea(Area oArea, User oUser) {
 		if (oArea == null) return false;
+		if (oUser == null) return false;
 		
 		//TODO
 		
 		return true;
+	}
+	
+	public static boolean canUserAccessOrganization(String sOrganizationId, User oUser) {
+		OrganizationRepository oOrganizationRepository = new OrganizationRepository();
+		Organization oOrganization = (Organization) oOrganizationRepository.get(sOrganizationId);
+		return canUserAccessOrganization(oOrganization, oUser);
+	}
+	
+	public static boolean canUserAccessOrganization(Organization oOrganization, User oUser) {
+		if (oOrganization == null) return false;
+		if (oUser == null) return false;
+		
+		if (oUser.getOrganizationId().equals(oOrganization.getId())) return true;
+		
+		return false;
 	}
 }
