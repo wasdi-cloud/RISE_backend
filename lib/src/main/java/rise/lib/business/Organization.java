@@ -21,6 +21,17 @@ public class Organization extends RiseEntity {
 	private String vat;
 	
 	private Double creationDate;
+	
+	private String id;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
 
 	public Double getCreationDate() {
 		return creationDate;

@@ -172,7 +172,7 @@ public class AreaResource {
     		oFromDbArea.setPlugins(oArea.getPlugins());
     		
     		// Update it
-    		if (!oAreaRepository.update(oFromDbArea)) {
+    		if (!oAreaRepository.update(oFromDbArea, oFromDbArea.getId())) {
 				RiseLog.warnLog("AreaResource.update: There was an error updating the area");
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
     		}
@@ -371,7 +371,7 @@ public class AreaResource {
     		}
     		
     		oArea.getFieldOperators().add(oUserToAdd.userId);
-    		oAreaRepository.update(oArea);
+    		oAreaRepository.update(oArea, oArea.getId());
     
 			// return the list to the client
 			return Response.ok().build();
@@ -444,7 +444,7 @@ public class AreaResource {
     		}
     		
     		oArea.getFieldOperators().remove(oUserToDelete.userId);
-    		oAreaRepository.update(oArea);
+    		oAreaRepository.update(oArea, oArea.getId());
     
 			// return the list to the client
 			return Response.ok().build();

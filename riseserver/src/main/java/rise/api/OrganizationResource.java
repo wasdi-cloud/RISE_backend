@@ -16,13 +16,13 @@ import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.UserRepository;
-import rise.lib.utils.MailUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.i8n.LangUtils;
 import rise.lib.utils.i8n.Languages;
 import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
+import rise.lib.utils.mail.MailUtils;
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.InviteViewModel;
 import rise.lib.viewmodels.RiseViewModel;
@@ -112,8 +112,8 @@ public class OrganizationResource {
     		oUserRepository.updateUser(oInvitedUser);
     		
     		// Get localized title and message
-    		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_ADMIN_CONFIRM_MAIL_TITLE.name() , Languages.EN.name());
-    		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_ADMIN_CONFIRM_MAIL_MESSAGE.name() , Languages.EN.name());
+    		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_TITLE.name() , Languages.EN.name());
+    		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_MESSAGE.name() , Languages.EN.name());
     		
     		
     		// Generate the confirmation Link

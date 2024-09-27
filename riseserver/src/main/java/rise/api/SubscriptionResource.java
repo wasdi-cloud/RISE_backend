@@ -187,7 +187,7 @@ public class SubscriptionResource {
     		oSubscription.setExpireDate(oFromDbSub.getExpireDate());
     		oSubscription.setValid(oFromDbSub.isValid());
     		
-    		if (!oSubscriptionRepository.update(oSubscription)) {
+    		if (!oSubscriptionRepository.update(oSubscription, oSubscription.getId())) {
 				RiseLog.warnLog("SubscriptionResource.update: There was an error updating the subscription");
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
     		}

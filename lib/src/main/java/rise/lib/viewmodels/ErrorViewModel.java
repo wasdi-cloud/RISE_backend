@@ -6,6 +6,12 @@ import rise.lib.utils.Utils;
 
 public class ErrorViewModel extends RiseViewModel {
 	
+	/**
+	 * Default Id
+	 */
+	public String id;
+	
+	
 	public ErrorViewModel() {
 		
 	}

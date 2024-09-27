@@ -7,8 +7,8 @@
   <name>Rise Lib</name>
   
       <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sVersionFlattenMavenPlugin>1.5.0</sVersionFlattenMavenPlugin>
         <revision>1.0</revision>
@@ -18,7 +18,8 @@
         <sVersionCommonsValidator>1.4.1</sVersionCommonsValidator>
         <sVersionMongoDb>4.3.4</sVersionMongoDb>
         <sVersionJackson>2.14.1</sVersionJackson>
-        <sVersionMercurius>1.0</sVersionMercurius>
+        <sVersionMercurius>1.0.1</sVersionMercurius>
+        <sVersionCommonsNet>3.11.1</sVersionCommonsNet>
     </properties>
     
     <build>
@@ -104,6 +105,13 @@
             <artifactId>mercurius</artifactId>
             <version>${sVersionMercurius}</version>
         </dependency>		  
+        <!-- https://mvnrepository.com/artifact/commons-net/commons-net -->
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>${sVersionCommonsNet}</version>
+        </dependency>
+        
   </dependencies>
   
       <!--

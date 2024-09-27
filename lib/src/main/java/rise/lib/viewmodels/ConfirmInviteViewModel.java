@@ -2,6 +2,11 @@ package rise.lib.viewmodels;
 
 public class ConfirmInviteViewModel extends RiseViewModel {
 
+	/**
+	 * Default Id
+	 */
+	public String id;
+	
 	public String userId;
 	
 	public String mail;

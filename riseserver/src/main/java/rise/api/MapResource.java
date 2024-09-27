@@ -67,7 +67,6 @@ public class MapResource {
 					if (!asMapIds.contains(sMapId)) asMapIds.add(sMapId);
 				}
 			}
-			
     		
     		ArrayList<MapViewModel> aoMapViewModels = new ArrayList<>();
     		MapRepository oMapRepository = new MapRepository();

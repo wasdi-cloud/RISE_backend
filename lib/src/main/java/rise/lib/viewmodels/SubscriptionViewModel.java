@@ -6,6 +6,11 @@ import rise.lib.business.PaymentType;
 
 public class SubscriptionViewModel extends RiseViewModel  {
 	
+	/**
+	 * Default Id
+	 */
+	public String id;
+	
 	public String organizationId;
 	
 	public String name;

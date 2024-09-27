@@ -1,5 +1,7 @@
 package rise;
 
+import java.io.File;
+
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -9,6 +11,7 @@ import jakarta.ws.rs.core.Context;
 import rise.lib.business.Session;
 import rise.lib.business.User;
 import rise.lib.config.RiseConfig;
+import rise.lib.data.MongoRepository;
 import rise.lib.data.SessionRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.utils.Utils;
@@ -31,13 +34,22 @@ public class Rise extends ResourceConfig {
 	@PostConstruct
 	public void initRise() {
 		
-		RiseLog.debugLog("----------- Welcome to RISE Remote Imaging Support for Emergencies -----------");
+		RiseLog.debugLog("----------- Welcome to RISE Remote Imaging Support for Emergencies 0.0.2-----------");
 
-		String sConfigFilePath = "/etc/wasdi/wasdiConfig.json";
+		String sConfigFilePath = "/etc/rise/riseConfig.json";
 
 		if (Utils.isNullOrEmpty(m_oServletConfig.getInitParameter("ConfigFilePath")) == false){
-			sConfigFilePath = m_oServletConfig.getInitParameter("ConfigFilePath");
+			String sTestFile = m_oServletConfig.getInitParameter("ConfigFilePath");
+			File oTestConfig = new File(sTestFile);
+			if (oTestConfig.exists()) {
+				sConfigFilePath = m_oServletConfig.getInitParameter("ConfigFilePath");	
+			}
+			else {
+				RiseLog.errorLog("The configured file  " + sTestFile + " does not exists, try to fall back to default " + sConfigFilePath);
+			}
 		}
+		
+		 
 		
 		if (!RiseConfig.readConfig(sConfigFilePath)) {
 			RiseLog.debugLog("ERROR IMPOSSIBLE TO READ CONFIG FILE IN " + sConfigFilePath);
@@ -45,6 +57,17 @@ public class Rise extends ResourceConfig {
 		else {
 			RiseLog.debugLog("READ CONFIG FILE " + sConfigFilePath);
 		}
+		
+		// Read MongoDb Configuration
+		try {
+
+            MongoRepository.readConfig();
+
+            RiseLog.debugLog("-------Mongo db User " + MongoRepository.DB_USER);
+
+		} catch (Throwable oEx) {
+			RiseLog.errorLog("Read MongoDb Configuration exception " + oEx.toString());
+		}		
 	}
 	
 	

@@ -1,5 +1,6 @@
 package rise.api;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,7 +23,6 @@ import rise.lib.data.OTPRepository;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.SessionRepository;
 import rise.lib.data.UserRepository;
-import rise.lib.utils.MailUtils;
 import rise.lib.utils.PasswordAuthentication;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
@@ -30,6 +30,7 @@ import rise.lib.utils.i8n.LangUtils;
 import rise.lib.utils.i8n.Languages;
 import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
+import rise.lib.utils.mail.MailUtils;
 import rise.lib.viewmodels.ConfirmInviteViewModel;
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.OTPVerifyViewModel;
@@ -96,8 +97,8 @@ public class AuthResource {
 	    	PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
 	    	
 	    	String sProvidedPw = oUserCredentialsVM.password;
-	    	String sEncryptedProvidedPassword = oPasswordAuthentication.hash(sProvidedPw.toCharArray());
-	    	if ( ! oUser.getPassword().equals(sEncryptedProvidedPassword)) {
+	    	//String sEncryptedProvidedPassword = oPasswordAuthentication.hash(sProvidedPw.toCharArray());
+	    	if ( ! oPasswordAuthentication.authenticate(sProvidedPw.toCharArray(), oUser.getPassword())) {
 	    		RiseLog.warnLog("AuthResource.login: password not valid");
 	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();	    		
 	    	}
@@ -115,6 +116,8 @@ public class AuthResource {
 	    	OTPRepository oOTPRepository = new OTPRepository();
 	    	oOTPRepository.add(oOTP);
 	    	
+	    	RiseLog.debugLog("AuthResource.login: created OTP " + oOTP.getId());
+	    	
 	    	// Create the view model
 	    	OTPViewModel oOTPViewModel = new OTPViewModel();
 	    	oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
@@ -122,7 +125,7 @@ public class AuthResource {
 	    	// Create the verify API address
 	    	oOTPViewModel.verifyAPI = RiseConfig.Current.serverApiAddress;
 	    	if (!oOTPViewModel.verifyAPI.endsWith("/")) oOTPViewModel.verifyAPI += "/";
-	    	oOTPViewModel.verifyAPI += "user/login_verify";
+	    	oOTPViewModel.verifyAPI += "auth/login_verify";
 	    	
     		// Get localized title and message
     		String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name() , Languages.EN.name());
@@ -132,7 +135,7 @@ public class AuthResource {
     		sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());    		
 	    	
     		// Send the OTP
-	    	MailUtils.sendEmail(oUser.getUserId(), sTitle, sMessage);
+	    	MailUtils.sendEmail(oUser.getEmail(), sTitle, sMessage);
 	    	
 	    	// Return the OTP View Mode
 	    	return Response.ok(oOTPViewModel).build();
@@ -351,17 +354,22 @@ public class AuthResource {
 				return Response.status(Status.BAD_REQUEST).build();
     		}
     		
-    		if (oRegisterVM.organization.name == null) {
+    		if (Utils.isNullOrEmpty(oRegisterVM.organization.name)) {
 				RiseLog.warnLog("AuthResource.register: register organization name null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}    		
     		
-    		if (oRegisterVM.admin.userId == null) {
+    		if (Utils.isNullOrEmpty(oRegisterVM.admin.userId)) {
 				RiseLog.warnLog("AuthResource.register: register admin id null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}
     		
-    		if (oRegisterVM.password == null) {
+    		if (Utils.isNullOrEmpty(oRegisterVM.admin.email)) {
+				RiseLog.warnLog("AuthResource.register: register email null");
+				return Response.status(Status.BAD_REQUEST).build();
+    		}    		
+    		
+    		if (Utils.isNullOrEmpty(oRegisterVM.password)) {
 				RiseLog.warnLog("AuthResource.register: register password null");
 				return Response.status(Status.BAD_REQUEST).build();
     		}
@@ -384,6 +392,8 @@ public class AuthResource {
     		ArrayList<String> asErrors = new ArrayList<>();
     		
     		OrganizationRepository oOrganizationRepository = new OrganizationRepository();
+    		
+    		RiseLog.debugLog("ORG REPO DB = " + oOrganizationRepository.getRepoDb());
     		
     		// Check if we have organizations with the same name
     		List<Organization> aoSameNameOrganizations = oOrganizationRepository.getOrganizationsByName(oRegisterVM.organization.name);
@@ -437,6 +447,8 @@ public class AuthResource {
     		// Add the org to the repo
     		oOrganizationRepository.add(oOrganization);
     		
+    		RiseLog.debugLog("AuthResource.register: added organization " + oOrganization.getName() + " with Id " + oOrganization.getId());
+    		
     		// Now translate the user
     		User oAdminUser = (User) RiseViewModel.copyToEntity(User.class.getName(), oRegisterVM.admin);
     		
@@ -465,7 +477,9 @@ public class AuthResource {
     		
     		oAdminUser.setPassword(oPasswordAuthentication.hash(oRegisterVM.password.toCharArray()));
     		
-    		oUserRepository.updateUser(oAdminUser);
+    		oUserRepository.add(oAdminUser);
+    		
+    		RiseLog.debugLog("AuthResource.register: added user " + oAdminUser.getEmail() + " with Id " + oAdminUser.getUserId());
     		
     		// Get localized title and message
     		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_ADMIN_CONFIRM_MAIL_TITLE.name() , Languages.EN.name());
@@ -475,7 +489,7 @@ public class AuthResource {
     		// Generate the confirmation Link
     		String sLink = RiseConfig.Current.security.registerConfirmAddress;
     		
-    		sLink += "?code=" + sConfirmationCode + "&usr=" + oAdminUser.getUserId();
+    		sLink += "?code=" + sConfirmationCode + "&usr=" + URLEncoder.encode(oAdminUser.getUserId(), java.nio.charset.StandardCharsets.UTF_8.toString());
     		
     		// We replace the link in the message
     		sMessage = sMessage.replace("%%LINK%%", sLink);

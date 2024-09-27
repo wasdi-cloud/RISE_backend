@@ -2,6 +2,12 @@ package rise.lib.viewmodels;
 
 public class EventViewModel extends RiseViewModel {
 
+	/**
+	 * Default Id
+	 */
+	public String id;
+	
+	
 	public String name;
 	
 	public String type;

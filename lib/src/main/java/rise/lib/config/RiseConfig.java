@@ -38,9 +38,16 @@ public class RiseConfig {
 	public SecurityConfig security;
 	
 	/**
+	 * Http Config
+	 */
+	public HttpConfig httpConfig;
+	
+	/**
 	 * Static Reference to the actual configuration
 	 */
 	public static RiseConfig Current;
+	
+	
 	
 	protected boolean loadLanguageMessages(LanguageConfig oLangConfig) {
 		

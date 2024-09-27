@@ -17,4 +17,12 @@ public class NotificationsConfig {
 	 * Declared WASDI admin mail
 	 */
 	public String riseAdminMail;
+	
+	public String mailJetUser;
+	
+	public String mailJetPassword;
+	
+	public String mailJetSendAPI = "https://api.mailjet.com/v3.1/send";
+	
+	public boolean useMailJet = true;
 }

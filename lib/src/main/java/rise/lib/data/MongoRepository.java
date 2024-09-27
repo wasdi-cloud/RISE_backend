@@ -74,7 +74,7 @@ public class MongoRepository {
     /**
      * Name of the database connected to this repo
      */
-    protected String m_sRepoDb = "wasdi";
+    protected String m_sRepoDb = "rise";
     
     protected Class<?> m_oEntityClass;
     
@@ -155,11 +155,11 @@ public class MongoRepository {
     		// Check if exists
     		if (oMongoConnection == null) {
     			// If is the default wasdi and does not exist
-    			if (sDbCode.equals("wasdi")) {
+    			if (sDbCode.equals("rise")) {
     				
     				// Create default connection
-    				addMongoConnection("wasdi", MongoRepository.DB_USER, MongoRepository.DB_PWD, MongoRepository.SERVER_ADDRESS, MongoRepository.REPLICA_NAME, MongoRepository.DB_NAME);
-    				return getMongoDatabase("wasdi");
+    				addMongoConnection("rise", MongoRepository.DB_USER, MongoRepository.DB_PWD, MongoRepository.SERVER_ADDRESS, MongoRepository.REPLICA_NAME, MongoRepository.DB_NAME);
+    				return getMongoDatabase("rise");
     			}
     			else {
     				
@@ -170,7 +170,7 @@ public class MongoRepository {
     				
     				
     				// If is not the default one, but does not exists, recover with the defualt
-    				return getMongoDatabase("wasdi");
+    				return getMongoDatabase("rise");
     			}
     		}
     		
@@ -231,7 +231,15 @@ public class MongoRepository {
 			this.m_sRepoDb = sRepoDb;
 	}
     
+	/**
+	 * Get the repo db
+	 * @param sRepoDb
+	 */
+	public String getRepoDb() {	
+			return this.m_sRepoDb;
+	}
     
+	
     /**
      * Fill a list of entities from the result of a Query.
      * @param <T> Type of the output entity
@@ -409,9 +417,9 @@ public class MongoRepository {
         return 0;
 	}
 	
-	public boolean update(RiseEntity oNewDocument) {
+	public boolean update(RiseEntity oNewDocument, String sId) {
 		BasicDBObject oCriteria = new BasicDBObject();
-		oCriteria.append("id", oNewDocument.getId());
+		oCriteria.append("id", sId);
 		return update(oCriteria, oNewDocument);
 	}
 	

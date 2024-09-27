@@ -1,6 +1,11 @@
 package rise.lib.viewmodels;
 
 public class AreaViewModel extends RiseViewModel  {
+
+	/**
+	 * Default Id
+	 */
+	public String id;
 	
 	public String name;
 	

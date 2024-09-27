@@ -18,7 +18,9 @@ public class Plugin extends RiseEntity {
 	
 	private String stringCode;
 	
-	private ArrayList<String> maps = new ArrayList<>(); 
+	private ArrayList<String> maps = new ArrayList<>();
+
+	private String id;	
 
 	public String getId() {
 		return id;

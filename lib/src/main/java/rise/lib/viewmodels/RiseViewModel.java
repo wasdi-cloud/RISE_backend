@@ -12,11 +12,6 @@ import rise.lib.utils.log.RiseLog;
  */
 public class RiseViewModel {
 	
-	/**
-	 * Default Id
-	 */
-	public String id;
-	
 	public RiseViewModel() {
 		
 	}

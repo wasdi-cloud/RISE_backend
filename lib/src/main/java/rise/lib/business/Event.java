@@ -13,6 +13,17 @@ public class Event extends RiseEntity {
 	private double endDate;
 	
 	private double peakDate;
+	
+	private String id;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+	
 
 	public String getName() {
 		return name;
