@@ -1,11 +1,6 @@
 package rise.lib.viewmodels;
 
 public class ConfirmInviteViewModel extends RiseViewModel {
-
-	/**
-	 * Default Id
-	 */
-	public String id;
 	
 	public String userId;
 	
@@ -23,13 +18,13 @@ public class ConfirmInviteViewModel extends RiseViewModel {
 	
 	public boolean acceptedPrivacy;
 	
-	public boolean notifyNewsletter;
+	public boolean notifyNewsletter=true;
 	
-	public boolean notifyMaintenance;
+	public boolean notifyMaintenance=true;
 	
-	public boolean notifyActivities;
+	public boolean notifyActivities=true;
 	
-	public String defaultLanguage;
+	public String defaultLanguage="EN";
 	
 	public String password;
 }

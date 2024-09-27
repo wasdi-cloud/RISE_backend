@@ -182,14 +182,14 @@ public class OrganizationResource {
     		oInvitedUser.setConfirmationCode(sConfirmationCode);
     		
     		// Save the invited user
-    		oUserRepository.updateUser(oInvitedUser);
+    		oUserRepository.add(oInvitedUser);
     		
     		// Get localized title and message
     		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_TITLE.name() , Languages.EN.name());
     		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_MESSAGE.name() , Languages.EN.name());
     		
     		
-    		// Generate the confirmation Link
+    		// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
     		String sLink = RiseConfig.Current.security.inviteConfirmAddress;
     		
     		sLink += "?code=" + sConfirmationCode + "&mail=" + oInvitedUser.getEmail();
