@@ -232,6 +232,8 @@ public class AreaResource {
     		oArea.setId(Utils.getRandomName());
     		oArea.setSubscriptionId(oValidSubscription.getId());
     		oArea.setOrganizationId(oUser.getOrganizationId());
+    		oArea.setArchiveStartDate(-1.0);
+    		oArea.setArchiveEndDate(-1.0);
     		
     		// Create it
     		oAreaRepository.add(oArea);

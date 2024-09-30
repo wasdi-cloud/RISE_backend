@@ -18,6 +18,7 @@ import rise.lib.data.LayerRepository;
 import rise.lib.data.MapRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
+import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
@@ -26,8 +27,9 @@ import rise.lib.viewmodels.RiseViewModel;
 public class LayerResource {
 	
 	@GET
+	@Path("find")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getLayer(@HeaderParam("x-session-token") String sSessionId, @QueryParam("map_id") String sMapId, @QueryParam("area_id") String sAreaId, @QueryParam("date") long lDate) {
+	public Response getLayer(@HeaderParam("x-session-token") String sSessionId, @QueryParam("map_id") String sMapId, @QueryParam("area_id") String sAreaId, @QueryParam("date") Long oDate) {
 		try {
 			// Check the session
 			User oUser = Rise.getUserFromSession(sSessionId);
@@ -69,8 +71,14 @@ public class LayerResource {
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
     		
+    		if (oDate==null) oDate = 0L;
+    		
+    		double dDate = (double) oDate;
+    		
+    		if (dDate <= 0.0) dDate = DateUtils.getNowAsDouble();
+    		
     		LayerRepository oLayerRepository = new LayerRepository();
-    		Layer oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) lDate);
+    		Layer oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate);
     		
     		if (oLayer != null) {
         		LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
