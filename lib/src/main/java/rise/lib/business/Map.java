@@ -11,6 +11,8 @@ public class Map extends RiseEntity {
 	private String icon;
 	
 	private String id;
+	
+	private boolean dateFiltered = true;
 
 	public String getId() {
 		return id;
@@ -19,8 +21,7 @@ public class Map extends RiseEntity {
 	public void setId(String id) {
 		this.id = id;
 	}
-
-
+	
 	public String getName() {
 		return name;
 	}
@@ -51,6 +52,14 @@ public class Map extends RiseEntity {
 
 	public void setIcon(String icon) {
 		this.icon = icon;
+	}
+
+	public boolean isDateFiltered() {
+		return dateFiltered;
+	}
+
+	public void setDateFiltered(boolean dateFiltered) {
+		this.dateFiltered = dateFiltered;
 	}
 	
 	

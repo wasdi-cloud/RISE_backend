@@ -1,7 +1,5 @@
 package rise.api;
 
-import java.util.ArrayList;
-
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
@@ -12,16 +10,16 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
+import rise.lib.business.Layer;
 import rise.lib.business.Map;
-import rise.lib.business.Plugin;
 import rise.lib.business.User;
 import rise.lib.data.AreaRepository;
+import rise.lib.data.LayerRepository;
 import rise.lib.data.MapRepository;
-import rise.lib.data.PluginRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
-import rise.lib.viewmodels.MapViewModel;
+import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 
 @Path("layer")
@@ -71,8 +69,17 @@ public class LayerResource {
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
     		
+    		LayerRepository oLayerRepository = new LayerRepository();
+    		Layer oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) lDate);
     		
-    		return Response.ok().build();
+    		if (oLayer != null) {
+        		LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
+        		return Response.ok(oLayerViewModel).build();
+        		
+    		}
+    		else {
+    			return Response.status(Status.NO_CONTENT).build();
+    		}
 		}
 		catch (Exception oEx) {
 			RiseLog.errorLog("LayerResource.getLayer: " + oEx);
