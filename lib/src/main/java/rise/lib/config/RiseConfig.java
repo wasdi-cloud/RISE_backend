@@ -43,11 +43,14 @@ public class RiseConfig {
 	public HttpConfig httpConfig;
 	
 	/**
+	 * WASDI Config
+	 */
+	public WasdiConfig wasdiConfig;
+	
+	/**
 	 * Static Reference to the actual configuration
 	 */
 	public static RiseConfig Current;
-	
-	
 	
 	protected boolean loadLanguageMessages(LanguageConfig oLangConfig) {
 		
