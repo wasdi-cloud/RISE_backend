@@ -20,7 +20,9 @@ public class Plugin extends RiseEntity {
 	
 	private ArrayList<String> maps = new ArrayList<>();
 
-	private String id;	
+	private String id;
+	
+	private String className;
 
 	public String getId() {
 		return id;
@@ -92,5 +94,13 @@ public class Plugin extends RiseEntity {
 
 	public void setStringCode(String stringCode) {
 		this.stringCode = stringCode;
+	}
+
+	public String getClassName() {
+		return className;
+	}
+
+	public void setClassName(String className) {
+		this.className = className;
 	}
 }

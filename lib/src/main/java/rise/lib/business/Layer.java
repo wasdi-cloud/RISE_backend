@@ -4,7 +4,9 @@ import java.util.HashMap;
 
 public class Layer extends RiseEntity {
 	
-	private String link;
+	private String layerId;
+	
+	private String geoserverUrl;
 	
 	private Double referenceDate;
 	
@@ -26,15 +28,6 @@ public class Layer extends RiseEntity {
 
 	public void setId(String id) {
 		this.id = id;
-	}
-	
-
-	public String getLink() {
-		return link;
-	}
-
-	public void setLink(String link) {
-		this.link = link;
 	}
 
 	public Double getReferenceDate() {
@@ -83,6 +76,22 @@ public class Layer extends RiseEntity {
 
 	public void setAreaId(String areaId) {
 		this.areaId = areaId;
+	}
+
+	public String getLayerId() {
+		return layerId;
+	}
+
+	public void setLayerId(String layerId) {
+		this.layerId = layerId;
+	}
+
+	public String getGeoserverUrl() {
+		return geoserverUrl;
+	}
+
+	public void setGeoserverUrl(String geoserverUrl) {
+		this.geoserverUrl = geoserverUrl;
 	}
 }
 

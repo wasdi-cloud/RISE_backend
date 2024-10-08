@@ -13,6 +13,8 @@ public class Map extends RiseEntity {
 	private String id;
 	
 	private boolean dateFiltered = true;
+	
+	private String className;
 
 	public String getId() {
 		return id;
@@ -60,6 +62,14 @@ public class Map extends RiseEntity {
 
 	public void setDateFiltered(boolean dateFiltered) {
 		this.dateFiltered = dateFiltered;
+	}
+
+	public String getClassName() {
+		return className;
+	}
+
+	public void setClassName(String className) {
+		this.className = className;
 	}
 	
 	
