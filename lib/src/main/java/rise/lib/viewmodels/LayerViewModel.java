@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 public class LayerViewModel extends RiseViewModel {
 	
-	public String link;
+	public String layerId;
 	
 	public Double referenceDate;
 	
@@ -19,4 +19,7 @@ public class LayerViewModel extends RiseViewModel {
 	public String areaId;
 	
 	public String id;
+	
+	public String geoserverUrl;
 }
+

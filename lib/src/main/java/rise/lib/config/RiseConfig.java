@@ -48,6 +48,11 @@ public class RiseConfig {
 	public WasdiConfig wasdiConfig;
 	
 	/**
+	 * Geoserver config
+	 */
+	public GeoServerConfig geoserver;
+	
+	/**
 	 * Static Reference to the actual configuration
 	 */
 	public static RiseConfig Current;
