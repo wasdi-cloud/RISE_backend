@@ -243,7 +243,7 @@ public class AreaResource {
     		return Response.ok(oNewAreaViewModel).build();
 		}
 		catch (Exception oEx) {
-			RiseLog.errorLog("AreaResource.update: " + oEx);
+			RiseLog.errorLog("AreaResource.add: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}		
 	}

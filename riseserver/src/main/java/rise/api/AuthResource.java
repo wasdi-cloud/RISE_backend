@@ -18,6 +18,7 @@ import rise.lib.business.OTPOperations;
 import rise.lib.business.Organization;
 import rise.lib.business.Session;
 import rise.lib.business.User;
+import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.OTPRepository;
 import rise.lib.data.OrganizationRepository;
@@ -393,8 +394,6 @@ public class AuthResource {
     		
     		OrganizationRepository oOrganizationRepository = new OrganizationRepository();
     		
-    		RiseLog.debugLog("ORG REPO DB = " + oOrganizationRepository.getRepoDb());
-    		
     		// Check if we have organizations with the same name
     		List<Organization> aoSameNameOrganizations = oOrganizationRepository.getOrganizationsByName(oRegisterVM.organization.name);
     		
@@ -454,6 +453,8 @@ public class AuthResource {
     		
     		// We can now assign the org id
     		oAdminUser.setOrganizationId(oOrganization.getId());
+    		// Set the role
+    		oAdminUser.setRole(UserRole.ADMIN);
     		
     		// Initialize the dates as now
     		oAdminUser.setRegistrationDate(dNow);

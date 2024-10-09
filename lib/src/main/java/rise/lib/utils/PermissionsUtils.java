@@ -44,6 +44,7 @@ public class PermissionsUtils {
 	 */
 	public static boolean hasHQRights(User oUser) {
 		if (oUser == null) return false;
+		if (oUser.getRole() == null) return false;
 		
 		if (isRiseAdmin(oUser)) return true;
 		if (isAdmin(oUser)) return true;
