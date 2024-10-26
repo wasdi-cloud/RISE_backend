@@ -21,5 +21,7 @@ public class LayerViewModel extends RiseViewModel {
 	public String id;
 	
 	public String geoserverUrl;
+	
+	public boolean published = false;
 }
 

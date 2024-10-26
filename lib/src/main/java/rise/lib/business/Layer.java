@@ -21,6 +21,8 @@ public class Layer extends RiseEntity {
 	private String areaId;
 	
 	private String id;
+	
+	private boolean published=false;
 
 	public String getId() {
 		return id;
@@ -92,6 +94,14 @@ public class Layer extends RiseEntity {
 
 	public void setGeoserverUrl(String geoserverUrl) {
 		this.geoserverUrl = geoserverUrl;
+	}
+
+	public boolean isPublished() {
+		return published;
+	}
+
+	public void setPublished(boolean published) {
+		this.published = published;
 	}
 }
 
