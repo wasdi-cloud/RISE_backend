@@ -644,6 +644,7 @@ public class AuthResource {
     		oUserToUpdate.setConfirmationDate(dNow);
     		oUserToUpdate.setLastLoginDate(dNow);
     		oUserToUpdate.setRegistrationDate(oUser.getRegistrationDate());
+    		oUserToUpdate.setLastPasswordUpdateDate(dNow);
     		
     		// Role: is taken from the db so they cannot cheat us
     		oUserToUpdate.setRole(oUser.getRole());
