@@ -4,7 +4,7 @@ public class ConfirmInviteViewModel extends RiseViewModel {
 	
 	public String userId;
 	
-	public String mail;
+	public String email;
 	
 	public String confirmationCode;
 	
