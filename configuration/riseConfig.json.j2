@@ -1,0 +1,51 @@
+{
+	"serverApiAddress": "rise.wasdi.net",
+	"logLevel": "DEBUG",
+	"mongoMain": {
+		"address": "{{ aoWasdiConfiguration['mongoMain']['address'] }}",
+		"dbName": "rise",
+		"replicaName": "{{ aoWasdiConfiguration['mongoMain']['replicaName'] }}",
+        "user": "{{ aoRiseConfiguration['mongoMain']['user'] }}",
+        "password": "{{ aoRiseConfiguration['mongoMain']['password'] }}"
+	},
+	"notifications": {
+		"mercuriusAPIAddress": "{{ aoWasdiConfiguration['notifications']['mercuriusAPIAddress'] }}",
+		"riseAdminMail": "sysadmin@wasdi.cloud",
+		"mailJetUser": "{{ aoRiseConfiguration['mailJet']['user'] }}",
+		"mailJetPassword": "{{ aoRiseConfiguration['mailJet']['password'] }}"
+	},
+	"localizations": [
+		{
+			"languageCode": "EN",
+			"translationsFilePath": ""{{ aoRiseConfiguration['translations']['EN'] }}","
+		}
+	],
+	"security": {
+		"maxConfirmationAgeSeconds": 86400,
+		"maxPasswordAgeSeconds": 7776000,
+		"minPwLenght": 8,
+		"minUserIdLenght": 8,
+		"mustMixUpperLowerCase": true,
+		"mustContainNumber": true,
+		"mustContainSymbol": true,
+		"maxOTPAgeSeconds": 1800,
+		"inviteConfirmAddress": "http://test.wasdi.net/rise-api/api/auth/confirm_usr",
+		"registerConfirmAddress": "http://test.wasdi.net/rise-api/api/auth/confirm_adm"
+	},
+	"httpConfig": {
+		"logHttpCalls": false,
+		"readTimeout": 300,
+		"connectionTimeout": 300
+	},
+	"wasdiConfig": {
+		"wasdiBaseUrl": "https://www.wasdi.net/wasdiwebserver/rest",
+		"wasdiUser": "aoRiseConfiguration['wasdi']['user']",
+		"wasdiPassword": "aoRiseConfiguration['wasdi']['password']"
+	},
+	"geoserver": {
+        "address": "{{ aoWasdiConfiguration['geoserver']['address'] }}",
+        "user": "{{ aoWasdiConfiguration['geoserver']['user'] }}",
+        "password": "{{ aoWasdiConfiguration['geoserver']['password'] }}",
+		"workspace": "rise"
+	}
+}
