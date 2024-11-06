@@ -18,7 +18,7 @@
         <sVersionCommonsValidator>1.4.1</sVersionCommonsValidator>
         <sVersionMongoDb>4.3.4</sVersionMongoDb>
         <sVersionJackson>2.14.1</sVersionJackson>
-        <sVersionMercurius>1.0.1</sVersionMercurius>
+        <sVersionMercurius>1.0</sVersionMercurius>
         <sVersionCommonsNet>3.11.1</sVersionCommonsNet>
     </properties>
     

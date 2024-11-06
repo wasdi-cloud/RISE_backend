@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+          https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- parent pom -->
+    <groupId>rise</groupId>
+    <artifactId>rise-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>${revision}</version>
+
+    <!-- sub modules -->
+    <modules>
+        <module>riseserver</module>
+        <module>lib</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <revision>1.0</revision>
+        <sVersionFlattenMavenPlugin>1.5.0</sVersionFlattenMavenPlugin>
+        <sVersionMavenDeployPlugin>3.1.1</sVersionMavenDeployPlugin>
+        <sVersionMavenShadePlugin>3.5.0</sVersionMavenShadePlugin>
+    </properties>
+
+    <!--
+        HERE WE ADD PLUGINS NEEDED TO DEPLOY AUTOMATICALLY IN NEXUS
+    -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${sVersionMavenShadePlugin}</version>
+                    <configuration>
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/*.SF</exclude>
+                                    <exclude>META-INF/*.DSA</exclude>
+                                    <exclude>META-INF/*.RSA</exclude>
+                                    <exclude>META-INF/ECLIPSEF.RSA</exclude>
+                                    <exclude>META-INF/ECLIPSEF.SF</exclude>
+                                    <exclude>META-INF/eclipse.inf</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${sVersionMavenDeployPlugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${sVersionFlattenMavenPlugin}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!--
+        HERE WE CONFIGURE TO UPLOAD AUTOMATICALLY IN OUR NEXUS
+        REPOSITORIES WHEN mvn ... deploy IS EXECUTED SUCCESFULLY
+    -->
+    <distributionManagement>
+        <repository>
+            <id>wasdi-all-artifacts</id>
+            <url>${sWasdiNexusRepositoryReleaseUrl}</url>
+        </repository>
+        <snapshotRepository>
+            <id>wasdi-all-artifacts</id>
+            <url>${sWasdiNexusRepositorySnapshotUrl}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <!--
+        HERE WE CONFIGURE OUR OWN NEXUS REPOSITORY
+        TO DOWNLOAD LIBRARIES NOT AVAILABLE ON INTERNET
+    -->
+    <repositories>
+        <repository>
+            <id>wasdi-all-libraries</id>
+            <name>WASDI - INTERNAL REPOSITORY - LIBRARIES</name>
+            <url>${sWasdiNexusRepositoryLibrariesUrl}</url>
+        </repository>
+        <repository>
+            <id>wasdi-snap-build</id>
+            <name>WASDI - INTERNAL REPOSITORY - SNAP BUILD</name>
+            <url>${sWasdiNexusRepositorySnapBuildUrl}</url>
+        </repository>
+    </repositories>
+</project>

@@ -11,3 +11,4 @@ riseserver/.settings/.jsdtscope
 riseserver/.settings/
 Servers/.project
 Servers/
+.flattened-pom.xml
