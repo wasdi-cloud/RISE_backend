@@ -567,7 +567,7 @@ public class AuthResource {
     		}
     		
     		// Need mail
-    		if (Utils.isNullOrEmpty(oConfirmVM.mail)) {
+    		if (Utils.isNullOrEmpty(oConfirmVM.email)) {
 				RiseLog.warnLog("AuthResource.confirmInvitedUser: user mail null");
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
@@ -586,10 +586,10 @@ public class AuthResource {
     		
     		// The user should already be here
     		UserRepository oUserRepository = new UserRepository();
-    		User oUser = oUserRepository.getUserByEmail(oConfirmVM.mail);
+    		User oUser = oUserRepository.getUserByEmail(oConfirmVM.email);
     		
     		if (oUser == null) {
-				RiseLog.warnLog("AuthResource.confirmInvitedUser: cannot find user " + oConfirmVM.mail);
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: cannot find user " + oConfirmVM.email);
 				return Response.status(Status.BAD_REQUEST).build();    			    			
     		}
     		
@@ -660,7 +660,7 @@ public class AuthResource {
     		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_MESSAGE.name() , Languages.EN.name());
     		
     		// We set the new user registerd mail
-    		sMessage = sMessage.replace("%%USER%%", oConfirmVM.mail);
+    		sMessage = sMessage.replace("%%USER%%", oConfirmVM.email);
     		
     		// Get the mails ofthe organizers
     		List<User> aoAdmins = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
@@ -674,7 +674,7 @@ public class AuthResource {
 
     		// Write also to WASDI Admins
     		sTitle = "New RISE User";
-    		sMessage = "Added user to RISE " + oConfirmVM.mail;
+    		sMessage = "Added user to RISE " + oConfirmVM.email;
     		
     		// Just send!
     		MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, sTitle, sMessage);
