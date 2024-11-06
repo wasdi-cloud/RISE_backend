@@ -31,6 +31,8 @@ public class Area extends RiseEntity {
 	private Double archiveEndDate;
 	
 	private String id;
+	
+	private boolean newCreatedArea = true;
 
 	public String getId() {
 		return id;
@@ -142,6 +144,14 @@ public class Area extends RiseEntity {
 
 	public void setOrganizationId(String organizationId) {
 		this.organizationId = organizationId;
+	}
+
+	public boolean isNewCreatedArea() {
+		return newCreatedArea;
+	}
+
+	public void setNewCreatedArea(boolean newCreatedArea) {
+		this.newCreatedArea = newCreatedArea;
 	}
 	
 

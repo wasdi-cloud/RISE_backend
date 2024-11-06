@@ -37,6 +37,19 @@ public class UserRepository extends MongoRepository {
 
         return (User) get(oCriteria);		
 	}
+
+	/**
+	 * Update a user
+	 * @param oUser
+	 * @return
+	 */
+	public boolean updateUserByEmail(User oUser) {
+
+		BasicDBObject oCriteria = new BasicDBObject();
+		oCriteria.append("email", oUser.getEmail());
+		
+		return update(oCriteria, oUser);
+	}
 	
 	/**
 	 * Update a user

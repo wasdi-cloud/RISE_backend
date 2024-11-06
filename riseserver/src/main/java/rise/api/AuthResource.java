@@ -573,7 +573,7 @@ public class AuthResource {
     		}
     		
     		// And code 
-    		if (Utils.isNullOrEmpty(oConfirmVM.code)) {
+    		if (Utils.isNullOrEmpty(oConfirmVM.confirmationCode)) {
 				RiseLog.warnLog("AuthResource.confirmInvitedUser: confirmation code null");
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
@@ -621,8 +621,8 @@ public class AuthResource {
     		}    		
     		
     		// The confirmation code should be the same
-    		if (!oUser.getConfirmationCode().equals(oConfirmVM.code)) {
-				RiseLog.warnLog("AuthResource.confirmInvitedUser: wrong confirmation code " + oConfirmVM.code);
+    		if (!oUser.getConfirmationCode().equals(oConfirmVM.confirmationCode)) {
+				RiseLog.warnLog("AuthResource.confirmInvitedUser: wrong confirmation code " + oConfirmVM.confirmationCode);
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}
     		
@@ -634,12 +634,26 @@ public class AuthResource {
 				ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_CONFIRM_EXPIRED.name(), Status.CONFLICT.getStatusCode());
 				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();    			
     		}
-    		    		
-    		oUser = (User) RiseViewModel.copyToEntity(User.class.getName(), oConfirmVM);
-    		oUser.setConfirmationDate(dNow);
-    		oUser.setLastLoginDate(dNow);
     		
-    		oUserRepository.updateUser(oUser);
+    		// Copy data from the view model to the new User Entity
+    		User oUserToUpdate = (User) RiseViewModel.copyToEntity(User.class.getName(), oConfirmVM);
+    		
+    		// Add the data that was missing in the View Model:
+    		
+    		// Different timestamps
+    		oUserToUpdate.setConfirmationDate(dNow);
+    		oUserToUpdate.setLastLoginDate(dNow);
+    		oUserToUpdate.setRegistrationDate(oUser.getRegistrationDate());
+    		
+    		// Role: is taken from the db so they cannot cheat us
+    		oUserToUpdate.setRole(oUser.getRole());
+    		// Organization: is taken from the db so they cannot cheat us
+    		oUserToUpdate.setOrganizationId(oUser.getOrganizationId());
+    		// This is the first time we set this password, must be encrypted
+    		oUserToUpdate.setPassword(oPasswordAuthentication.hash(oConfirmVM.password.toCharArray()));
+    		
+    		// Update using e-mail because we do not have the user id yet, we are adding it now 
+    		oUserRepository.updateUserByEmail(oUserToUpdate);
     		
     		// Get localized title and message
     		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_TITLE.name() , Languages.EN.name());
