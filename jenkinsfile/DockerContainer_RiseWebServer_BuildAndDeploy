@@ -45,13 +45,6 @@ pipeline {
         echo "env.sMavenProfile                    = " + env.sMavenProfile
         echo "env.sSourceBranch                    = " + env.sSourceBranch
         echo "env.sWasdiAnsiblePath                = " + env.sWasdiAnsiblePath
-        echo "env.sWasdiLauncher                   = " + env.sWasdiLauncher
-        echo "env.sWasdiScheduler                  = " + env.sWasdiScheduler
-        echo "env.sWasdiTomcatOgcProcessesServer   = " + env.sWasdiTomcatOgcProcessesServer
-        echo "env.sWasdiTomcatOpenEoServer         = " + env.sWasdiTomcatOpenEoServer
-        echo "env.sWasdiTomcatWasdiWebServer       = " + env.sWasdiTomcatWasdiWebServer
-        echo "env.sWasdiTrigger                    = " + env.sWasdiTrigger
-        echo "env.sWasdiUtils                      = " + env.sWasdiUtils
         echo "env.WORKSPACE                        = " + env.WORKSPACE
 
         sh script: "pwd", label: "Current location"
