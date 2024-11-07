@@ -89,7 +89,6 @@ pipeline {
             --define revision=${env.sCurrentRevision} \
             --define skipTests \
             --update-snapshots \
-
             clean package
         """,
         label: "Create the right packages"
