@@ -147,7 +147,7 @@ ENV TOMCAT_HOME="/opt/rise/rise-tomcat/v11.0.0-M26" PATH="/opt/rise/rise-tomcat/
 WORKDIR /opt/rise/rise-tomcat/v11.0.0-M26
 
 # Copy data
-COPY --chown=appwasdi:appwasdi ./dataToCopy/rise-api.war /opt/rise/rise-tomcat/v11.0.0-M26/webapps/rise-api.war
+COPY --chown=appwasdi:appwasdi ./dataToCopy/riseapi.war /opt/rise/rise-tomcat/v11.0.0-M26/webapps/rise-api.war
 COPY --chown=appwasdi:appwasdi ./dataToCopy/conf_server.xml /opt/rise/rise-tomcat/v11.0.0-M26/conf/server.xml
 COPY --chown=appwasdi:appwasdi ./dataToCopy/docker-entrypoint.sh /docker-entrypoint.sh
 
