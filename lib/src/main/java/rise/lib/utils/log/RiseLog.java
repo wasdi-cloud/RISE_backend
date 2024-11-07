@@ -89,7 +89,7 @@ public class RiseLog {
 			sPrefix = "[" + sLevel + "] ";
 		}
 		
-		LocalDateTime oNow = LocalDateTime.now();
+		//LocalDateTime oNow = LocalDateTime.now();
 		
 		if (s_oLoggerWrapper != null) {
 			

@@ -134,7 +134,7 @@ public class DateUtils {
 
 		long lTimeInMillis = oDate.getTime();
 
-		return new Double(lTimeInMillis);
+		return Double.valueOf(lTimeInMillis);
 	}
 	
 	

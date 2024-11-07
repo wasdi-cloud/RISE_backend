@@ -9,7 +9,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 
-import rise.lib.business.Organization;
 import rise.lib.business.User;
 import rise.lib.business.UserRole;
 import rise.lib.utils.Utils;

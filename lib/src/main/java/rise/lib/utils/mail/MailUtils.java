@@ -1,7 +1,6 @@
 package rise.lib.utils.mail;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import it.fadeout.mercurius.business.Message;
 import it.fadeout.mercurius.client.MercuriusAPI;
