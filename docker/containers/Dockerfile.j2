@@ -1,0 +1,161 @@
+FROM ubuntu:22.04
+
+
+# Labels used to search our containers and/or images
+LABEL org.opencontainers.image.authors="WASDI SARL" docker-image-name=rise-server
+
+# From now, all commands executed are executed with the user 'root'
+USER root
+
+# This environment variable is setted to avoid packages to ask a confirmation
+# This variable is setted to make Python stop creating files '.pyc'
+# This variable is setted to force the 'print' method of Python to flush message directly
+# This variable is setted to set the default editor
+ENV DEBIAN_FRONTEND="noninteractive" PYTHONDONTWRITEBYTECODE="False" PYTHONUNBUFFERED="True" EDITOR="nano"
+
+# RUN generic to create user, group, directories, etc
+RUN groupadd --gid 2042 --non-unique appwasdi && \
+    useradd --create-home --home-dir /home/appwasdi --uid 2042 --gid 2042 --non-unique --shell /bin/bash appwasdi && \
+    mkdir --parents \
+        /home/appwasdi/.ssh \
+        /opt/rise && \
+    chown appwasdi:appwasdi \
+        /home/appwasdi/.ssh && \
+    chown appwasdi:appwasdi \
+        /opt/rise && \
+    chmod 700 \
+        /home/appwasdi/.ssh && \
+    chmod 0755 \
+        /opt/rise
+
+# RUN generic to update the system and install common packages
+RUN echo "APT::Install-Suggests \"0\";" > /etc/apt/apt.conf.d/99local && \
+    echo "APT::Install-Recommends \"0\";" >> /etc/apt/apt.conf.d/99local && \
+    echo "APT::Get::Assume-Yes \"true\";" >> /etc/apt/apt.conf.d/99local && \
+    echo "APT::Keep-Downloaded-Packages \"false\";" >> /etc/apt/apt.conf.d/99local && \
+    echo "Dpkg::Options::--force-confold;" >> /etc/apt/apt.conf.d/99local && \
+    apt-get update && \
+    apt-get install \
+        ca-certificates && \
+    echo "deb https://mirror.ubuntu.ikoula.com/ jammy main restricted universe multiverse"           > /etc/apt/sources.list && \
+    echo "deb https://mirror.ubuntu.ikoula.com/ jammy-updates main restricted universe multiverse"  >> /etc/apt/sources.list && \
+    echo "deb https://mirror.ubuntu.ikoula.com/ jammy-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get dist-upgrade && \
+    apt-get install \
+        curl \
+        nano \
+        tar \
+        unzip \
+        wget && \
+    sed --in-place "s/# set tabsize.*/set tabsize 4/g" /etc/nanorc && \
+    sed --in-place "s/# set tabstospaces/set tabstospaces/g" /etc/nanorc && \
+    rm --recursive --force /var/lib/apt/lists/* && \
+    find / -xdev -type d -name __pycache__ -exec rm --recursive --force {} +
+
+
+# From now, all commands executed are executed with the user 'appwasdi'
+USER appwasdi
+
+# RUN specific to install JRE 17
+RUN mkdir --parents \
+        /opt/rise/jre17 \
+        /opt/rise/jre17/17.0.10_7 && \
+    chown appwasdi:appwasdi \
+        /opt/rise/jre17 \
+        /opt/rise/jre17/17.0.10_7 && \
+    chmod 0750 \
+        /opt/rise/jre17 \
+        /opt/rise/jre17/17.0.10_7 && \
+    wget \
+        --no-verbose \
+        --output-document /tmp/OpenJDK17U-jre_x64_linux_hotspot_17.0.10_7.tar.gz \
+        --progress=bar:force:noscroll \
+        --show-progress \
+        https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.10%2B7/OpenJDK17U-jre_x64_linux_hotspot_17.0.10_7.tar.gz && \
+    tar \
+        --directory /opt/rise/jre17/17.0.10_7 \
+        --extract \
+        --file /tmp/OpenJDK17U-jre_x64_linux_hotspot_17.0.10_7.tar.gz \
+        --strip-components=1 && \
+    ln \
+        --symbolic \
+        /opt/rise/jre17/17.0.10_7 \
+        /opt/rise/jre17/latest && \
+    chown --no-dereference appwasdi:appwasdi \
+        /opt/rise/jre17/latest && \
+    rm --force \
+        /tmp/OpenJDK17U-jre_x64_linux_hotspot_17.0.10_7.tar.gz
+
+ENV JAVA_HOME="/opt/rise/jre17/17.0.10_7" PATH="/opt/rise/jre17/17.0.10_7/bin:${PATH}"
+
+# From now, all commands executed are executed with the user 'root'
+USER root
+
+# RUN specific to Tomcat
+RUN mkdir --parents \
+        /mnt/rise \
+        /mnt/rise/users-volumes && \
+    chown appwasdi:appwasdi /mnt/rise && \
+    chmod 0750 /mnt/rise && \
+    chown appwasdi:appwasdi /mnt/rise/users-volumes && \
+    chmod 0750 /mnt/rise/users-volumes && \
+    apt-get update && \
+    apt-get install \
+        libjhdf4-jni \
+        libjhdf5-jni && \
+    rm --recursive --force /var/lib/apt/lists/* && \
+    find / -xdev -type d -name __pycache__ -exec rm --recursive --force {} +
+
+
+# From now, all commands executed are executed with the user 'appwasdi'
+USER appwasdi
+
+
+# RUN specific to install Tomcat
+RUN mkdir --parents \
+        /opt/rise/rise-tomcat \
+        /opt/rise/rise-tomcat/v11.0.0-M26 && \
+    chown appwasdi:appwasdi \
+        /opt/rise/rise-tomcat \
+        /opt/rise/rise-tomcat/v11.0.0-M26 && \
+    chmod 0750 \
+        /opt/rise/rise-tomcat \
+        /opt/rise/rise-tomcat/v11.0.0-M26 && \
+    wget \
+        --no-verbose \
+        --output-document /tmp/apache-tomcat-11.0.0-M26.tar.gz \
+        --progress=bar:force:noscroll \
+        --show-progress \
+        https://archive.apache.org/dist/tomcat/tomcat-11/v11.0.0-M26/bin/apache-tomcat-11.0.0-M26.tar.gz && \
+    tar \
+        --directory /opt/rise/rise-tomcat/v11.0.0-M26 \
+        --extract \
+        --file /tmp/apache-tomcat-11.0.0-M26.tar.gz \
+        --strip-components=1 && \
+    rm --recursive --force \
+      /tmp/apache-tomcat-11.0.0-M26.tar.gz \
+      0750 /opt/rise/rise-tomcat/v11.0.0-M26/webapps/ROOT \
+      0750 /opt/rise/rise-tomcat/v11.0.0-M26/webapps/docs \
+      0750 /opt/rise/rise-tomcat/v11.0.0-M26/webapps/examples && \
+    sed --in-place 's/127\\.\\d+\\.\\d+\\.\\d+/127\\.\\d+\\.\\d+\\.\\d+|172\\.42\\.\\d+\\.\\d+/g' /opt/rise/rise-tomcat/v11.0.0-M26/webapps/manager/META-INF/context.xml
+
+ENV TOMCAT_HOME="/opt/rise/rise-tomcat/v11.0.0-M26" PATH="/opt/rise/rise-tomcat/v11.0.0-M26/bin:${PATH}"
+
+
+# Set the workdir
+WORKDIR /opt/rise/rise-tomcat/v11.0.0-M26
+
+# Copy data
+COPY --chown=appwasdi:appwasdi ./dataToCopy/rise-api.war /opt/rise/rise-tomcat/v11.0.0-M26/webapps/rise-api.war
+COPY --chown=appwasdi:appwasdi ./dataToCopy/conf_server.xml /opt/rise/rise-tomcat/v11.0.0-M26/conf/server.xml
+COPY --chown=appwasdi:appwasdi ./dataToCopy/docker-entrypoint.sh /docker-entrypoint.sh
+
+
+# Start the container
+ENTRYPOINT ["/bin/bash", "/docker-entrypoint.sh"]
+CMD [ \
+    "/opt/rise/rise-tomcat/v11.0.0-M26/bin/catalina.sh", \
+    "run" \
+]
+

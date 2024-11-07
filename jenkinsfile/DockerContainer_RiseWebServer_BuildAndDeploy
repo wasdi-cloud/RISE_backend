@@ -101,7 +101,7 @@ pipeline {
         sh script: """
           cd ${env.sWasdiAnsiblePath}
           ansible-playbook \
-            playbooks/buildWasdiDockerContainer.yml \
+            playbooks/buildRiseDockerContainer.yml \
             --inventory inventories/${env.sAnsibleInventory}.yml \
             --limit ${env.sEnvironmentLower} \
             --diff \
