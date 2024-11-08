@@ -85,8 +85,10 @@ public class RiseViewModel {
 				    if (sMethodName.startsWith("get") || sMethodName.startsWith("is")) {
 				    	String sUpperCaseMethod = sMethodName.toUpperCase();
 				    	
-				    	if (sUpperCaseMethod.contains(sFiledName.toUpperCase())) {
-				    		
+				    	//to avoid any error or conflicts like surname and name or first name and last name ..ect
+				    	String sFieldGetterName= sMethodName.startsWith("get")?"GET"+sFiledName.toUpperCase():"IS"+sFiledName.toUpperCase();
+				    	
+				    	if (sUpperCaseMethod.equals(sFieldGetterName)) {
 				    		try {
 				    			oField.set(oViewModel, aoEntityMethods[iMethods].invoke(oEntity));
 				    		}
