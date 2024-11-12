@@ -1,0 +1,28 @@
+{
+	"ERROR_API_ORG_ALREADY_EXISTS": "Organization already exists",
+	"ERROR_API_USERID_ALREADY_EXISTS": "User Id not available",
+	"ERROR_API_MAIL_ALREADY_EXISTS": "Mail already registered",
+	"ERROR_API_MISSING_ACCEPT_TERMS_AND_PRIVACY": "Please accept terms and conditions and privacy policy",
+	"ERROR_API_WRONG_USER_OR_PASSWORD": "Wrong credentials",
+	"ERROR_API_WRONG_OTP": "Wrong One Time Password",
+	"ERROR_API_USER_ALREADY_EXISTS": "User already exists",
+	"ERROR_API_CONFIRM_EXPIRED": "Link expired",
+	"ERROR_API_NO_VALID_SUBSCRIPTION": "No valid subscription",
+	
+	"WARNING_API_PASSWORD_EXPIRED": "Password Expired",
+	
+	"NOTIFICATIONS_ADMIN_CONFIRM_MAIL_TITLE": "Confirm RISE Account",
+	"NOTIFICATIONS_ADMIN_CONFIRM_MAIL_MESSAGE": "A request to register in RISE has been received. If you did it, please click here %%LINK%% to confirm your registration.",
+	"NOTIFICATIONS_INVITE_MAIL_TITLE": "RISE Invitation",
+	"NOTIFICATIONS_INVITE_MAIL_MESSAGE": " You have been invited to join %%ORG%% in RISE. Please click on this %%LINK%% to confirm.",
+	"NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_TITLE": "User On boarded",
+	"NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_MESSAGE": "The user %%USER%% confirmed his invitation to RISE.",	
+	
+	"OTP_TITLE": "RISE OTP",
+	"OTP_MESSAGE": "Your code is %%CODE%%",
+	
+	"PLUGIN_FLOOD": "Flood",
+	"PLUGIN_DROUGHT": "Drought",
+	"PLUGIN_BUILDINGS": "Buildings",
+	"PLUGIN_IMPACTS": "Impacts"
+}
