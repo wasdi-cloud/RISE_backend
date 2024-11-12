@@ -36,7 +36,8 @@ public class Rise extends ResourceConfig {
 		
 		RiseLog.debugLog("----------- Welcome to RISE Remote Imaging Support for Emergencies 0.0.2-----------");
 
-		String sConfigFilePath = "/etc/rise/riseConfig.json";
+		String sConfigFilePath = "/home/jihed/projects/Rise/configuration/riseLocalTESTConfig.json";
+		
 
 		if (Utils.isNullOrEmpty(m_oServletConfig.getInitParameter("ConfigFilePath")) == false){
 			String sTestFile = m_oServletConfig.getInitParameter("ConfigFilePath");
