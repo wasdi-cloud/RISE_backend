@@ -14,9 +14,9 @@ public class ChangeEmailRequestRepository extends MongoRepository {
 	}
 
 	/**
-	 * Get a user from user id
+	 * Get a Change email request from old email
 	 * 
-	 * @param sUserId
+	 * @param sOldEmail
 	 * @return
 	 */
 	public ChangeEmailRequest getChangeEmailRequestByOldEmail(String sOldEmail) {
