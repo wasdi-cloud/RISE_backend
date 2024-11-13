@@ -3,6 +3,7 @@ package rise.api;
 
 import java.util.Date;
 
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -290,12 +291,12 @@ public class UserResource {
 				RiseLog.warnLog("UserResource.changeUserPassword: old password not valid");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-    		// check the new password
-    		if (!oPasswordAuthentication.isValidPassword(oRequestVM.newPassword)) {
+			// check the new password
+			if (!oPasswordAuthentication.isValidPassword(oRequestVM.newPassword)) {
 				RiseLog.warnLog("UserResource.changeUserPassword: new password invalid");
-				return Response.status(Status.BAD_REQUEST).build();		
-    		}
-    		
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
 			// Create the OTP Entity
 			OTP oOTP = new OTP();
 			oOTP.setId(Utils.getRandomName());
@@ -311,15 +312,14 @@ public class UserResource {
 
 			RiseLog.debugLog("UserResource.changeUserPassword: created OTP " + oOTP.getId());
 
-			PasswordChangeRequest oPasswordChangeRequest=new PasswordChangeRequest();
-			PasswordChangeRequestRepository oPasswordChangeRequestRepository=new PasswordChangeRequestRepository();
-			//saving new password with the otp id to later retrieve it 
+			PasswordChangeRequest oPasswordChangeRequest = new PasswordChangeRequest();
+			PasswordChangeRequestRepository oPasswordChangeRequestRepository = new PasswordChangeRequestRepository();
+			// saving new password with the otp id to later retrieve it
 			oPasswordChangeRequest.setOtpId(oOTP.getId());
 			oPasswordChangeRequest.setPassword(oRequestVM.newPassword);
 			oPasswordChangeRequest.setUserId(oOTP.getUserId());
 			oPasswordChangeRequestRepository.add(oPasswordChangeRequest);
-			
-			
+
 			// Create the view model
 			OTPViewModel oOTPViewModel = new OTPViewModel();
 			oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
@@ -347,75 +347,197 @@ public class UserResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
-	 	@POST
-	    @Produces(MediaType.APPLICATION_JSON)
-	    @Path("change_password_verify")
-	    public Response verifyPasswordChange(OTPVerifyViewModel oOTPVerifyVM) {
-	    	
-	    	try {
-	    		
-	    		ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.UNAUTHORIZED.getStatusCode());
-				// Validate inputs
-				if (oOTPVerifyVM == null) {
-					RiseLog.warnLog("UserResource.verifyPasswordChange: OTP info null, user not authenticated");
-					return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
-				}
-				if(Utils.isNullOrEmpty(oOTPVerifyVM.id)){
-					RiseLog.warnLog("UserResource.verifyPasswordChange: operation id null or empty, user not authenticated");
-					return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
-				}
-				if(Utils.isNullOrEmpty(oOTPVerifyVM.userId)){
-					RiseLog.warnLog("UserResource.verifyPasswordChange: user Id null or empty, user not authenticated");
-					return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
-				}
-				
-				OTPRepository oOTPRepository = new OTPRepository();
-				
-				OTP oDbOTP = oOTPRepository.getOTP(oOTPVerifyVM.id);
-				
-				if (oDbOTP == null) {
-					RiseLog.warnLog("UserResource.verifyPasswordChange: otp not found, user not authenticated");
-					return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
-				}
-				
-				if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
-					RiseLog.warnLog("UserResource.verifyPasswordChange: otp user id does not match, user not authenticated");
-					return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
-				}
-				
-				if (!oDbOTP.isValidated()) {
-					RiseLog.warnLog("UserResource.verifyPasswordChange: otp not validated, user not authenticated");
-					return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
-				}
-				
-				if (!oDbOTP.getOperation().equals(OTPOperations.CHANGE_PASSWORD.name())) {
-					RiseLog.warnLog("UserResource.verifyPasswordChange: otp action not correct, user not authenticated");
-					return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
-				}
-				
-		    	// Check if we have a user
-		    	UserRepository oUserRepository =  new UserRepository();
-		    	User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
-		    	
-		    	if (oUser == null) {
-		    		RiseLog.warnLog("UserResource.verifyPasswordChange: user not found");
-		    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
-		    	}	
-		    	PasswordAuthentication oPasswordAuthentication=new PasswordAuthentication();
-		    	PasswordChangeRequestRepository oPasswordChangeRequestRepository=new PasswordChangeRequestRepository();
-		    	PasswordChangeRequest oChangeRequest=oPasswordChangeRequestRepository.getPasswordChangeRequestByOTPId(oOTPVerifyVM.id);
-		    	oUser.setPassword(oPasswordAuthentication.hash(oChangeRequest.getPassword().toCharArray()));
-		    	oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
-				oOTPRepository.delete(oOTPVerifyVM.id);
-				oUserRepository.updateUser(oUser);
-				RiseLog.debugLog("UserResource.verifyPasswordChange");	
-		    	return Response.ok().build();
-		    	
-	    	}
-			catch (Exception oEx) {
-				RiseLog.errorLog("UserResource.verifyPasswordChange: " + oEx);
-				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("change_password_verify")
+	public Response verifyPasswordChange(OTPVerifyViewModel oOTPVerifyVM) {
+
+		try {
+
+			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(),
+					Status.UNAUTHORIZED.getStatusCode());
+			// Validate inputs
+			if (oOTPVerifyVM == null) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: OTP info null, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
 			}
-	    } 
+			if (Utils.isNullOrEmpty(oOTPVerifyVM.id)) {
+				RiseLog.warnLog(
+						"UserResource.verifyPasswordChange: operation id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if (Utils.isNullOrEmpty(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: user Id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			OTPRepository oOTPRepository = new OTPRepository();
+
+			OTP oDbOTP = oOTPRepository.getOTP(oOTPVerifyVM.id);
+
+			if (oDbOTP == null) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: otp not found, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog(
+						"UserResource.verifyPasswordChange: otp user id does not match, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.isValidated()) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: otp not validated, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.getOperation().equals(OTPOperations.CHANGE_PASSWORD.name())) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: otp action not correct, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			// Check if we have a user
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: user not found");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
+			PasswordChangeRequestRepository oPasswordChangeRequestRepository = new PasswordChangeRequestRepository();
+			PasswordChangeRequest oChangeRequest = oPasswordChangeRequestRepository
+					.getPasswordChangeRequestByOTPId(oOTPVerifyVM.id);
+			oUser.setPassword(oPasswordAuthentication.hash(oChangeRequest.getPassword().toCharArray()));
+			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
+			oOTPRepository.delete(oOTPVerifyVM.id);
+			oUserRepository.updateUser(oUser);
+			RiseLog.debugLog("UserResource.verifyPasswordChange");
+			return Response.ok().build();
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResource.verifyPasswordChange: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("delete-user")
+	public Response deleteUser(@HeaderParam("x-session-token") String sSessionId,ChangePasswordRequestViewModel oRequestVM) {
+		try {
+			User oUser = Rise.getUserFromSession(sSessionId);
+			System.out.print(oRequestVM);
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.getUser: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			// Create the OTP Entity
+			OTP oOTP = new OTP();
+			oOTP.setId(Utils.getRandomName());
+			oOTP.setSecretCode(Utils.getOTPPassword());
+			oOTP.setUserId(oUser.getUserId());
+			oOTP.setValidated(false);
+			oOTP.setOperation(OTPOperations.DELETE_USER.name());
+			oOTP.setTimestamp(DateUtils.getNowAsDouble());
+
+			// Add it to the Db
+			OTPRepository oOTPRepository = new OTPRepository();
+			oOTPRepository.add(oOTP);
+
+			RiseLog.debugLog("UserResource.deleteUser: created OTP " + oOTP.getId());
+
+			// Create the view model
+			OTPViewModel oOTPViewModel = new OTPViewModel();
+			oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
+
+			// Create the verify API address
+			oOTPViewModel.verifyAPI = RiseConfig.Current.serverApiAddress;
+			if (!oOTPViewModel.verifyAPI.endsWith("/"))
+				oOTPViewModel.verifyAPI += "/";
+			oOTPViewModel.verifyAPI += "usr/verify_delete_user";
+
+			// Get localized title and message
+			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), Languages.EN.name());
+			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), Languages.EN.name());
+
+			// We replace the code in the message
+			sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
+
+			// Send the OTP
+			MailUtils.sendEmail(oUser.getEmail(), sTitle, sMessage);
+
+			// Return the OTP View Mode
+			return Response.ok(oOTPViewModel).build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResource.deleteUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@DELETE
+	@Path("verify_delete_user")
+	public Response verifyDeleteUser(OTPVerifyViewModel oOTPVerifyVM) {
+		try {
+
+			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(),
+					Status.UNAUTHORIZED.getStatusCode());
+
+			// Validate inputs
+			if (oOTPVerifyVM == null) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: OTP info null, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if (Utils.isNullOrEmpty(oOTPVerifyVM.id)) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: operation id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if (Utils.isNullOrEmpty(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: user Id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			OTPRepository oOTPRepository = new OTPRepository();
+
+			OTP oDbOTP = oOTPRepository.getOTP(oOTPVerifyVM.id);
+
+			if (oDbOTP == null) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: otp not found, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: otp user id does not match, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.isValidated()) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: otp not validated, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.getOperation().equals(OTPOperations.DELETE_USER.name())) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: otp action not correct, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			// Check if we have a user
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: user not found");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			oOTPRepository.delete(oOTPVerifyVM.id);
+			// delete user
+			oUserRepository.deleteByUserId(oUser.getUserId());
+			return Response.ok().build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResource.verifyDeleteUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 
 }

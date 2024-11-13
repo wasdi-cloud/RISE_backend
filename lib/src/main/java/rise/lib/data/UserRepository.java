@@ -113,6 +113,11 @@ public class UserRepository extends MongoRepository {
         }
 
         return aoReturnList;	
-	}		
+	}	
+	public int deleteByUserId(String sUserId) {
+		BasicDBObject oCriteria = new BasicDBObject();
+		oCriteria.append("userId", sUserId);
+		return delete(oCriteria);
+	}
 	
 }

@@ -2,5 +2,6 @@ package rise.lib.business;
 
 public enum OTPOperations {
 	CHANGE_PASSWORD,
-	LOGIN
+	LOGIN,
+	DELETE_USER
 }
