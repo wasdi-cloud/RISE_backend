@@ -182,9 +182,9 @@ public class UserResource {
 			oChnageChangeEmailRequestRepository.add(oChangeEmailRequest);
 
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_TITLE.name(),
+			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CHANGE_MAIL_TITLE.name(),
 					Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_MESSAGE.name(),
+			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CHANGE_MAIL_MESSAGE.name(),
 					Languages.EN.name());
 
 			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
@@ -192,7 +192,7 @@ public class UserResource {
 
 			sLink += "?code=" + sConfirmationCode + "?mail=" + oChangeEmailViewModel.newEmail;
 
-			// We replace the link and org name in the message
+			// We replace the link in the message
 			sMessage = sMessage.replace("%%LINK%%", sLink);
 
 			// And we send an email to the user waiting for him to confirm!
