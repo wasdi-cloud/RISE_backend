@@ -17,13 +17,13 @@ import rise.lib.business.ChangeEmailRequest;
 import rise.lib.business.OTP;
 import rise.lib.business.OTPOperations;
 import rise.lib.business.PasswordChangeRequest;
-import rise.lib.business.Session;
+
 import rise.lib.business.User;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.ChangeEmailRequestRepository;
 import rise.lib.data.OTPRepository;
 import rise.lib.data.PasswordChangeRequestRepository;
-import rise.lib.data.SessionRepository;
+
 import rise.lib.data.UserRepository;
 import rise.lib.utils.PasswordAuthentication;
 import rise.lib.utils.Utils;
@@ -36,12 +36,12 @@ import rise.lib.utils.mail.MailUtils;
 import rise.lib.viewmodels.ChangeEmailViewModel;
 import rise.lib.viewmodels.ChangePasswordRequestViewModel;
 import rise.lib.viewmodels.ConfirmEmailChangeViewModel;
-import rise.lib.viewmodels.ConfirmInviteViewModel;
+
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.OTPVerifyViewModel;
 import rise.lib.viewmodels.OTPViewModel;
 import rise.lib.viewmodels.RiseViewModel;
-import rise.lib.viewmodels.SessionTokenViewModel;
+
 import rise.lib.viewmodels.UserViewModel;
 
 @Path("usr")
@@ -81,28 +81,18 @@ public class UserResource {
 				RiseLog.warnLog("UserResource.updateUser: user VM null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-			if (oUserViewModel.name == null) {
-				RiseLog.warnLog("UserResource.updateUser: user name null");
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-			if (oUserViewModel.surname == null) {
-				RiseLog.warnLog("UserResource.updateUser: user surname null");
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-
-			if (oUserViewModel.mobile == null) {
-				RiseLog.warnLog("UserResource.updateUser: user mobile null");
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-
 			// update name , surname and mobile in user entity
-			oUser.setName(oUserViewModel.name);
-			oUser.setSurname(oUserViewModel.surname);
-			oUser.setMobile(oUserViewModel.mobile);
-
+			if (!Utils.isNullOrEmpty(oUserViewModel.name)) {
+				oUser.setName(oUserViewModel.name);
+			}
+			if (!Utils.isNullOrEmpty(oUserViewModel.surname)) {
+				oUser.setSurname(oUserViewModel.surname);
+			}
+			if (!Utils.isNullOrEmpty(oUserViewModel.mobile)) {
+				oUser.setMobile(oUserViewModel.mobile);
+			}
 			UserRepository oUserRepository = new UserRepository();
 			oUserRepository.updateUser(oUser);
-
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.updateUser: " + oEx);
@@ -152,11 +142,11 @@ public class UserResource {
 				RiseLog.warnLog("UserResource.updateUser: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-			if (oChangeEmailViewModel.newEmail == null) {
+			if (Utils.isNullOrEmpty(oChangeEmailViewModel.newEmail)) {
 				RiseLog.warnLog("UserResource.changeUserEmail: new email is null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-			if (oChangeEmailViewModel.oldEmail == null) {
+			if (Utils.isNullOrEmpty(oChangeEmailViewModel.oldEmail)) {
 				RiseLog.warnLog("UserResource.changeUserEmail: old email is null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
@@ -421,13 +411,14 @@ public class UserResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("delete-user")
-	public Response deleteUser(@HeaderParam("x-session-token") String sSessionId,ChangePasswordRequestViewModel oRequestVM) {
+	public Response deleteUser(@HeaderParam("x-session-token") String sSessionId) {
 		try {
 			User oUser = Rise.getUserFromSession(sSessionId);
-			System.out.print(oRequestVM);
+
 			if (oUser == null) {
 				RiseLog.warnLog("UserResource.getUser: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();

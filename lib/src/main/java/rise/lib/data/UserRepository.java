@@ -72,6 +72,26 @@ public class UserRepository extends MongoRepository {
 
         return (User) get(oCriteria);		
 	}	
+	public List<User> getUsersByOrganizationId(String sOrganizationId) {
+	    List<User> aoReturnList = new ArrayList<>();
+
+	    try {
+	        
+	        FindIterable<Document> oWSDocument = getCollection(m_sThisCollection)
+	            .find(Filters.eq("organizationId", sOrganizationId));
+	        
+	        // Fill the return list with the retrieved documents
+	        fillList(aoReturnList, oWSDocument, User.class);
+	        
+	        return aoReturnList;
+	        
+	    } catch (Exception oEx) {
+	        RiseLog.errorLog("UserRepository.getUsersByOrganizationId: error", oEx);
+	    }
+
+	    return aoReturnList;
+	}
+
 	
 	public List<User> getAdminsOfOrganization(String sOrganizationId) {
 		
