@@ -19,6 +19,7 @@ import rise.lib.business.OTPOperations;
 import rise.lib.business.PasswordChangeRequest;
 
 import rise.lib.business.User;
+import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.ChangeEmailRequestRepository;
 import rise.lib.data.OTPRepository;
@@ -243,7 +244,7 @@ public class UserResource {
 			oUser.setEmail(oConfirmVM.newEmail);
 			oUserRepository.updateUser(oUser);
 
-			return Response.ok("Email successfully updated").build();
+			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.confirmNewEmail: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -339,7 +340,6 @@ public class UserResource {
 	}
 
 	@POST
-	@Produces(MediaType.APPLICATION_JSON)
 	@Path("change_password_verify")
 	public Response verifyPasswordChange(OTPVerifyViewModel oOTPVerifyVM) {
 
@@ -527,6 +527,45 @@ public class UserResource {
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.verifyDeleteUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+	@POST
+	@Path("change-role")
+	public Response changeUserRole(@HeaderParam("x-session-token") String sSessionId, UserViewModel oUserViewModel) {
+		try {
+			User oUser = Rise.getUserFromSession(sSessionId);
+			if (oUser == null) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			if (!oUser.getRole().equals(UserRole.ADMIN)) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: not an admin");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			if (oUserViewModel == null) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: user vm is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			if (oUserViewModel.role == null) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: user role is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			if (Utils.isNullOrEmpty(oUserViewModel.userId)) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: user id is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			if (!UserRole.isValid(oUserViewModel.role.name())) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: user role is unvalid");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			UserRepository oUserRepository = new UserRepository();
+			User oUserToBeChanged = oUserRepository.getUser(oUserViewModel.userId);
+			oUserToBeChanged.setRole(oUserViewModel.role);
+			oUserRepository.updateUser(oUserToBeChanged);
+			return Response.ok().build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("OrganizationResource.changeUserRole: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}

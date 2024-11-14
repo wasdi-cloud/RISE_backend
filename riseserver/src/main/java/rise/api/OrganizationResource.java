@@ -1,8 +1,10 @@
 package rise.api;
 
 import java.util.ArrayList;
+
 import java.util.List;
 
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -14,11 +16,16 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
+import rise.lib.business.OTP;
+import rise.lib.business.OTPOperations;
 import rise.lib.business.Organization;
+
 import rise.lib.business.User;
 import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
+import rise.lib.data.OTPRepository;
 import rise.lib.data.OrganizationRepository;
+
 import rise.lib.data.UserRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
@@ -30,6 +37,8 @@ import rise.lib.utils.log.RiseLog;
 import rise.lib.utils.mail.MailUtils;
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.InviteViewModel;
+import rise.lib.viewmodels.OTPVerifyViewModel;
+import rise.lib.viewmodels.OTPViewModel;
 import rise.lib.viewmodels.OrganizationViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.lib.viewmodels.UserViewModel;
@@ -241,8 +250,37 @@ public class OrganizationResource {
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
-			Organization oOrganization = (Organization) RiseViewModel.copyToEntity(Organization.class.getName(),
-					oOrganizationViewModel);
+			Organization oOrganization = oOrganizationRepository.getOrganization(oUser.getOrganizationId());
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.city)) {
+				oOrganization.setCity(oOrganizationViewModel.city);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.country)) {
+				oOrganization.setCountry(oOrganizationViewModel.country);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.creationDate)) {
+				oOrganization.setCreationDate(oOrganizationViewModel.creationDate);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.name)) {
+				oOrganization.setName(oOrganizationViewModel.name);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.number)) {
+				oOrganization.setNumber(oOrganizationViewModel.number);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.phone)) {
+				oOrganization.setPhone(oOrganizationViewModel.phone);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.postalCode)) {
+				oOrganization.setPostalCode(oOrganizationViewModel.postalCode);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.street)) {
+				oOrganization.setStreet(oOrganizationViewModel.street);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.type)) {
+				oOrganization.setType(oOrganizationViewModel.type);
+			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.vat)) {
+				oOrganization.setVat(oOrganizationViewModel.vat);
+			}
 			oOrganizationRepository.update(oOrganization, oOrganization.getId());
 			return Response.ok().build();
 		} catch (Exception oEx) {
@@ -252,6 +290,7 @@ public class OrganizationResource {
 	}
 
 	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("list_users")
 	public Response getOrganizationUsers(@HeaderParam("x-session-token") String sSessionId) {
 		try {
@@ -278,6 +317,173 @@ public class OrganizationResource {
 			return Response.ok(aoOrgUsers).build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("OrganizationResource.getOrganizationUsers: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@DELETE
+	@Path("remove-user")
+	public Response removeUsersFromOrganzation(@HeaderParam("x-session-token") String sSessionId,
+			List<UserViewModel> aoUsersToDelete) {
+		try {
+			User oUser = Rise.getUserFromSession(sSessionId);
+			if (oUser == null) {
+				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			if (!oUser.getRole().equals(UserRole.ADMIN)) {
+				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: not an admin");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			if (aoUsersToDelete == null || aoUsersToDelete.size() == 0) {
+				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: list is empty");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			for (UserViewModel oUserViewModel : aoUsersToDelete) {
+				if (Utils.isNullOrEmpty(oUserViewModel.userId)) {
+					RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: user id of " + oUserViewModel
+							+ "is  empty");
+					return Response.status(Status.BAD_REQUEST).build();
+				}
+			}
+			UserRepository oUserRepository = new UserRepository();
+			for (UserViewModel oUserViewModel : aoUsersToDelete) {
+				oUserRepository.deleteByUserId(oUserViewModel.userId);
+			}
+			return Response.ok().build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("OrganizationResource.removeUsersFromOrganzation: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@DELETE
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("delete-org")
+	public Response deleteOrganzation(@HeaderParam("x-session-token") String sSessionId) {
+		try {
+			User oUser = Rise.getUserFromSession(sSessionId);
+			if (oUser == null) {
+				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			if (!oUser.getRole().equals(UserRole.ADMIN)) {
+				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: not an admin");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			// create otp
+
+			// Create the OTP Entity
+			OTP oOTP = new OTP();
+			oOTP.setId(Utils.getRandomName());
+			oOTP.setSecretCode(Utils.getOTPPassword());
+			oOTP.setUserId(oUser.getUserId());
+			oOTP.setValidated(false);
+			oOTP.setOperation(OTPOperations.DELETE_ORG.name());
+			oOTP.setTimestamp(DateUtils.getNowAsDouble());
+
+			// Add it to the Db
+			OTPRepository oOTPRepository = new OTPRepository();
+			oOTPRepository.add(oOTP);
+
+			RiseLog.debugLog("OrganizationResource.deleteOrganization: created OTP " + oOTP.getId());
+			// Create the view model
+			OTPViewModel oOTPViewModel = new OTPViewModel();
+			oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
+
+			// Create the verify API address
+			oOTPViewModel.verifyAPI = RiseConfig.Current.serverApiAddress;
+			if (!oOTPViewModel.verifyAPI.endsWith("/"))
+				oOTPViewModel.verifyAPI += "/";
+			oOTPViewModel.verifyAPI += "org/verify-delete-org";
+
+			// Get localized title and message
+			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), Languages.EN.name());
+			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), Languages.EN.name());
+
+			// We replace the code in the message
+			sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
+
+			// Send the OTP
+			MailUtils.sendEmail(oUser.getEmail(), sTitle, sMessage);
+
+			// Return the OTP View Mode
+			return Response.ok(oOTPViewModel).build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("OrganizationResource.removeUsersFromOrganzation: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@DELETE
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("verify-delete-org")
+	public Response verifyDeleteOrg(OTPVerifyViewModel oOTPVerifyVM) {
+		try {
+
+			// Validate inputs
+			if (oOTPVerifyVM == null) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: OTP info null, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			if (Utils.isNullOrEmpty(oOTPVerifyVM.id)) {
+				RiseLog.warnLog(
+						"OrganizationResource.verifyDeleteOrg: operation id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			if (Utils.isNullOrEmpty(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: user Id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			OTPRepository oOTPRepository = new OTPRepository();
+
+			OTP oDbOTP = oOTPRepository.getOTP(oOTPVerifyVM.id);
+
+			if (oDbOTP == null) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: otp not found, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog(
+						"OrganizationResource.verifyDeleteOrg: otp user id does not match, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (!oDbOTP.isValidated()) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: otp not validated, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (!oDbOTP.getOperation().equals(OTPOperations.DELETE_ORG.name())) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: otp action not correct, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			// Check if we have a user
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: user not found");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
+			String sOrganizationId = oUser.getOrganizationId();
+
+			// delete users of the org
+			List<User> aoUsers = oUserRepository.getUsersByOrganizationId(sOrganizationId);
+			for (User oOrgUser : aoUsers) {
+				oUserRepository.deleteByUserId(oOrgUser.getUserId());
+			}
+
+			// delete org and otp
+			oOrganizationRepository.delete(sOrganizationId);
+			oOTPRepository.delete(oOTPVerifyVM.id);
+
+			return Response.ok().build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("OrganizationResource.verifyDeleteOrg: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
