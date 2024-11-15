@@ -118,6 +118,7 @@ public class UserResource {
 			}
 
 			// update name , surname and mobile in user entity
+
 			oUser.setNotifyActivities(oUserViewModel.notifyActivities);
 			oUser.setNotifyMaintenance(oUserViewModel.notifyMaintenance);
 			oUser.setNotifyNewsletter(oUserViewModel.notifyNewsletter);
@@ -128,6 +129,38 @@ public class UserResource {
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.updateUserNotificationSettings: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@POST
+	@Path("change-language")
+	public Response updateUserLanguageSettings(@HeaderParam("x-session-token") String sSessionId,
+			UserViewModel oUserViewModel) {
+		try {
+
+			User oUser = Rise.getUserFromSession(sSessionId);
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.updateUserLanguageSettings: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			if (oUserViewModel == null) {
+				RiseLog.warnLog("UserResource.updateUserLanguageSettings: user VM null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			if (Utils.isNullOrEmpty(oUserViewModel.defaultLanguage)) {
+				RiseLog.warnLog("UserResource.updateUserLanguageSettings: language is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			oUser.setDefaultLanguage(oUserViewModel.defaultLanguage);
+			UserRepository oUserRepository = new UserRepository();
+			oUserRepository.updateUser(oUser);
+
+			return Response.ok().build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResource.updateUserLanguageSettings: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
@@ -530,6 +563,7 @@ public class UserResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+
 	@POST
 	@Path("change-role")
 	public Response changeUserRole(@HeaderParam("x-session-token") String sSessionId, UserViewModel oUserViewModel) {
