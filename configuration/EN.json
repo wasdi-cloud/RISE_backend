@@ -8,15 +8,15 @@
 	"ERROR_API_USER_ALREADY_EXISTS": "User already exists",
 	"ERROR_API_CONFIRM_EXPIRED": "Link expired",
 	"ERROR_API_NO_VALID_SUBSCRIPTION": "No valid subscription",
-	
+
 	"WARNING_API_PASSWORD_EXPIRED": "Password Expired",
-	
+
 	"NOTIFICATIONS_ADMIN_CONFIRM_MAIL_TITLE": "Confirm RISE Account",
 	"NOTIFICATIONS_ADMIN_CONFIRM_MAIL_MESSAGE": "A request to register in RISE has been received. If you did it, please click here %%LINK%% to confirm your registration.",
 	"NOTIFICATIONS_INVITE_MAIL_TITLE": "RISE Invitation",
 	"NOTIFICATIONS_INVITE_MAIL_MESSAGE": " You have been invited to join %%ORG%% in RISE. Please click on this %%LINK%% to confirm.",
 	"NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_TITLE": "User On boarded",
-	"NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_MESSAGE": "The user %%USER%% confirmed his invitation to RISE.",	
+	"NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_MESSAGE": "The user %%USER%% confirmed his invitation to RISE.",
 
 	"NOTIFICATIONS_CHANGE_MAIL_TITLE": "RISE Change Email Request",
 	"NOTIFICATIONS_CHANGE_MAIL_MESSAGE": " We received a request to update the email address associated with your account. Before we proceed, we need your confirmation to ensure the security of your account.
@@ -24,10 +24,10 @@
 	If you would like to change your email to this new address, please confirm by clicking the link below: %%LINK%%
 	\n
 	If you did not request this change, please ignore this message, and no action will be taken.",
-	
+
 	"OTP_TITLE": "RISE OTP",
 	"OTP_MESSAGE": "Your code is %%CODE%%",
-	
+
 	"PLUGIN_FLOOD": "Flood",
 	"PLUGIN_DROUGHT": "Drought",
 	"PLUGIN_BUILDINGS": "Buildings",
