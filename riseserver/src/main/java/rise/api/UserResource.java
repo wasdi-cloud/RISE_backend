@@ -1,8 +1,5 @@
 
 package rise.api;
-
-import java.util.Date;
-
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;

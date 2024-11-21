@@ -507,7 +507,7 @@ public class AreaResource {
 
 	@DELETE
 	@Path("delete-area")
-	public Response deleteArea(@HeaderParam("x-session-token") String sSessionId, String sAreaId) {
+	public Response deleteArea(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sAreaId) {
 		try {
 			// Check the session
 			User oUser = Rise.getUserFromSession(sSessionId);

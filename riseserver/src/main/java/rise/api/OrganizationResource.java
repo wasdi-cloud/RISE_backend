@@ -309,9 +309,17 @@ public class OrganizationResource {
 			String sOrganizationId = oUser.getOrganizationId();
 			UserRepository oUserRepository = new UserRepository();
 			List<User> aoUsers = oUserRepository.getUsersByOrganizationId(sOrganizationId);
-			for (User aoUsr : aoUsers) {
+			for (User oUserFromList : aoUsers) {
 				UserViewModel oUserViewModel = (UserViewModel) RiseViewModel
-						.getFromEntity(UserViewModel.class.getName(), aoUsr);
+						.getFromEntity(UserViewModel.class.getName(), oUserFromList);
+				//check if it is current user
+				if(oUserFromList.getUserId().equals(oUser.getUserId())) {
+					continue;
+				}
+				//check to see if it is activated ( for invited users)
+				if(oUserFromList.getConfirmationDate()==null) {
+					continue;
+				}
 				aoOrgUsers.add(oUserViewModel);
 			}
 			return Response.ok(aoOrgUsers).build();
