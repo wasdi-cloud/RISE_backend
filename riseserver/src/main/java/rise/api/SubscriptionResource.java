@@ -1,6 +1,11 @@
 package rise.api;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import jakarta.ws.rs.GET;
@@ -357,15 +362,19 @@ public class SubscriptionResource {
     		oSubscription.setBuyDate(dNow);
     		oSubscription.setValid(true);
     		oSubscription.setId(Utils.getRandomName());
-    		
-    		double dExpire = dNow;
+
+    		// Convert epoch to LocalDateTime for calendar-based arithmetic
+    		LocalDateTime nowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
+    		LocalDateTime expireDateTime;
+
     		if (oSubscription.getPaymentType().equals(PaymentType.MONTH)) {
-    			dExpire += 30*24*60*60*1000;
+    		    expireDateTime = nowDateTime.plusMonths(1); // Add 1 month
+    		} else {
+    		    expireDateTime = nowDateTime.plusYears(1); // Add 1 year
     		}
-    		else {
-    			dExpire += 365*24*60*60*1000;
-    		}
-    		
+
+    		// Convert back to epoch milliseconds
+    		double dExpire = expireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
     		oSubscription.setExpireDate(dExpire);
     		oSubscription.setOrganizationId(oUser.getOrganizationId());
     		

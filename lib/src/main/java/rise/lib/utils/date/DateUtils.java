@@ -37,7 +37,6 @@ public class DateUtils {
 	public static Double getNowAsDouble() {
 		return getDateAsDouble(new Date());
 	}
-
 	/**
 	 * Get a date as a Double timestamp
 	 * @param oDate
@@ -50,7 +49,6 @@ public class DateUtils {
 
 		return (double) (oDate.getTime());
 	}
-
 	public static Date getDate(Long oLong) {
 		return new Date(oLong);
 	}

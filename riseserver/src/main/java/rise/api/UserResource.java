@@ -1,5 +1,8 @@
 
 package rise.api;
+
+import java.util.List;
+
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -13,6 +16,7 @@ import rise.Rise;
 import rise.lib.business.ChangeEmailRequest;
 import rise.lib.business.OTP;
 import rise.lib.business.OTPOperations;
+import rise.lib.business.Organization;
 import rise.lib.business.PasswordChangeRequest;
 
 import rise.lib.business.User;
@@ -20,6 +24,7 @@ import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.ChangeEmailRequestRepository;
 import rise.lib.data.OTPRepository;
+import rise.lib.data.OrganizationRepository;
 import rise.lib.data.PasswordChangeRequestRepository;
 
 import rise.lib.data.UserRepository;
@@ -450,8 +455,16 @@ public class UserResource {
 			User oUser = Rise.getUserFromSession(sSessionId);
 
 			if (oUser == null) {
-				RiseLog.warnLog("UserResource.getUser: invalid Session");
+				RiseLog.warnLog("UserResource.deleteUser: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			// verify if it is the only admin in the org
+			UserRepository oUserRepository = new UserRepository();
+			List<User> aoUsers = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
+			if (aoUsers.size() == 1 && aoUsers.contains(oUser)) {
+				// org has only the current user as admin
+				RiseLog.warnLog("UserResource.deleteUser: the current user is the only last admin for the org ");
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			// Create the OTP Entity

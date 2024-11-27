@@ -18,7 +18,7 @@ public class SecurityConfig {
 	
 	public double maxOTPAgeSeconds = 60*30;
 	
-	public String inviteConfirmAddress = "rise.wasdi.net/user/confirm";
+	public String inviteConfirmAddress = "https://risetest.wasdi.net/user/confirm";
 	
 	public String registerConfirmAddress = "rise.wasdi.net/user/confirm";
 }
