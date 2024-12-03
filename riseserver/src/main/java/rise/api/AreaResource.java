@@ -525,10 +525,10 @@ public class AreaResource {
 			for (Area oAreaElement : aoAreas) {
 				// check same name
 				if (oArea.name.equals(oAreaElement.getName())) {
-					ArrayList<String> asErrors=new ArrayList<>(); 
+					ArrayList<String> asErrors = new ArrayList<>();
 					asErrors.add(StringCodes.ERROR_API_AREA_NAME_ALREADY_EXISTS.name());
 					ErrorViewModel oErrorViewModel = new ErrorViewModel(asErrors, Status.CONFLICT.getStatusCode());
-	    			return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();
+					return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();
 				}
 				// check overlapping
 				if (checkIntersection(oArea.bbox, oAreaElement.getBbox())) {
@@ -547,29 +547,31 @@ public class AreaResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
-	private boolean checkIntersection(String sAreaToCreateBBox,String sAreaAlreadyExistsBBox) {
-		Polygon oNewArea=parsePolygonWKT(sAreaToCreateBBox);
-		Polygon oExistingArea=parsePolygonWKT(sAreaToCreateBBox);
-		if(oNewArea.getBounds().intersects(oExistingArea.getBounds())) {
+
+	private boolean checkIntersection(String sAreaToCreateBBox, String sAreaAlreadyExistsBBox) {
+		Polygon oNewArea = parsePolygonWKT(sAreaToCreateBBox);
+		Polygon oExistingArea = parsePolygonWKT(sAreaAlreadyExistsBBox);
+		if (oNewArea.getBounds().intersects(oExistingArea.getBounds())) {
 			return true;
 		}
 		return false;
 	}
-	 public  Polygon parsePolygonWKT(String sWkt) {
-	        String[] asCoords = sWkt.replace("POLYGON((", "").replace("))", "").split(",");
-	        int[] aiXPoints = new int[asCoords.length];
-	        int[] aiYPoints = new int[asCoords.length];
 
-	        for (int i = 0; i < asCoords.length; i++) {
-	            StringTokenizer tokenizer = new StringTokenizer(asCoords[i], " ");
-	            aiXPoints [i] = (int) Double.parseDouble(tokenizer.nextToken());
-	            aiYPoints [i] = (int) Double.parseDouble(tokenizer.nextToken());
-	        }
+	public Polygon parsePolygonWKT(String sWkt) {
 
-	        return new Polygon(aiXPoints, aiYPoints, aiXPoints.length);
-	    }
-	 
-	 
+		String[] asCoords = sWkt.replaceAll("(?i)POLYGON\\s*\\(\\(", "").replace("))", "").split(",");
+		int[] aiXPoints = new int[asCoords.length];
+		int[] aiYPoints = new int[asCoords.length];
+
+		for (int i = 0; i < asCoords.length; i++) {
+			StringTokenizer tokenizer = new StringTokenizer(asCoords[i], " ");
+			aiXPoints[i] = (int) Double.parseDouble(tokenizer.nextToken());
+			aiYPoints[i] = (int) Double.parseDouble(tokenizer.nextToken());
+		}
+
+		return new Polygon(aiXPoints, aiYPoints, aiXPoints.length);
+	}
+
 	@DELETE
 	@Path("delete-area")
 	public Response deleteArea(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sAreaId) {
