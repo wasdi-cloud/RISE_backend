@@ -1,7 +1,9 @@
 package rise.api;
 
+import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -492,19 +494,82 @@ public class AreaResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getOverlappingAreas(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId,
 			AreaViewModel oArea) {
-
 		try {
-			ArrayList<OverlappingAreaViewModel> aoOverlappingAreas = new ArrayList<>();
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
 
-			// TODO
+			if (oUser == null) {
+				RiseLog.warnLog("AreaResource.getOverlappingAreas: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			// We need some one that can handle the area here
+			if (!PermissionsUtils.hasHQRights(oUser)) {
+				RiseLog.warnLog("AreaResource.getOverlappingAreas: not an HQ level");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (Utils.isNullOrEmpty(sId)) {
+				RiseLog.warnLog("AreaResource.getOverlappingAreas: id null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			if (oArea == null) {
+				RiseLog.warnLog("AreaResource.getOverlappingAreas: area view model null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			ArrayList<OverlappingAreaViewModel> aoOverlappingAreas = new ArrayList<>();
+			AreaRepository oAreaRepository = new AreaRepository();
+			List<Area> aoAreas = oAreaRepository.getByOrganization(sId);
+			for (Area oAreaElement : aoAreas) {
+				// check same name
+				if (oArea.name.equals(oAreaElement.getName())) {
+					ArrayList<String> asErrors=new ArrayList<>(); 
+					asErrors.add(StringCodes.ERROR_API_AREA_NAME_ALREADY_EXISTS.name());
+					ErrorViewModel oErrorViewModel = new ErrorViewModel(asErrors, Status.CONFLICT.getStatusCode());
+	    			return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();
+				}
+				// check overlapping
+				if (checkIntersection(oArea.bbox, oAreaElement.getBbox())) {
+					// create over lapping area vm
+					OverlappingAreaViewModel oOverlappingAreaViewModel = new OverlappingAreaViewModel();
+					oOverlappingAreaViewModel.bbox = oAreaElement.getBbox();
+					oOverlappingAreaViewModel.id = oAreaElement.getId();
+					oOverlappingAreaViewModel.name = oAreaElement.getName();
+					aoOverlappingAreas.add(oOverlappingAreaViewModel);
+				}
+			}
 
 			return Response.ok(aoOverlappingAreas).build();
 		} catch (Exception oEx) {
-			RiseLog.errorLog("AreaResource.deleteUser: " + oEx);
+			RiseLog.errorLog("AreaResource.getOverlappingAreas: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	private boolean checkIntersection(String sAreaToCreateBBox,String sAreaAlreadyExistsBBox) {
+		Polygon oNewArea=parsePolygonWKT(sAreaToCreateBBox);
+		Polygon oExistingArea=parsePolygonWKT(sAreaToCreateBBox);
+		if(oNewArea.getBounds().intersects(oExistingArea.getBounds())) {
+			return true;
+		}
+		return false;
+	}
+	 public  Polygon parsePolygonWKT(String sWkt) {
+	        String[] asCoords = sWkt.replace("POLYGON((", "").replace("))", "").split(",");
+	        int[] aiXPoints = new int[asCoords.length];
+	        int[] aiYPoints = new int[asCoords.length];
 
+	        for (int i = 0; i < asCoords.length; i++) {
+	            StringTokenizer tokenizer = new StringTokenizer(asCoords[i], " ");
+	            aiXPoints [i] = (int) Double.parseDouble(tokenizer.nextToken());
+	            aiYPoints [i] = (int) Double.parseDouble(tokenizer.nextToken());
+	        }
+
+	        return new Polygon(aiXPoints, aiYPoints, aiXPoints.length);
+	    }
+	 
+	 
 	@DELETE
 	@Path("delete-area")
 	public Response deleteArea(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sAreaId) {
@@ -527,16 +592,16 @@ public class AreaResource {
 				RiseLog.warnLog("AreaResource.addUser: id null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-			AreaRepository oAreaRepository=new AreaRepository();
-			Area oArea=(Area) oAreaRepository.get(sAreaId) ;
-			if(oArea==null) {
+			AreaRepository oAreaRepository = new AreaRepository();
+			Area oArea = (Area) oAreaRepository.get(sAreaId);
+			if (oArea == null) {
 				RiseLog.warnLog("AreaResource.deleteArea: area does not exist");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			oAreaRepository.delete(sAreaId);
-			
-			//RISE will stop the related subscription of the deleted Area of Operations
-			
+
+			// RISE will stop the related subscription of the deleted Area of Operations
+
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("AreaResource.deleteArea: " + oEx);
