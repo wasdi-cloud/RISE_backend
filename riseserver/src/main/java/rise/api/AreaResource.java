@@ -290,26 +290,28 @@ public class AreaResource {
 			UserRepository oUserRepository = new UserRepository();
 
 			ArrayList<UserOfAreaViewModel> aoUsersVM = new ArrayList<>();
+			// check if there are any field operators
+			if (!oArea.getFieldOperators().isEmpty()) {
+				for (String sUserId : oArea.getFieldOperators()) {
 
-			for (String sUserId : oArea.getFieldOperators()) {
+					if (Utils.isNullOrEmpty(sUserId)) {
+						RiseLog.warnLog("AreaResource.getUsers: user id null, jump area Id: " + sId);
+						continue;
+					}
 
-				if (Utils.isNullOrEmpty(sUserId)) {
-					RiseLog.warnLog("AreaResource.getUsers: user id null, jump area Id: " + sId);
-					continue;
+					User oFieldUser = oUserRepository.getUser(sUserId);
+
+					if (oFieldUser == null) {
+						RiseLog.warnLog("AreaResource.getUsers: user id  " + sUserId
+								+ " not corresponding to a valid user, jump");
+						continue;
+					}
+
+					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
+							.getFromEntity(UserOfAreaViewModel.class.getName(), oFieldUser);
+					oUserAreaVM.areaId = sId;
+					aoUsersVM.add(oUserAreaVM);
 				}
-
-				User oFieldUser = oUserRepository.getUser(sUserId);
-
-				if (oFieldUser == null) {
-					RiseLog.warnLog(
-							"AreaResource.getUsers: user id  " + sUserId + " not corresponding to a valid user, jump");
-					continue;
-				}
-
-				UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
-						.getFromEntity(UserOfAreaViewModel.class.getName(), oFieldUser);
-				oUserAreaVM.areaId = sId;
-				aoUsersVM.add(oUserAreaVM);
 			}
 
 			List<User> aoAdmins = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
@@ -323,13 +325,14 @@ public class AreaResource {
 			}
 
 			List<User> aoHQOperators = oUserRepository.getHQOperatorsOfOrganization(oUser.getOrganizationId());
+			if (!aoHQOperators.isEmpty()) {
+				for (User oHQOperator : aoHQOperators) {
 
-			for (User oHQOperator : aoHQOperators) {
-
-				UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
-						.getFromEntity(UserOfAreaViewModel.class.getName(), oHQOperator);
-				oUserAreaVM.areaId = sId;
-				aoUsersVM.add(oUserAreaVM);
+					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
+							.getFromEntity(UserOfAreaViewModel.class.getName(), oHQOperator);
+					oUserAreaVM.areaId = sId;
+					aoUsersVM.add(oUserAreaVM);
+				}
 			}
 
 			// return the list to the client
