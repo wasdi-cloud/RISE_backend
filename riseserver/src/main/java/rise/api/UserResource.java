@@ -16,7 +16,7 @@ import rise.Rise;
 import rise.lib.business.ChangeEmailRequest;
 import rise.lib.business.OTP;
 import rise.lib.business.OTPOperations;
-import rise.lib.business.Organization;
+
 import rise.lib.business.PasswordChangeRequest;
 
 import rise.lib.business.User;
@@ -24,7 +24,6 @@ import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.ChangeEmailRequestRepository;
 import rise.lib.data.OTPRepository;
-import rise.lib.data.OrganizationRepository;
 import rise.lib.data.PasswordChangeRequestRepository;
 
 import rise.lib.data.UserRepository;
@@ -347,8 +346,7 @@ public class UserResource {
 			oPasswordChangeRequestRepository.add(oPasswordChangeRequest);
 
 			// Create the view model
-			OTPViewModel oOTPViewModel = new OTPViewModel();
-			oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
+			OTPViewModel oOTPViewModel =(OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
 
 			// Create the verify API address
 			oOTPViewModel.verifyAPI = RiseConfig.Current.serverApiAddress;
@@ -483,8 +481,7 @@ public class UserResource {
 			RiseLog.debugLog("UserResource.deleteUser: created OTP " + oOTP.getId());
 
 			// Create the view model
-			OTPViewModel oOTPViewModel = new OTPViewModel();
-			oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
+			OTPViewModel oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
 
 			// Create the verify API address
 			oOTPViewModel.verifyAPI = RiseConfig.Current.serverApiAddress;

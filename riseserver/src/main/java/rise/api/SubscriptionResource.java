@@ -1,11 +1,8 @@
 package rise.api;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import jakarta.ws.rs.GET;
@@ -80,7 +77,7 @@ public class SubscriptionResource {
 			for (Subscription oSubscription : aoSubscriptions) {
 				
 				// Valid = false => we get all. Valid = true => only valid ones
-				if (bValid == false || oSubscription.isValid()) {
+				if (!bValid || oSubscription.isValid()) {
 					SubscriptionListViewModel oListItem = (SubscriptionListViewModel) RiseViewModel.getFromEntity(SubscriptionListViewModel.class.getName(), oSubscription);
 					aoSubscriptionsVM.add(oListItem);
 				}
@@ -354,7 +351,6 @@ public class SubscriptionResource {
     		
     		
     		Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(), oSubscriptionViewModel);
-    		
     		oSubscription.setPrice(getSubscriptionPrice(oSubscription));
     		
     		double dNow = DateUtils.getNowAsDouble();
