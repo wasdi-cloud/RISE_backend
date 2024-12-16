@@ -23,6 +23,8 @@ public class Layer extends RiseEntity {
 	private String id;
 	
 	private boolean published=false;
+	
+	private boolean keepLayer=false;
 
 	public String getId() {
 		return id;
@@ -102,6 +104,14 @@ public class Layer extends RiseEntity {
 
 	public void setPublished(boolean published) {
 		this.published = published;
+	}
+
+	public boolean isKeepLayer() {
+		return keepLayer;
+	}
+
+	public void setKeepLayer(boolean keepLayer) {
+		this.keepLayer = keepLayer;
 	}
 }
 
