@@ -14,6 +14,8 @@ public class Event extends RiseEntity {
 	
 	private double peakDate;
 	
+	private String areaId;
+	
 	private String id;
 
 	public String getId() {
@@ -71,6 +73,14 @@ public class Event extends RiseEntity {
 
 	public void setPeakDate(double peakDate) {
 		this.peakDate = peakDate;
+	}
+
+	public String getAreaId() {
+		return areaId;
+	}
+
+	public void setAreaId(String areaId) {
+		this.areaId = areaId;
 	}
 	
 }
