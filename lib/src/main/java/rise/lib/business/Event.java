@@ -8,11 +8,11 @@ public class Event extends RiseEntity {
 	
 	private String bbox;
 	
-	private double startDate;
+	private String startDate;
 	
-	private double endDate;
+	private String endDate;
 	
-	private double peakDate;
+	private String peakDate;
 	
 	private String areaId;
 	
@@ -51,27 +51,27 @@ public class Event extends RiseEntity {
 		this.bbox = bbox;
 	}
 
-	public double getStartDate() {
+	public String getStartDate() {
 		return startDate;
 	}
 
-	public void setStartDate(double startDate) {
+	public void setStartDate(String startDate) {
 		this.startDate = startDate;
 	}
 
-	public double getEndDate() {
+	public String getEndDate() {
 		return endDate;
 	}
 
-	public void setEndDate(double endDate) {
+	public void setEndDate(String endDate) {
 		this.endDate = endDate;
 	}
 
-	public double getPeakDate() {
+	public String getPeakDate() {
 		return peakDate;
 	}
 
-	public void setPeakDate(double peakDate) {
+	public void setPeakDate(String peakDate) {
 		this.peakDate = peakDate;
 	}
 

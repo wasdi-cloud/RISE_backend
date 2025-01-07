@@ -14,10 +14,10 @@ public class EventViewModel extends RiseViewModel {
 	
 	public String bbox;
 	
-	public double startDate;
+	public String startDate;
 	
-	public double endDate;
+	public String endDate;
 	
-	public double peakDate;
+	public String peakDate;
 
 }
