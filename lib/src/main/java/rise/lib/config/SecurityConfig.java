@@ -4,7 +4,9 @@ public class SecurityConfig {
 	
 	public double maxConfirmationAgeSeconds = 24*60*60;
 	
-	public double maxPasswordAgeSeconds = 3*30*24*60*60;
+	//this should be three month(as required)
+	//for the test env we are making it to 6 months 
+	public double maxPasswordAgeSeconds = 3*30*24*60*60*2;
 	
 	public int minPwLenght = 8;
 	
