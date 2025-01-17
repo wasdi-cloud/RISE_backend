@@ -199,6 +199,7 @@ public class UserResource {
 			String sConfirmationCode = Utils.getRandomName();
 			// save user confirmation code in Change email request
 			ChangeEmailRequest oChangeEmailRequest = new ChangeEmailRequest();
+			oChangeEmailRequest.setId(Utils.getRandomName());
 			oChangeEmailRequest.setConfirmationCode(sConfirmationCode);
 			oChangeEmailRequest.setNewEmail(oChangeEmailViewModel.newEmail);
 			oChangeEmailRequest.setOldEmail(oChangeEmailViewModel.oldEmail);
@@ -277,6 +278,7 @@ public class UserResource {
 
 			oUser.setEmail(oConfirmVM.newEmail);
 			oUserRepository.updateUser(oUser);
+			oChangeEmailRequestRepository.delete(oChangeEmailRequest.getId());
 
 			return Response.ok().build();
 		} catch (Exception oEx) {
