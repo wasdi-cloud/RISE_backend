@@ -215,7 +215,7 @@ public class UserResource {
 			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
 			String sLink = RiseConfig.Current.security.changeEmailConfirm;
 
-			sLink += "?code=" + sConfirmationCode + "?mail=" + oChangeEmailViewModel.newEmail;
+			sLink += "?code=" + sConfirmationCode + "&mail=" + oChangeEmailViewModel.newEmail;
 
 			// We replace the link in the message
 			sMessage = sMessage.replace("%%LINK%%", sLink);
