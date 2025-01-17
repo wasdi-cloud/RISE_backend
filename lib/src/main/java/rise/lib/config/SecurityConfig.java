@@ -22,5 +22,7 @@ public class SecurityConfig {
 	
 	public String inviteConfirmAddress = "https://risetest.wasdi.net/user/confirm";
 	
+	public String changeEmailConfirm="https://risetest.wasdi.net/user/confirm-change-email";
+	
 	public String registerConfirmAddress = "rise.wasdi.net/user/confirm";
 }

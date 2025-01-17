@@ -213,7 +213,7 @@ public class UserResource {
 					Languages.EN.name());
 
 			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
-			String sLink = RiseConfig.Current.security.inviteConfirmAddress;
+			String sLink = RiseConfig.Current.security.changeEmailConfirm;
 
 			sLink += "?code=" + sConfirmationCode + "?mail=" + oChangeEmailViewModel.newEmail;
 
