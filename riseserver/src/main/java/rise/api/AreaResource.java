@@ -289,14 +289,23 @@ public class AreaResource {
 
 			UserRepository oUserRepository = new UserRepository();
 			ArrayList<UserOfAreaViewModel> aoUsersVM = new ArrayList<>();
-			List<User> aoFieldOperators= oUserRepository.getFieldOperatorsOfOrganization(oUser.getOrganizationId());
+			List<String> asFieldOperatorsIds= oArea.getFieldOperators();
 			
 			// check if there are any field operators
-			if (!aoFieldOperators.isEmpty()) {
-				for (User oFieldOperator : aoFieldOperators) {
-
+			if (asFieldOperatorsIds!=null && !asFieldOperatorsIds.isEmpty()) {
+				for (String sFieldOperatorId : asFieldOperatorsIds) {
+					if(Utils.isNullOrEmpty(sFieldOperatorId)) {
+						RiseLog.warnLog("AreaResource.getUsers: user id  null");
+						continue;
+						
+					}
+					User oFieldOperatorOfArea=oUserRepository.getUser(sFieldOperatorId);
+					if(oFieldOperatorOfArea==null) {
+						RiseLog.warnLog("AreaResource.getUsers: user "+sFieldOperatorId+"is not found");
+						continue;
+					}
 					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
-							.getFromEntity(UserOfAreaViewModel.class.getName(), oFieldOperator);
+							.getFromEntity(UserOfAreaViewModel.class.getName(), oFieldOperatorOfArea);
 					oUserAreaVM.areaId = sId;
 					aoUsersVM.add(oUserAreaVM);
 				}
