@@ -398,14 +398,19 @@ public class AreaResource {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 
-			if (oArea.getFieldOperators().contains(oFieldUser.getUserId())) {
-				RiseLog.warnLog("AreaResource.addUser: user " + oUserToAdd.userId + " already in the area");
-				return Response.ok().build();
+			if(oArea.getFieldOperators()!=null) {
+				if (oArea.getFieldOperators().contains(oFieldUser.getUserId())) {
+					RiseLog.warnLog("AreaResource.addUser: user " + oUserToAdd.userId + " already in the area");
+					return Response.ok().build();
+				}
+				oArea.getFieldOperators().add(oUserToAdd.userId);
+				oAreaRepository.update(oArea, oArea.getId());
+			}else {
+				ArrayList<String> asListOfUsers=new ArrayList<String>();
+				asListOfUsers.add(oUserToAdd.userId);
+				oArea.setFieldOperators(asListOfUsers);
+				oAreaRepository.update(oArea, oArea.getId());
 			}
-
-			oArea.getFieldOperators().add(oUserToAdd.userId);
-			oAreaRepository.update(oArea, oArea.getId());
-
 			// return the list to the client
 			return Response.ok().build();
 		} catch (Exception oEx) {
