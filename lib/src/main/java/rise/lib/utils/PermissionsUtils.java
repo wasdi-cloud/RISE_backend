@@ -52,6 +52,19 @@ public class PermissionsUtils {
 		
 		return false;
 	}
+	/**
+	 * Verify if the user is a field operator
+	 * @param oUser
+	 * @return
+	 */
+	public static boolean hasFieldRights(User oUser) {
+		if (oUser == null) return false;
+		if (oUser.getRole() == null) return false;
+		if (oUser.getRole().equals(UserRole.FIELD)) return true;
+		return false;
+	}
+	
+	
 	
 	/**
 	 * Verify if the user has a valid subscription

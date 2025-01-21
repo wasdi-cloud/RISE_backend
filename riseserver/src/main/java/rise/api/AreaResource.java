@@ -79,7 +79,55 @@ public class AreaResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	@GET
+	@Path("list-by-user")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getListByUser(@HeaderParam("x-session-token") String sSessionId) {
 
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("AreaResource.getListByUser: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			ArrayList<AreaListViewModel> aoAreasVM = new ArrayList<>();
+			AreaRepository oAreaRepository = new AreaRepository();
+			// Get the areas of this org
+			List<Area> aoAreas = oAreaRepository.getByOrganization(oUser.getOrganizationId());
+			if (PermissionsUtils.hasHQRights(oUser)) {
+				// Convert the entities
+				for (Area oArea : aoAreas) {
+
+					AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel
+							.getFromEntity(AreaListViewModel.class.getName(), oArea);
+					aoAreasVM.add(oListItem);
+				}
+				
+			}else if(PermissionsUtils.hasFieldRights(oUser)) {
+				for (Area oArea : aoAreas) {
+					if(oArea.getFieldOperators()!= null && oArea.getFieldOperators().contains(oUser.getUserId())) {
+						AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel
+								.getFromEntity(AreaListViewModel.class.getName(), oArea);
+						aoAreasVM.add(oListItem);
+					}
+				}
+			}else {
+				RiseLog.warnLog("AreaResource.getListByUser: cannot handle area");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			
+
+			// return the list to the client
+			return Response.ok(aoAreasVM).build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("AreaResource.getListByUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 	/**
 	 * Get an Area by id
 	 * 
