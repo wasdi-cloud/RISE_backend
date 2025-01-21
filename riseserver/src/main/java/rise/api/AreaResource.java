@@ -326,7 +326,7 @@ public class AreaResource {
 			// return the list to the client
 			return Response.ok(aoUsersVM).build();
 		} catch (Exception oEx) {
-			RiseLog.errorLog("AreaResource.getById: " + oEx);
+			RiseLog.errorLog("AreaResource.getUsers: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
@@ -401,6 +401,51 @@ public class AreaResource {
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("AreaResource.addUser: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+	
+	@GET
+	@Path("field")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getFieldOperators(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId) {
+
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("AreaResource.getFieldOperators: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (!PermissionsUtils.hasHQRights(oUser)) {
+				RiseLog.warnLog("AreaResource.getFieldOperators: not an HQ level");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (Utils.isNullOrEmpty(sId)) {
+				RiseLog.warnLog("AreaResource.getFieldOperators: id null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			// Get the this area
+			AreaRepository oAreaRepository = new AreaRepository();
+			Area oArea = (Area) oAreaRepository.get(sId);
+
+			if (oArea == null) {
+				RiseLog.warnLog("AreaResource.getFieldOperators: area " + sId + " not found");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("AreaResource.getFieldOperators: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			// return the list to the client
+			return Response.ok(oArea.getFieldOperators()).build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("AreaResource.getFieldOperators: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
