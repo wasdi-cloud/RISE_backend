@@ -25,6 +25,14 @@ public class Layer extends RiseEntity {
 	private boolean published=false;
 	
 	private boolean keepLayer=false;
+	
+	private String dataSource = "";
+	
+	private Double createdDate = 0.0;
+	
+	private String resolution = "";
+	
+	private String inputData = "";
 
 	public String getId() {
 		return id;
@@ -112,6 +120,38 @@ public class Layer extends RiseEntity {
 
 	public void setKeepLayer(boolean keepLayer) {
 		this.keepLayer = keepLayer;
+	}
+
+	public String getDataSource() {
+		return dataSource;
+	}
+
+	public void setDataSource(String dataSource) {
+		this.dataSource = dataSource;
+	}
+
+	public Double getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(Double createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	public String getResolution() {
+		return resolution;
+	}
+
+	public void setResolution(String resolution) {
+		this.resolution = resolution;
+	}
+
+	public String getInputData() {
+		return inputData;
+	}
+
+	public void setInputData(String inputData) {
+		this.inputData = inputData;
 	}
 }
 

@@ -29,5 +29,7 @@ public class AreaViewModel extends RiseViewModel  {
 	
 	public Double archiveEndDate;
 	
+	public boolean active = true;
+	
 	public ArrayList<String> plugins = new ArrayList<>();
 }

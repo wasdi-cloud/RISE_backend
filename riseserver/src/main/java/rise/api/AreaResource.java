@@ -283,6 +283,7 @@ public class AreaResource {
 			oArea.setOrganizationId(oUser.getOrganizationId());
 			oArea.setArchiveStartDate(-1.0);
 			oArea.setArchiveEndDate(-1.0);
+			oArea.setActive(true);
 
 			// Create it
 			oAreaRepository.add(oArea);
