@@ -13,17 +13,17 @@ public class ForgetPasswordRequestRepository extends MongoRepository {
 
 	/**
 	 * Get a Forget password request from userId
-	 * 
-	 * @param sUserId
+	 *
+	 * @param sConfirmationCode
 	 * @return
 	 */
-	public ForgetPasswordRequest getForgetPasswordRequestByUserId(String sUerId) {
+	public ForgetPasswordRequest getForgetPasswordRequestByConfirmationCode(String sConfirmationCode) {
 
-		if (Utils.isNullOrEmpty(sUerId))
+		if (Utils.isNullOrEmpty(sConfirmationCode))
 			return null;
 
 		BasicDBObject oCriteria = new BasicDBObject();
-		oCriteria.append("userId", sUerId);
+		oCriteria.append("confirmationCode", sConfirmationCode);
 
 		return (ForgetPasswordRequest) get(oCriteria);
 	}

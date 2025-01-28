@@ -750,7 +750,7 @@ public class UserResource {
 
 			ForgetPasswordRequestRepository oForgetPasswordRequestRepository = new ForgetPasswordRequestRepository();
 			ForgetPasswordRequest oForgetPasswordRequest = oForgetPasswordRequestRepository
-					.getForgetPasswordRequestByUserId(oConfirmVM.userId);
+					.getForgetPasswordRequestByConfirmationCode(oConfirmVM.confirmationCode);
 			// The confirmation code should be found or else it is used or did not send q
 			// request at all
 			if (oForgetPasswordRequest == null) {
