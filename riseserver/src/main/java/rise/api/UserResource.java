@@ -9,11 +9,13 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.ChangeEmailRequest;
+import rise.lib.business.ForgetPasswordRequest;
 import rise.lib.business.OTP;
 import rise.lib.business.OTPOperations;
 
@@ -23,6 +25,7 @@ import rise.lib.business.User;
 import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.ChangeEmailRequestRepository;
+import rise.lib.data.ForgetPasswordRequestRepository;
 import rise.lib.data.OTPRepository;
 import rise.lib.data.PasswordChangeRequestRepository;
 
@@ -36,9 +39,10 @@ import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.utils.mail.MailUtils;
 import rise.lib.viewmodels.ChangeEmailViewModel;
+import rise.lib.viewmodels.ChangeExpiredPasswordRequestViewModel;
 import rise.lib.viewmodels.ChangePasswordRequestViewModel;
 import rise.lib.viewmodels.ConfirmEmailChangeViewModel;
-
+import rise.lib.viewmodels.ConfirmForgetPasswordViewModel;
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.OTPVerifyViewModel;
 import rise.lib.viewmodels.OTPViewModel;
@@ -296,7 +300,7 @@ public class UserResource {
 
 			User oUser = Rise.getUserFromSession(sSessionId);
 			if (oUser == null) {
-				RiseLog.warnLog("UserResource.updateUser: invalid Session");
+				RiseLog.warnLog("UserResource.changeUserPassword: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 			if (oRequestVM == null) {
@@ -348,7 +352,7 @@ public class UserResource {
 			oPasswordChangeRequestRepository.add(oPasswordChangeRequest);
 
 			// Create the view model
-			OTPViewModel oOTPViewModel =(OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
+			OTPViewModel oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
 
 			// Create the verify API address
 			oOTPViewModel.verifyAPI = RiseConfig.Current.serverApiAddress;
@@ -609,6 +613,171 @@ public class UserResource {
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("OrganizationResource.changeUserRole: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@POST
+	@Path("change-expired-password")
+	public Response changeExpiredPassword(ChangeExpiredPasswordRequestViewModel oRequestVM) {
+		try {
+
+			if (oRequestVM == null) {
+				RiseLog.warnLog("UserResource.changeExpiredPassword: request VM null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			if (Utils.isNullOrEmpty(oRequestVM.userId)) {
+				RiseLog.warnLog("UserResource.changeExpiredPassword: user id is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			if (Utils.isNullOrEmpty(oRequestVM.password)) {
+				RiseLog.warnLog("UserResource.changeExpiredPassword: user password is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
+			// check the new password
+			if (!oPasswordAuthentication.isValidPassword(oRequestVM.password)) {
+				RiseLog.warnLog("UserResource.changeExpiredPassword: password invalid");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(oRequestVM.userId);
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.changeExpiredPassword: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			oUser.setPassword(oPasswordAuthentication.hash(oRequestVM.password.toCharArray()));
+			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
+			oUserRepository.updateUser(oUser);
+			return Response.ok().build();
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResource.changeExpiredPassword: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@POST
+	@Path("forget-password")
+	public Response forgetPassword(@QueryParam("userId") String sUserId) {
+		try {
+			if (Utils.isNullOrEmpty(sUserId)) {
+				RiseLog.warnLog("UserResource.forgetPassword: user id is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(sUserId);
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.forgetPassword: user is null");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			// Generate the Confirmation Code
+			String sConfirmationCode = Utils.getRandomName();
+			// save user confirmation code in Change email request
+			ForgetPasswordRequest oForgetPasswordRequest = new ForgetPasswordRequest();
+			oForgetPasswordRequest.setId(Utils.getRandomName());
+			oForgetPasswordRequest.setConfirmationCode(sConfirmationCode);
+			oForgetPasswordRequest.setUserId(sUserId);
+			oForgetPasswordRequest.setCreatedAt(DateUtils.getNowAsDouble());
+			// Set expiresAt to 24 hours from now
+			double expiresAt = DateUtils.getNowAsDouble() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
+			oForgetPasswordRequest.setExpiresAt(expiresAt);
+
+			ForgetPasswordRequestRepository oForgetPasswordRequestRepository = new ForgetPasswordRequestRepository();
+			oForgetPasswordRequestRepository.add(oForgetPasswordRequest);
+
+			// Get localized title and message
+			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_FORGET_PASSWORD_TITLE.name(),
+					Languages.EN.name());
+			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_FORGET_PASSWORD_MESSAGE.name(),
+					Languages.EN.name());
+
+			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
+			String sLink = RiseConfig.Current.security.forgetPasswordConfirm;
+
+			sLink += "?code=" + sConfirmationCode + "&userId=" + sUserId;
+
+			// We replace the link in the message
+			sMessage = sMessage.replace("%%LINK%%", sLink);
+
+			// And we send an email to the user waiting for him to confirm!
+			MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oUser.getEmail(), sTitle, sMessage,
+					true);
+			return Response.ok().build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResource.forgetPassword: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@POST
+	@Path("confirm-forget-password")
+	public Response confirmForgetPassword(ConfirmForgetPasswordViewModel oConfirmVM) {
+		try {
+			// Check we have VM
+			if (oConfirmVM == null) {
+				RiseLog.warnLog("AuthResource.confirmForgetPassword: confirm VM null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			// Need user id
+			if (Utils.isNullOrEmpty(oConfirmVM.userId)) {
+				RiseLog.warnLog("AuthResource.confirmForgetPassword: user id null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			// And code
+			if (Utils.isNullOrEmpty(oConfirmVM.confirmationCode)) {
+				RiseLog.warnLog("AuthResource.confirmForgetPassword: confirmation code null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
+			// check the new password
+			if (!oPasswordAuthentication.isValidPassword(oConfirmVM.password)) {
+				RiseLog.warnLog("UserResource.confirmForgetPassword: password invalid");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			// The user should already be here
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(oConfirmVM.userId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("AuthResource.confirmForgetPassword: cannot find user " + oConfirmVM.userId);
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			ForgetPasswordRequestRepository oForgetPasswordRequestRepository = new ForgetPasswordRequestRepository();
+			ForgetPasswordRequest oForgetPasswordRequest = oForgetPasswordRequestRepository
+					.getForgetPasswordRequestByUserId(oConfirmVM.userId);
+			// The confirmation code should be found or else it is used or did not send q
+			// request at all
+			if (oForgetPasswordRequest == null) {
+				RiseLog.warnLog("AuthResource.confirmForgetPassword:  forget password request not found");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			// The confirmation code should be the same
+			if (!oForgetPasswordRequest.getConfirmationCode().equals(oConfirmVM.confirmationCode)) {
+				RiseLog.warnLog(
+						"AuthResource.confirmForgetPassword: wrong confirmation code " + oConfirmVM.confirmationCode);
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			// The confirmation code should be not expired
+			double dNow = DateUtils.getNowAsDouble();
+			if (oForgetPasswordRequest.getExpiresAt() <= dNow) {
+				RiseLog.warnLog("AuthResource.confirmForgetPassword: confirmation code " + oConfirmVM.confirmationCode
+						+ "expired ");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			oUser.setPassword(oPasswordAuthentication.hash(oConfirmVM.password.toCharArray()));
+			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
+			oUserRepository.updateUser(oUser);
+			oForgetPasswordRequestRepository.delete(oForgetPasswordRequest.getId());
+			return Response.ok().build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResource.confirmForgetPassword: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
