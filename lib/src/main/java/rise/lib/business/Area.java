@@ -33,6 +33,8 @@ public class Area extends RiseEntity {
 	private String id;
 	
 	private boolean newCreatedArea = true;
+	
+	private boolean active = true;
 
 	public String getId() {
 		return id;
@@ -152,6 +154,14 @@ public class Area extends RiseEntity {
 
 	public void setNewCreatedArea(boolean newCreatedArea) {
 		this.newCreatedArea = newCreatedArea;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 	
 

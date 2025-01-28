@@ -23,5 +23,13 @@ public class LayerViewModel extends RiseViewModel {
 	public String geoserverUrl;
 	
 	public boolean published = false;
+	
+	public String dataSource = "";
+	
+	public Double createdDate = 0.0;
+	
+	public String resolution = "";
+	
+	public String inputData = "";	
 }
 
