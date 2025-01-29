@@ -14,6 +14,8 @@ public class EventViewModel extends RiseViewModel {
 	
 	public String bbox;
 	
+	public String markerCoordinates;
+	
 	public double startDate;
 	
 	public double endDate;

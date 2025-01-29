@@ -8,6 +8,8 @@ public class Event extends RiseEntity {
 	
 	private String bbox;
 	
+	private String markerCoordinates;
+	
 	private double startDate;
 	
 	private double endDate;
@@ -90,6 +92,20 @@ public class Event extends RiseEntity {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	/**
+	 * @return the markerCoordinates
+	 */
+	public String getMarkerCoordinates() {
+		return markerCoordinates;
+	}
+
+	/**
+	 * @param markerCoordinates the markerCoordinates to set
+	 */
+	public void setMarkerCoordinates(String markerCoordinates) {
+		this.markerCoordinates = markerCoordinates;
 	}
 	
 }
