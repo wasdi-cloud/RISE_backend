@@ -1,5 +1,7 @@
 package rise.lib.viewmodels;
 
+import rise.lib.business.EventType;
+
 public class EventViewModel extends RiseViewModel {
 
 	/**
@@ -10,7 +12,7 @@ public class EventViewModel extends RiseViewModel {
 	
 	public String name;
 	
-	public String type;
+	public EventType type;
 	
 	public String bbox;
 	
@@ -23,5 +25,8 @@ public class EventViewModel extends RiseViewModel {
 	public double peakDate;
 	
 	public String description;
-
+	
+	public boolean isInGoing;
+	
+	public boolean isPublic;
 }

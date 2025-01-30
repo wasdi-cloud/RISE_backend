@@ -1,6 +1,7 @@
 {
 	"ERROR_API_ORG_ALREADY_EXISTS": "Organization already exists",
 	"ERROR_API_USERID_ALREADY_EXISTS": "User Id not available",
+	"ERROR_API_USERID_NOT_FOUND": "User is not found",
 	"ERROR_API_MAIL_ALREADY_EXISTS": "Mail already registered",
 	"ERROR_API_MISSING_ACCEPT_TERMS_AND_PRIVACY": "Please accept terms and conditions and privacy policy",
 	"ERROR_API_WRONG_USER_OR_PASSWORD": "Wrong credentials",

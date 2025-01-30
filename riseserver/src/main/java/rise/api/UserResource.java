@@ -662,6 +662,7 @@ public class UserResource {
 	@Path("forget-password")
 	public Response forgetPassword(@QueryParam("userId") String sUserId) {
 		try {
+			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_USERID_NOT_FOUND.name(), Status.UNAUTHORIZED.getStatusCode());
 			if (Utils.isNullOrEmpty(sUserId)) {
 				RiseLog.warnLog("UserResource.forgetPassword: user id is null");
 				return Response.status(Status.BAD_REQUEST).build();
@@ -669,8 +670,8 @@ public class UserResource {
 			UserRepository oUserRepository = new UserRepository();
 			User oUser = oUserRepository.getUser(sUserId);
 			if (oUser == null) {
-				RiseLog.warnLog("UserResource.forgetPassword: user is null");
-				return Response.status(Status.UNAUTHORIZED).build();
+				RiseLog.warnLog("UserResource.forgetPassword: user is not found");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
 			}
 			// Generate the Confirmation Code
 			String sConfirmationCode = Utils.getRandomName();

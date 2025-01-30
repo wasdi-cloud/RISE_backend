@@ -4,7 +4,7 @@ public class Event extends RiseEntity {
 
 	private String name;
 	
-	private String type;
+	private EventType type;
 	
 	private String bbox;
 	
@@ -21,6 +21,10 @@ public class Event extends RiseEntity {
 	private String id;
 	
 	private String description;
+	
+	private boolean isInGoing;
+	
+	private boolean isPublic;
 
 	public String getId() {
 		return id;
@@ -39,11 +43,11 @@ public class Event extends RiseEntity {
 		this.name = name;
 	}
 
-	public String getType() {
+	public EventType getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(EventType type) {
 		this.type = type;
 	}
 
@@ -106,6 +110,34 @@ public class Event extends RiseEntity {
 	 */
 	public void setMarkerCoordinates(String markerCoordinates) {
 		this.markerCoordinates = markerCoordinates;
+	}
+
+	/**
+	 * @return the isInGoing
+	 */
+	public boolean isInGoing() {
+		return isInGoing;
+	}
+
+	/**
+	 * @param isInGoing the isInGoing to set
+	 */
+	public void setInGoing(boolean isInGoing) {
+		this.isInGoing = isInGoing;
+	}
+
+	/**
+	 * @return the isPublic
+	 */
+	public boolean isPublic() {
+		return isPublic;
+	}
+
+	/**
+	 * @param isPublic the isPublic to set
+	 */
+	public void setPublic(boolean isPublic) {
+		this.isPublic = isPublic;
 	}
 	
 }

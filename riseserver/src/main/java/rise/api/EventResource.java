@@ -164,7 +164,7 @@ public class EventResource {
 			if (!Utils.isNullOrEmpty(oEventViewModel.name)) {
 				oFromDbEvent.setName(oEventViewModel.name);
 			}
-			if (!Utils.isNullOrEmpty(oEventViewModel.type)) {
+			if (oEventViewModel.type!=null) {
 				oFromDbEvent.setType(oEventViewModel.type);
 			}
 			if (!Utils.isNullOrEmpty(oEventViewModel.endDate)) {
