@@ -22,9 +22,9 @@ public class Event extends RiseEntity {
 	
 	private String description;
 	
-	private boolean isInGoing;
+	private boolean inGoing=false;
 	
-	private boolean isPublic;
+	private boolean publicEvent=true;
 
 	public String getId() {
 		return id;
@@ -116,28 +116,28 @@ public class Event extends RiseEntity {
 	 * @return the isInGoing
 	 */
 	public boolean isInGoing() {
-		return isInGoing;
+		return inGoing;
 	}
 
 	/**
 	 * @param isInGoing the isInGoing to set
 	 */
-	public void setInGoing(boolean isInGoing) {
-		this.isInGoing = isInGoing;
+	public void setInGoing(boolean inGoing) {
+		this.inGoing = inGoing;
 	}
 
 	/**
-	 * @return the isPublic
+	 * @return the publicEvent
 	 */
-	public boolean isPublic() {
-		return isPublic;
+	public boolean isPublicEvent() {
+		return publicEvent;
 	}
 
 	/**
-	 * @param isPublic the isPublic to set
+	 * @param set publicEvent 
 	 */
-	public void setPublic(boolean isPublic) {
-		this.isPublic = isPublic;
+	public void setPublicEvent(boolean publicEvent) {
+		this.publicEvent= publicEvent;
 	}
 	
 }

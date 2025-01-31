@@ -176,7 +176,9 @@ public class EventResource {
 			if (!Utils.isNullOrEmpty(oEventViewModel.startDate)) {
 				oFromDbEvent.setStartDate(oEventViewModel.startDate);
 			}
-
+			oFromDbEvent.setInGoing(oEventViewModel.inGoing);
+			oFromDbEvent.setPublicEvent(oEventViewModel.publicEvent);
+			
 			// Update it
 			if (!oEventsRepository.update(oFromDbEvent, oFromDbEvent.getId())) {
 				RiseLog.warnLog("EventResource.updateEvent: There was an error updating the event");

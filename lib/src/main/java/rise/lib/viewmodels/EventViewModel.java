@@ -26,7 +26,7 @@ public class EventViewModel extends RiseViewModel {
 	
 	public String description;
 	
-	public boolean isInGoing;
+	public boolean inGoing;
 	
-	public boolean isPublic;
+	public boolean publicEvent;
 }

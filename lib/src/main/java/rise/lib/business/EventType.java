@@ -2,7 +2,7 @@ package rise.lib.business;
 
 public enum EventType {
 
-	FLOOD("Flood"), DROUGHT("Drought"), CONFLIST("Conflict"), EARTHQUAKE("Earthquake"), TSUNAMI("Tsunami"),
+	FLOOD("Flood"), DROUGHT("Drought"), CONFLICT("Conflict"), EARTHQUAKE("Earthquake"), TSUNAMI("Tsunami"),
 	INDUSTRIAL_ACCIDENTS("Insutrial Accidents"), LANDSLIDE("Landslide"), OTHER("Other");
 
 	private final String value;
