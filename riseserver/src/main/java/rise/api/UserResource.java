@@ -91,6 +91,9 @@ public class UserResource {
 			if (!Utils.isNullOrEmpty(oUserViewModel.name)) {
 				oUser.setName(oUserViewModel.name);
 			}
+			if (!Utils.isNullOrEmpty(oUserViewModel.userId)) {
+				oUser.setUserId(oUserViewModel.userId);
+			}
 			if (!Utils.isNullOrEmpty(oUserViewModel.surname)) {
 				oUser.setSurname(oUserViewModel.surname);
 			}

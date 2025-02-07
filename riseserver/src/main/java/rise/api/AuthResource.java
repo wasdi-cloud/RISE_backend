@@ -1,6 +1,7 @@
 package rise.api;
 
 import java.net.URLEncoder;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -40,7 +41,6 @@ import rise.lib.viewmodels.RegisterViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.lib.viewmodels.SessionTokenViewModel;
 import rise.lib.viewmodels.UserCredentialsViewModel;
-
 /**
  * User's related APIs
  * 

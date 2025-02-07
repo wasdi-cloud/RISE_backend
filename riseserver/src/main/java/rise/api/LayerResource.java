@@ -1,6 +1,9 @@
 package rise.api;
 
 import jakarta.ws.rs.*;
+
+
+
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -135,6 +138,12 @@ public class LayerResource {
 				RiseLog.warnLog("LayerResource.downloadLayer: layer null");
 				return Response.status(Status.NOT_FOUND).build();
 			}
+			/*String sWorkspaceName=oLayer.getAreaId()+"|"+oLayer.getPluginId() +"|"+oLayer.getLayerId();
+			WasdiLib oWasdiLib=new WasdiLib();
+			oWasdiLib.openWorkspace(sWorkspaceName);
+			
+			return Response.ok(oWasdiLib.getPath(oLayer.getLayerId()))
+					.header("Content-Disposition", "attachment; filename=" + sLayerId + "." + sFormat).build();*/
 			// get geoserver url
 			String sGeoserverUrl = oLayer.getGeoserverUrl();
 
