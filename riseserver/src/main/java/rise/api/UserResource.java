@@ -101,7 +101,7 @@ public class UserResource {
 				oUser.setMobile(oUserViewModel.mobile);
 			}
 			UserRepository oUserRepository = new UserRepository();
-			oUserRepository.updateUser(oUser);
+			oUserRepository.updateUserByEmail(oUser);
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.updateUser: " + oEx);
