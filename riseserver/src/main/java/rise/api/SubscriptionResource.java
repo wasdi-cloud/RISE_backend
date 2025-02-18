@@ -363,8 +363,9 @@ public class SubscriptionResource {
     		
     		double dNow = DateUtils.getNowAsDouble();
     		oSubscription.setCreationDate(dNow);
-    		oSubscription.setBuyDate(dNow);
+    		oSubscription.setBuyDate(null);
     		oSubscription.setValid(true);
+    		oSubscription.setBuySuccess(false);
     		oSubscription.setId(Utils.getRandomName());
 
     		// Convert epoch to LocalDateTime for calendar-based arithmetic

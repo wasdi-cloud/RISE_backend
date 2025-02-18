@@ -4,6 +4,7 @@ package rise.services;
 
 import java.util.Date;
 
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -14,11 +15,11 @@ import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import com.stripe.model.InvoiceLineItemCollection;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.model.checkout.Session.CustomerDetails;
 
 import rise.lib.config.RiseConfig;
-import rise.lib.config.WasdiConfig;
 import rise.lib.utils.Utils;
 import rise.lib.utils.http.HttpCallResponse;
 import rise.lib.utils.http.HttpUtils;
@@ -57,6 +58,20 @@ public class StripeService {
 			String sCustomerEmail = oCustomerDetails.getEmail();
 
 			String sPaymentIntentId = oSession.getPaymentIntent();
+			if (sPaymentIntentId == null) {
+			    // Retrieve subscription ID instead
+			    String sSubscriptionId = oSession.getSubscription();
+
+			    if (sSubscriptionId != null) {
+			        Subscription oSubscription = Subscription.retrieve(sSubscriptionId);
+			        String sLatestInvoiceId = oSubscription.getLatestInvoice();
+
+			        if (sLatestInvoiceId != null) {
+			            Invoice oInvoice = Invoice.retrieve(sLatestInvoiceId);
+			            sPaymentIntentId = oInvoice.getPaymentIntent(); // Get Payment Intent from Invoice
+			        }
+			    }
+			}
 			PaymentIntent oPaymentIntent = PaymentIntent.retrieve(sPaymentIntentId);
 			String sPaymentStatus = oPaymentIntent.getStatus();
 			String sPaymentCurrency = oPaymentIntent.getCurrency();
@@ -92,7 +107,7 @@ public class StripeService {
 				}
 			}
 		} catch (StripeException oEx) {
-			RiseLog.debugLog("StripeService.confirmation: " + oEx);
+			RiseLog.debugLog("StripeService.retrieveStripePaymentDetail: " + oEx);
 		}
 
 		return oStripePaymentDetail;
