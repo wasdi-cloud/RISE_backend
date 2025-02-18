@@ -16,6 +16,8 @@ public class Subscription extends RiseEntity  {
 	
 	private Double buyDate;
 	
+	private boolean buySuccess;
+	
 	private boolean valid;
 	
 	private Double expireDate;
@@ -143,6 +145,20 @@ public class Subscription extends RiseEntity  {
 
 	public void setSupportsArchive(boolean supportsArchive) {
 		this.supportsArchive = supportsArchive;
+	}
+
+	/**
+	 * @return the buySuccess
+	 */
+	public boolean isBuySuccess() {
+		return buySuccess;
+	}
+
+	/**
+	 * @param buySuccess the buySuccess to set
+	 */
+	public void setBuySuccess(boolean buySuccess) {
+		this.buySuccess = buySuccess;
 	}
 	
 	

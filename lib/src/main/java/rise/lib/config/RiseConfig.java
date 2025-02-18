@@ -51,6 +51,10 @@ public class RiseConfig {
 	 * Geoserver config
 	 */
 	public GeoServerConfig geoserver;
+	/**
+	 * Stripe configuration
+	 */
+	public StripeConfig stripe;
 	
 	/**
 	 * Static Reference to the actual configuration
