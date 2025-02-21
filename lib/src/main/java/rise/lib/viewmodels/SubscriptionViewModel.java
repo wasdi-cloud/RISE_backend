@@ -36,4 +36,6 @@ public class SubscriptionViewModel extends RiseViewModel  {
 	public boolean supportsArchive;
 	
 	public ArrayList<String> plugins;
+	
+	public String paymentMethod;
 }

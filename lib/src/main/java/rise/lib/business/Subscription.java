@@ -33,6 +33,8 @@ public class Subscription extends RiseEntity  {
 	private boolean supportsArchive;
 	
 	private String id;
+	
+	private String paymentMethod;
 
 	public String getId() {
 		return id;
@@ -159,6 +161,20 @@ public class Subscription extends RiseEntity  {
 	 */
 	public void setBuySuccess(boolean buySuccess) {
 		this.buySuccess = buySuccess;
+	}
+
+	/**
+	 * @return the paymentMethod
+	 */
+	public String getPaymentMethod() {
+		return paymentMethod;
+	}
+
+	/**
+	 * @param paymentMethod the paymentMethod to set
+	 */
+	public void setPaymentMethod(String paymentMethod) {
+		this.paymentMethod = paymentMethod;
 	}
 	
 	

@@ -343,7 +343,7 @@ public class SubscriptionResource {
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response buy(@HeaderParam("x-session-token") String sSessionId,
+	public Response createSubscription(@HeaderParam("x-session-token") String sSessionId,
 			SubscriptionViewModel oSubscriptionViewModel) {
 		try {
 
@@ -373,23 +373,28 @@ public class SubscriptionResource {
 			double dNow = DateUtils.getNowAsDouble();
 			oSubscription.setCreationDate(dNow);
 			oSubscription.setBuyDate(null);
-			oSubscription.setValid(true);
+			oSubscription.setExpireDate(null);
+			oSubscription.setValid(false);
 			oSubscription.setBuySuccess(false);
 			oSubscription.setId(Utils.getRandomName());
 
-			// Convert epoch to LocalDateTime for calendar-based arithmetic
-			LocalDateTime nowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
-			LocalDateTime expireDateTime;
-
-			if (oSubscription.getPaymentType().equals(PaymentType.MONTH)) {
-				expireDateTime = nowDateTime.plusMonths(1); // Add 1 month
-			} else {
-				expireDateTime = nowDateTime.plusYears(1); // Add 1 year
+			if(oSubscription.getPaymentMethod().equals("contact")){
+				//todo handle the use case of when user select contatc option as payment method , we send him an email ..ect
 			}
 
-			// Convert back to epoch milliseconds
-			double dExpire = expireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
-			oSubscription.setExpireDate(dExpire);
+			// Convert epoch to LocalDateTime for calendar-based arithmetic
+//			LocalDateTime nowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
+//			LocalDateTime expireDateTime;
+//
+//			if (oSubscription.getPaymentType().equals(PaymentType.MONTH)) {
+//				expireDateTime = nowDateTime.plusMonths(1); // Add 1 month
+//			} else {
+//				expireDateTime = nowDateTime.plusYears(1); // Add 1 year
+//			}
+//
+//			// Convert back to epoch milliseconds
+//			double dExpire = expireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+//			oSubscription.setExpireDate(dExpire);
 			oSubscription.setOrganizationId(oUser.getOrganizationId());
 
 			SubscriptionRepository oSubscriptionRepository = new SubscriptionRepository();
@@ -410,7 +415,6 @@ public class SubscriptionResource {
 	 * 
 	 * @param sSessionId      Session Id
 	 * @param sSubscriptionId Subscription Id
-	 * @param sWorkspaceId    Workspace Id
 	 * @return SuccessResponse with url in the message or ErrorResponse with the
 	 *         code of the error
 	 */
@@ -501,12 +505,12 @@ public class SubscriptionResource {
 	@GET
 	@Path("/stripe/confirmation/{CHECKOUT_SESSION_ID}")
 	@Produces({ "application/json", "application/xml", "text/xml" })
-	public Response confirmation(@PathParam("CHECKOUT_SESSION_ID") String sCheckoutSessionId) {
+	public Response confirmSubscriptionBuy(@PathParam("CHECKOUT_SESSION_ID") String sCheckoutSessionId) {
 		RiseLog.debugLog("SubscriptionResource.confirmation( sCheckoutSessionId: " + sCheckoutSessionId + ")");
 
 		if (Utils.isNullOrEmpty(sCheckoutSessionId)) {
 			RiseLog.warnLog("SubscriptionResource.confirmation: Stripe returned a null CHECKOUT_SESSION_ID, aborting");
-			return null;
+			return Response.status(Status.BAD_REQUEST).build();
 		}
 
 		try {
@@ -517,7 +521,7 @@ public class SubscriptionResource {
 
 			if (oStripePaymentDetail == null || Utils.isNullOrEmpty(sClientReferenceId)) {
 				RiseLog.warnLog("SubscriptionResource.confirmation: Stripe returned an invalid result, aborting");
-				return null;
+				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 			}
 
 			String sSubscriptionId = null;
@@ -541,15 +545,31 @@ public class SubscriptionResource {
 
 				if (oSubscription == null) {
 					RiseLog.debugLog("SubscriptionResource.confirmation: subscription does not exist");
+					return Response.status(Status.BAD_REQUEST).build();
 				} else {
-					oSubscription.setBuyDate(DateUtils.nowInMillis());
+					double dNow = DateUtils.getNowAsDouble();
+					oSubscription.setBuyDate(dNow);
 					oSubscription.setBuySuccess(true);
+					oSubscription.setValid(true);
+					// Convert epoch to LocalDateTime for calendar-based arithmetic
+					LocalDateTime nowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
+					LocalDateTime expireDateTime;
 
+					if (oSubscription.getPaymentType().equals(PaymentType.MONTH)) {
+						expireDateTime = nowDateTime.plusMonths(1); // Add 1 month
+					} else {
+						expireDateTime = nowDateTime.plusYears(1); // Add 1 year
+					}
+
+					// Convert back to epoch milliseconds
+					double dExpire = expireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+					oSubscription.setExpireDate(dExpire);
 					oSubscriptionRepository.update(oSubscription, oSubscription.getId());
 				}
 			}
 		} catch (Exception oEx) {
 			RiseLog.errorLog("SubscriptionResource.confirmation error " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 
 		return Response.ok().build();
