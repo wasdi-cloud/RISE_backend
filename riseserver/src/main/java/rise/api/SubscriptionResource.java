@@ -377,8 +377,9 @@ public class SubscriptionResource {
 			oSubscription.setValid(false);
 			oSubscription.setBuySuccess(false);
 			oSubscription.setId(Utils.getRandomName());
+			oSubscription.setPaymentMethod(oSubscriptionViewModel.paymentMethod);
 
-			if(oSubscription.getPaymentMethod().equals("contact")){
+			if(oSubscriptionViewModel.paymentMethod.equals("contact")){
 				//todo handle the use case of when user select contatc option as payment method , we send him an email ..ect
 			}
 
