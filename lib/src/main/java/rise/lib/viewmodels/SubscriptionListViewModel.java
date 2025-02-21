@@ -9,5 +9,8 @@ public class SubscriptionListViewModel extends RiseViewModel {
 	public String type;
 	public Double buyDate;
 	public Double expireDate;
-	
+	public Double creationDate;
+	public boolean buySuccess;
+	public String paymentMethod;
+
 }
