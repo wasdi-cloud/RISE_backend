@@ -552,6 +552,7 @@ public class SubscriptionResource {
 					oSubscription.setBuyDate(dNow);
 					oSubscription.setBuySuccess(true);
 					oSubscription.setValid(true);
+					oSubscription.setStripeInvoicePdfUrl(oStripePaymentDetail.getInvoicePdfUrl());
 					// Convert epoch to LocalDateTime for calendar-based arithmetic
 					LocalDateTime nowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
 					LocalDateTime expireDateTime;
@@ -574,5 +575,49 @@ public class SubscriptionResource {
 		}
 
 		return Response.ok().build();
+	}
+	
+	
+	
+	@GET
+	@Path("stripe/invoice")
+	public Response getInvoiceFromSubscription(@HeaderParam("x-session-token") String sSessionId,
+			@QueryParam("subscription") String sSubscriptionId) {
+		RiseLog.debugLog("SubscriptionResource.getInvoiceFromSubscription( " + "Subscription: " + sSubscriptionId + ")");
+
+		User oUser = Rise.getUserFromSession(sSessionId);
+
+		if (oUser == null) {
+			RiseLog.warnLog("SubscriptionResource.getInvoiceFromSubscription: invalid session");
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+
+		try {
+			// Domain Check
+			if (Utils.isNullOrEmpty(sSubscriptionId)) {
+				RiseLog.warnLog("SubscriptionResource.getInvoiceFromSubscription: invalid subscription id");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			if (!PermissionsUtils.hasHQRights(oUser)) {
+				RiseLog.warnLog("SubscriptionResource.getInvoiceFromSubscription: user cannot access subscription info");
+				return Response.status(Status.FORBIDDEN).build();
+			}
+
+			// Create repo
+			SubscriptionRepository oSubscriptionRepository = new SubscriptionRepository();
+
+			// Get requested subscription
+			Subscription oSubscription = (Subscription) oSubscriptionRepository.get(sSubscriptionId);
+
+			if (oSubscription == null) {
+				RiseLog.warnLog("SubscriptionResource.getInvoiceFromSubscription: subscription does not exist");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			return Response.ok(oSubscription.getStripeInvoicePdfUrl()).build();	
+		} catch (Exception oEx) {
+			RiseLog.errorLog("SubscriptionResource.getStripePaymentUrl error " + oEx);
+			return Response.serverError().build();
+		}
 	}
 }

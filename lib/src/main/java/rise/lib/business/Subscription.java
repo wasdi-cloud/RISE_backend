@@ -35,6 +35,8 @@ public class Subscription extends RiseEntity  {
 	private String id;
 	
 	private String paymentMethod;
+	
+	private String stripeInvoicePdfUrl;
 
 	public String getId() {
 		return id;
@@ -175,6 +177,20 @@ public class Subscription extends RiseEntity  {
 	 */
 	public void setPaymentMethod(String paymentMethod) {
 		this.paymentMethod = paymentMethod;
+	}
+
+	/**
+	 * @return the stripeInvoicePdfUrl
+	 */
+	public String getStripeInvoicePdfUrl() {
+		return stripeInvoicePdfUrl;
+	}
+
+	/**
+	 * @param stripeInvoicePdfUrl the stripeInvoicePdfUrl to set
+	 */
+	public void setStripeInvoicePdfUrl(String stripeInvoicePdfUrl) {
+		this.stripeInvoicePdfUrl = stripeInvoicePdfUrl;
 	}
 	
 	
