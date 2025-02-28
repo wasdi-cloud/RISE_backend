@@ -133,7 +133,9 @@ public class AuthResource {
     		String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name() , Languages.EN.name());
     		
     		// We replace the code in the message
-    		sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());    		
+    		sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
+    		// We replace the action in the message
+    		sMessage = sMessage.replace("%%ACTION%%", "login");
 	    	
     		// Send the OTP
 	    	MailUtils.sendEmail(oUser.getEmail(), sTitle, sMessage);

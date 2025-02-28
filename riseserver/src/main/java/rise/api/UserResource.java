@@ -369,6 +369,8 @@ public class UserResource {
 
 			// We replace the code in the message
 			sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
+			// We replace the action in the message
+    		sMessage = sMessage.replace("%%ACTION%%", "password reset");
 
 			// Send the OTP
 			MailUtils.sendEmail(oUser.getEmail(), sTitle, sMessage);
