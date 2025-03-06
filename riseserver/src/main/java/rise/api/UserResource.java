@@ -1,6 +1,8 @@
 
 package rise.api;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import jakarta.ws.rs.DELETE;
@@ -669,7 +671,7 @@ public class UserResource {
 		try {
 			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_USERID_NOT_FOUND.name(), Status.UNAUTHORIZED.getStatusCode());
 			if (Utils.isNullOrEmpty(sUserId)) {
-				RiseLog.warnLog("UserResource.forgetPassword: user id is null");
+				RiseLog.warnLog("UserResource.forgetPassword: user id"+sUserId+" is null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			UserRepository oUserRepository = new UserRepository();
@@ -701,8 +703,9 @@ public class UserResource {
 
 			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
 			String sLink = RiseConfig.Current.security.forgetPasswordConfirm;
-
-			sLink += "?code=" + sConfirmationCode + "&userId=" + sUserId;
+			//handle the case of the user id had spaces in between
+			String encodedUserId = URLEncoder.encode(sUserId, StandardCharsets.UTF_8.toString());
+			sLink += "?code=" + sConfirmationCode + "&userId=" + encodedUserId;
 
 			// We replace the link in the message
 			sMessage = sMessage.replace("%%LINK%%", sLink);
