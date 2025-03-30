@@ -87,12 +87,19 @@ public class LayerResource {
 			if (dDate <= 0.0)
 				dDate = DateUtils.getNowAsDouble();
 
+			
 			LayerRepository oLayerRepository = new LayerRepository();
-			Layer oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate);
+			Layer oLayer = null;
+			
+			if (oMap.isDateFiltered()) {
+				oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate);
+			}
+			else {
+				oLayer = oLayerRepository.getLayerByAreaMap(sAreaId, sMapId);
+			}
 
 			if (oLayer != null) {
-				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel
-						.getFromEntity(LayerViewModel.class.getName(), oLayer);
+				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
 				return Response.ok(oLayerViewModel).build();
 
 			} else {

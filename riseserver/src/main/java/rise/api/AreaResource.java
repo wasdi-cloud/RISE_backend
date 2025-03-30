@@ -700,6 +700,7 @@ public class AreaResource {
 				RiseLog.warnLog("AreaResource.deleteArea: area does not exist");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			
 			oAreaRepository.delete(sAreaId);
 
 			// RISE will stop the related subscription of the deleted Area of Operations
