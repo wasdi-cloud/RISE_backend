@@ -2,6 +2,7 @@ package rise.api;
 
 import java.awt.Polygon;
 
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -22,6 +23,7 @@ import rise.lib.business.Area;
 import rise.lib.business.Subscription;
 import rise.lib.business.User;
 import rise.lib.data.AreaRepository;
+import rise.lib.data.LayerRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
@@ -700,6 +702,10 @@ public class AreaResource {
 				RiseLog.warnLog("AreaResource.deleteArea: area does not exist");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			//delete the layers
+			LayerRepository oLayerRepository=new LayerRepository();
+			oLayerRepository.deleteByAreaId(sAreaId);
+			//todo Clean all the workspaces related to that area
 			
 			oAreaRepository.delete(sAreaId);
 
