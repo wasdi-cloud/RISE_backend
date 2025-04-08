@@ -15,6 +15,7 @@ import rise.lib.business.Area;
 import rise.lib.business.Layer;
 import rise.lib.business.Map;
 import rise.lib.business.User;
+import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.MapRepository;
@@ -26,6 +27,13 @@ import rise.lib.utils.http.HttpUtils;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
+import wasdi.jwasdilib.WasdiLib;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -145,102 +153,49 @@ public class LayerResource {
 				RiseLog.warnLog("LayerResource.downloadLayer: layer null");
 				return Response.status(Status.NOT_FOUND).build();
 			}
-			/*String sWorkspaceName=oLayer.getAreaId()+"|"+oLayer.getPluginId() +"|"+oLayer.getLayerId();
+			String sWorkspaceName=oLayer.getAreaId()+"|"+oLayer.getPluginId() +"|"+oLayer.getMapId();
 			WasdiLib oWasdiLib=new WasdiLib();
-			oWasdiLib.openWorkspace(sWorkspaceName);
 			
-			return Response.ok(oWasdiLib.getPath(oLayer.getLayerId()))
-					.header("Content-Disposition", "attachment; filename=" + sLayerId + "." + sFormat).build();*/
-			// get geoserver url
-			String sGeoserverUrl = oLayer.getGeoserverUrl();
+			/*File oConfigFile = new File("/home/jihed/Desktop/config.properties");
+			Properties oProp = new Properties();
+			if (oConfigFile.exists()) {
+				System.out.println("/home/jihed/Desktop/config.properties");
+				InputStream oInputStream = new FileInputStream("/home/jihed/Desktop/config.properties");
 
-			// Build the appropriate request URL based on WMS or WFS
-			String sUrl = buildRequestUrl(sLayerId, sFormat, sGeoserverUrl);
+	            if (oInputStream != null) {
+	            	System.out.println("input steam works");
+	                oProp.load(oInputStream);
+	                Enumeration<String> aoProperties =  (Enumeration<String>) oProp.propertyNames();
+	                
 
-			// Send the request to GeoServer and get the response
-			byte[] aoResponseBytes = sendRequestToGeoServer(sUrl);
+	                
 
-			// Return the response to the client as a file download
-			return Response.ok(aoResponseBytes)
-					.header("Content-Disposition", "attachment; filename=" + sLayerId + "." + sFormat).build();
-
+	                while (aoProperties.hasMoreElements()) {
+	                    String sKey = aoProperties.nextElement();
+	                    System.out.println(sKey);
+	                    System.out.println(oProp.getProperty(sKey));
+	                }
+	                
+	            }
+			}*/
+			if(oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
+				oWasdiLib.openWorkspace(sWorkspaceName);
+				String sLink=oWasdiLib.getPath(oLayer.getId()+".tif");
+				if(!Utils.isNullOrEmpty(sLink)) {
+					return Response.ok(sLink)
+							.header("Content-Disposition", "attachment; filename=" + sLayerId + "." + sFormat).build();	
+				}else {
+					return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+				}	
+			}else {
+				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+			}
 		} catch (Exception oEx) {
 			RiseLog.errorLog("LayerResource.downloadLayer: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
 
-	private String buildRequestUrl(String sLayerId, String sFormat, String sGeoserverUrl) {
-	    StringBuilder sUrl = new StringBuilder(sGeoserverUrl);
-	    try {
-	        if ("geotiff".equalsIgnoreCase(sFormat)) {
-	            String bbox = getBoundingBox(sGeoserverUrl, sLayerId); // Fetch bbox dynamically
-	        	//String bbox = "1.499846321040724,13.000077232365719,3.4998554696044266,15.000086380929421";
-	            sUrl.append("service=WMS");
-	            sUrl.append("&version=1.1.1");
-	            sUrl.append("&request=GetMap");
-	            sUrl.append("&layers=rise:").append(sLayerId);
-	            sUrl.append("&bbox=").append(bbox); // Use the dynamic bbox
-	            sUrl.append("&width=256");
-	            sUrl.append("&height=256");
-	            sUrl.append("&srs=EPSG:4326");
-	            sUrl.append("&format=image/").append(sFormat);
-	            //sUrl.append("&transparent=true");
-	        } else if ("shp".equalsIgnoreCase(sFormat)) {
-	            sUrl.append("?service=WFS");
-	            sUrl.append("&version=2.0.0");
-	            sUrl.append("&request=GetFeature");
-	            sUrl.append("&typeName=rise:").append(sLayerId);
-	            sUrl.append("&outputFormat=").append(sFormat);
-	        } else {
-	            throw new IllegalArgumentException("Unsupported format: " + sFormat);
-	        }
-	    } catch (Exception e) {
-	        throw new RuntimeException("Error building request URL: " + e.getMessage(), e);
-	    }
-	    return sUrl.toString();
-	}
-
-
-	private byte[] sendRequestToGeoServer(String url) {
-		HttpCallResponse oResponse = HttpUtils.httpGet(url);
-
-		
-		if (oResponse.getResponseCode() >= 200 && oResponse.getResponseCode() <= 299) {
-			return oResponse.getResponseBytes();
-		} else {
-			String sErrorMessage = "GeoServer request failed with response code: " + oResponse.getResponseCode()
-					+ " and message: " + oResponse.getResponseBody();
-			throw new RuntimeException(sErrorMessage);
-		}
-	}
-	public  String getBoundingBox(String sGeoserverUrl, String sLayerId) throws Exception {
-        // Construct the GetCapabilities URL
-        String sCapabilitiesUrl = sGeoserverUrl + "service=WMS&version=1.1.1&request=GetCapabilities";
-        
-        // Fetch the capabilities document
-        DocumentBuilderFactory oFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder oBuilder = oFactory.newDocumentBuilder();
-        Document oDoc = oBuilder.parse(sCapabilitiesUrl);
-        
-        // Find the Layer element for the specified layer ID
-        NodeList oLayers = oDoc.getElementsByTagName("Layer");
-        for (int i = 0; i < oLayers.getLength(); i++) {
-            Element oLayerElement = (Element) oLayers.item(i);
-            NodeList oNameElements = oLayerElement.getElementsByTagName("Name");
-            if (oNameElements.getLength() > 0 && oNameElements.item(0).getTextContent().equals(sLayerId)) {
-                Element oBBoxElement = (Element) oLayerElement.getElementsByTagName("LatLonBoundingBox").item(0);
-                if (oBBoxElement != null) {
-                    String sMinx = oBBoxElement.getAttribute("minx");
-                    String sMiny = oBBoxElement.getAttribute("miny");
-                    String sMaxx = oBBoxElement.getAttribute("maxx");
-                    String sMaxy = oBBoxElement.getAttribute("maxy");
-                    return sMinx + "," + sMiny + "," + sMaxx + "," + sMaxy;
-                }
-            }
-        }
-        throw new Exception("Layer not found or bounding box missing in capabilities document");
-    }
 	
 
 }

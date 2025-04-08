@@ -705,6 +705,8 @@ public class AreaResource {
 			//delete the layers
 			LayerRepository oLayerRepository=new LayerRepository();
 			oLayerRepository.deleteByAreaId(sAreaId);
+			//delete the wasdi tasks related to this area
+			
 			//todo Clean all the workspaces related to that area
 			
 			oAreaRepository.delete(sAreaId);

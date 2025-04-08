@@ -7,4 +7,8 @@ public class WasdiConfig {
 	public String wasdiUser = "";
 	
 	public String wasdiPassword = "";
+	
+	public String wasdiConfigProperties = "";
+	
+	
 }
