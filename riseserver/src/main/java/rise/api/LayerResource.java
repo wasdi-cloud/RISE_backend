@@ -4,12 +4,10 @@ import jakarta.ws.rs.*;
 
 
 
+
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import rise.Rise;
 import rise.lib.business.Area;
 import rise.lib.business.Layer;
@@ -22,21 +20,10 @@ import rise.lib.data.MapRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
-import rise.lib.utils.http.HttpCallResponse;
-import rise.lib.utils.http.HttpUtils;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import wasdi.jwasdilib.WasdiLib;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Properties;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 @Path("layer")
 public class LayerResource {
@@ -154,7 +141,7 @@ public class LayerResource {
 				return Response.status(Status.NOT_FOUND).build();
 			}
 			String sWorkspaceName=oLayer.getAreaId()+"|"+oLayer.getPluginId() +"|"+oLayer.getMapId();
-			WasdiLib oWasdiLib=new WasdiLib();
+			WasdiLib  oWasdiLib=new WasdiLib();
 			
 			/*File oConfigFile = new File("/home/jihed/Desktop/config.properties");
 			Properties oProp = new Properties();

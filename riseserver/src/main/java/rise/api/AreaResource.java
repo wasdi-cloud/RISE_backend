@@ -2,9 +2,9 @@ package rise.api;
 
 import java.awt.Polygon;
 
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import jakarta.ws.rs.DELETE;
@@ -22,9 +22,11 @@ import rise.Rise;
 import rise.lib.business.Area;
 import rise.lib.business.Subscription;
 import rise.lib.business.User;
+import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.UserRepository;
+import rise.lib.data.WasdiTaskRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
@@ -36,6 +38,7 @@ import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.OverlappingAreaViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.lib.viewmodels.UserOfAreaViewModel;
+import wasdi.jwasdilib.WasdiLib;
 
 @Path("area")
 public class AreaResource {
@@ -82,6 +85,7 @@ public class AreaResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+
 	@GET
 	@Path("list-by-user")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -108,21 +112,19 @@ public class AreaResource {
 							.getFromEntity(AreaListViewModel.class.getName(), oArea);
 					aoAreasVM.add(oListItem);
 				}
-				
-			}else if(PermissionsUtils.hasFieldRights(oUser)) {
+
+			} else if (PermissionsUtils.hasFieldRights(oUser)) {
 				for (Area oArea : aoAreas) {
-					if(oArea.getFieldOperators()!= null && oArea.getFieldOperators().contains(oUser.getUserId())) {
+					if (oArea.getFieldOperators() != null && oArea.getFieldOperators().contains(oUser.getUserId())) {
 						AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel
 								.getFromEntity(AreaListViewModel.class.getName(), oArea);
 						aoAreasVM.add(oListItem);
 					}
 				}
-			}else {
+			} else {
 				RiseLog.warnLog("AreaResource.getListByUser: cannot handle area");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-
-			
 
 			// return the list to the client
 			return Response.ok(aoAreasVM).build();
@@ -131,6 +133,7 @@ public class AreaResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+
 	/**
 	 * Get an Area by id
 	 * 
@@ -341,19 +344,19 @@ public class AreaResource {
 
 			UserRepository oUserRepository = new UserRepository();
 			ArrayList<UserOfAreaViewModel> aoUsersVM = new ArrayList<>();
-			List<String> asFieldOperatorsIds= oArea.getFieldOperators();
-			
+			List<String> asFieldOperatorsIds = oArea.getFieldOperators();
+
 			// check if there are any field operators
-			if (asFieldOperatorsIds!=null && !asFieldOperatorsIds.isEmpty()) {
+			if (asFieldOperatorsIds != null && !asFieldOperatorsIds.isEmpty()) {
 				for (String sFieldOperatorId : asFieldOperatorsIds) {
-					if(Utils.isNullOrEmpty(sFieldOperatorId)) {
+					if (Utils.isNullOrEmpty(sFieldOperatorId)) {
 						RiseLog.warnLog("AreaResource.getUsers: user id  null");
 						continue;
-						
+
 					}
-					User oFieldOperatorOfArea=oUserRepository.getUser(sFieldOperatorId);
-					if(oFieldOperatorOfArea==null) {
-						RiseLog.warnLog("AreaResource.getUsers: user "+sFieldOperatorId+"is not found");
+					User oFieldOperatorOfArea = oUserRepository.getUser(sFieldOperatorId);
+					if (oFieldOperatorOfArea == null) {
+						RiseLog.warnLog("AreaResource.getUsers: user " + sFieldOperatorId + "is not found");
 						continue;
 					}
 					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
@@ -450,15 +453,15 @@ public class AreaResource {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 
-			if(oArea.getFieldOperators()!=null) {
+			if (oArea.getFieldOperators() != null) {
 				if (oArea.getFieldOperators().contains(oFieldUser.getUserId())) {
 					RiseLog.warnLog("AreaResource.addUser: user " + oUserToAdd.userId + " already in the area");
 					return Response.ok().build();
 				}
 				oArea.getFieldOperators().add(oUserToAdd.userId);
 				oAreaRepository.update(oArea, oArea.getId());
-			}else {
-				ArrayList<String> asListOfUsers=new ArrayList<String>();
+			} else {
+				ArrayList<String> asListOfUsers = new ArrayList<String>();
 				asListOfUsers.add(oUserToAdd.userId);
 				oArea.setFieldOperators(asListOfUsers);
 				oAreaRepository.update(oArea, oArea.getId());
@@ -470,7 +473,7 @@ public class AreaResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
-	
+
 	@GET
 	@Path("field")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -702,13 +705,37 @@ public class AreaResource {
 				RiseLog.warnLog("AreaResource.deleteArea: area does not exist");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-			//delete the layers
-			LayerRepository oLayerRepository=new LayerRepository();
+			// delete the layers
+			LayerRepository oLayerRepository = new LayerRepository();
 			oLayerRepository.deleteByAreaId(sAreaId);
-			//delete the wasdi tasks related to this area
-			
-			//todo Clean all the workspaces related to that area
-			
+			// delete the wasdi tasks related to this area
+			WasdiTaskRepository oWasdiTaskRepository = new WasdiTaskRepository();
+			oWasdiTaskRepository.deleteByAreaId(sAreaId);
+			// todo Clean all the workspaces related to that area
+			WasdiLib oWasdiLib = new WasdiLib();
+			if (oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
+				// get the list of the workspaces
+				List<Map<String, Object>> aoWorkspaces = oWasdiLib.getWorkspaces();
+				// find the workspaces that start with the area id and delete those
+				for (Map<String, Object> oWorkspace : aoWorkspaces) {
+					Object oName = oWorkspace.get("workspaceName");
+					Object oId = oWorkspace.get("workspaceId");
+
+					if (oName instanceof String && oId instanceof String) {
+						String sName = (String) oName;
+						String sId = (String) oId;
+						if (sName.startsWith(sAreaId)) {
+							// Found a workspace that starts with the area ID
+							// You can delete or process it here
+							System.out.println("Found: " + sName + "with the Id : " + sId);
+
+							// Example: delete the workspace
+							oWasdiLib.deleteWorkspace(sId);
+						}
+					}
+				}
+
+			}
 			oAreaRepository.delete(sAreaId);
 
 			// RISE will stop the related subscription of the deleted Area of Operations
