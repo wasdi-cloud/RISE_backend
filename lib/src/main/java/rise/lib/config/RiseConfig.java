@@ -6,10 +6,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import rise.lib.data.MongoRepository;
+import rise.lib.utils.Utils;
 import rise.lib.utils.i8n.Languages;
 import rise.lib.utils.log.RiseLog;
 
@@ -51,10 +53,22 @@ public class RiseConfig {
 	 * Geoserver config
 	 */
 	public GeoServerConfig geoserver;
+	
 	/**
 	 * Stripe configuration
 	 */
 	public StripeConfig stripe;
+	
+	/**
+	 * Paths config
+	 */
+	public PathsConfig paths;
+	
+	/**
+	 * Map of shell exec commands
+	 */
+	public Map<String, ShellExecItemConfig> shellExecCommands = new HashMap<>();
+	
 	
 	/**
 	 * Static Reference to the actual configuration
@@ -172,4 +186,54 @@ public class RiseConfig {
         
         return bRes;
 	}	
+	
+	/**
+	 * Safe get a ShellExecItemConfig
+	 * @param sCommand Command we are searching for
+	 * @return Equivalent ShellExecItemConfig or null in case of any problem
+	 */
+	public ShellExecItemConfig getShellExecItem(String sCommand) {
+		
+		// Check if we have the  command
+		if (Utils.isNullOrEmpty(sCommand)) {
+			RiseLog.warnLog("DockersConfig.getShellExecItem: the command is null or empty");
+			return null;
+		}
+		
+		// Check if we have the maps of commands
+		if (shellExecCommands == null) {
+			RiseLog.warnLog("DockersConfig.getShellExecItem: the map dictionary is null");
+			return null;			
+		}
+		
+		try {
+			
+			// Get just the command, without any path
+			File oCommandAsFile = new File(sCommand);
+			String sSimplifiedCommand = oCommandAsFile.getName();
+			
+			// We need to have a command!
+			if (Utils.isNullOrEmpty(sSimplifiedCommand)) {
+				RiseLog.warnLog("DockersConfig.getShellExecItem: impossible to get the command without paths");
+				return null;				
+			}
+			
+			// Is this in the map?
+			if (shellExecCommands.containsKey(sSimplifiedCommand)) {
+				// Ok return the right ShellExecItemConfig
+				return shellExecCommands.get(sSimplifiedCommand);
+			}
+			else {
+				// We do not have it
+				RiseLog.warnLog("DockersConfig.getShellExecItem: command not found " + sCommand);
+				return null;
+			}
+			
+		}
+		catch (Exception oEx) {
+			// What happened?
+			RiseLog.errorLog("DockersConfig.getShellExecItem: Exception getting the command " + sCommand, oEx);
+			return null;
+		}
+	}
 }
