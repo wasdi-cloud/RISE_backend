@@ -69,11 +69,11 @@
             <artifactId>json</artifactId>
             <version>${sVersionJson}</version>
         </dependency>
-		<!--dependency>
+		<dependency>
 			<groupId>fadeout.software.wasdi</groupId>
 			<artifactId>jwasdilib</artifactId>
-			<version>0.7.4</version>
-		</dependency-->
+			<version>0.7.5</version>
+		</dependency>
 		 <dependency>
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
@@ -128,5 +128,10 @@
                 <checksumPolicy>warn</checksumPolicy>
             </snapshots>
         </repository>
+        <repository>
+            <id>wasdi-all-libraries</id>
+            <name>WASDI - INTERNAL REPOSITORY - LIBRARIES</name>
+            <url>${sWasdiNexusRepositoryLibrariesUrl}</url>
+        </repository>        
     </repositories>	
 </project>
