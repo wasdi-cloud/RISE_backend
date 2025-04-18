@@ -82,6 +82,11 @@ public class MapResource {
 					continue;
 				}
 				
+				if (oMap.isHidden()) {
+					RiseLog.debugLog("MapResource.getMapsForArea: map hidden: " + sMapId);
+					continue;					
+				}
+				
 				MapViewModel oMapViewModel = (MapViewModel) RiseViewModel.getFromEntity(MapViewModel.class.getName(), oMap);
 				aoMapViewModels.add(oMapViewModel);
 			}
