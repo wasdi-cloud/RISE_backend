@@ -69,11 +69,11 @@
             <artifactId>json</artifactId>
             <version>${sVersionJson}</version>
         </dependency>
-		<dependency>
+		<!--dependency>
 			<groupId>fadeout.software.wasdi</groupId>
 			<artifactId>jwasdilib</artifactId>
 			<version>0.7.4</version>
-		</dependency>
+		</dependency-->
 		 <dependency>
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
