@@ -25,6 +25,27 @@ public class RiseConfig {
 	public MongoConfig mongoMain;
 	
 	/**
+	 * System name of the wasdi user
+	 */
+	public String systemUserName = "appwasdi"; //TODO: which system user id?
+	
+	/**
+	 * Id of the system user
+	 */
+	public Integer systemUserId = 2042;
+	
+	/**
+	 * System name of the wasdi group
+	 */
+	public String systemGroupName = "appwasdi";
+	
+	/**
+	 * Id of the system group
+	 */
+	public Integer systemGroupId = 2042;
+	
+	
+	/**
 	 * Notifications configuration (mails sent from WASDI to users)
 	 */
 	public NotificationsConfig notifications;
@@ -69,6 +90,23 @@ public class RiseConfig {
 	 */
 	public Map<String, ShellExecItemConfig> shellExecCommands = new HashMap<>();
 	
+	/**
+	 * Controls whether or not Rise should shell exec external components using the local system or using the corresponding docker images.
+	 * If False, then we use the dockerized version
+	 */
+	public boolean shellExecLocally = true;
+	
+	public DockersConfig dockers;
+	
+	/**
+	 * Connection timeout when we call a third party API
+	 */
+	public int connectionTimeout = 10000;
+	
+	/**
+	 * Set true to activate the logs of the http calls
+	 */
+	public boolean logHttpCalls = true;
 	
 	/**
 	 * Static Reference to the actual configuration

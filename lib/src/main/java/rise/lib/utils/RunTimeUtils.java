@@ -1,18 +1,15 @@
 package rise.lib.utils;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
 import rise.lib.config.RiseConfig;
 import rise.lib.config.ShellExecItemConfig;
+import rise.lib.utils.docker.DockerUtils;
 import rise.lib.utils.log.RiseLog;
 
 public class RunTimeUtils {
@@ -85,7 +82,11 @@ public class RunTimeUtils {
 			logCommandLine(asArgs);
 		}
 		
-		return localShellExec(asArgs, bWait, bReadOutput, bRedirectError, bLogCommandLine);
+		if (RiseConfig.Current.shellExecLocally) {
+			return localShellExec(asArgs, bWait, bReadOutput, bRedirectError, bLogCommandLine);
+		} else {
+			return dockerShellExec(asArgs, bWait, bReadOutput, bRedirectError, bLogCommandLine);
+		}
 
 	}
 
@@ -135,7 +136,7 @@ public class RunTimeUtils {
 			if (bReadOutput) oLogFile = createLogFile();
 			
 			// Get the shell exec item
-			ShellExecItemConfig oShellExecItem = RiseConfig.Current.getShellExecItem(asArgs.get(0)); // TODO
+			ShellExecItemConfig oShellExecItem = RiseConfig.Current.dockers.getShellExecItem(asArgs.get(0));
 			
 			if (oShellExecItem != null) {
 				// Check if we need to add a prefix to our command
@@ -183,6 +184,139 @@ public class RunTimeUtils {
 		}		
 	}
 	
+	/**
+	 * Execute a system task using a dedicated docker image
+	 * 
+	 * @param asArgs List of arguments
+	 * @param bWait True to wait the process to finish, false to not wait
+	 * @param bLogCommandLine  True to log the command line false to jump
+	 * @return True if the process is executed
+	 */
+	private static ShellExecReturn dockerShellExec(List<String> asArgs, boolean bWait, boolean bReadOutput, boolean bRedirectError, boolean bLogCommandLine) {
+		// Prepare the return object
+		ShellExecReturn oShellExecReturn = new ShellExecReturn();
+		oShellExecReturn.setOperationOk(false);
+		
+		// We need args
+		if (asArgs == null) {
+			RiseLog.warnLog("RunTimeUtils.dockerShellExec: arg are null");
+			return oShellExecReturn;
+		}
+ 
+		if (asArgs.size()<=0) {
+			RiseLog.warnLog("RunTimeUtils.dockerShellExec: arg are empty");
+			return oShellExecReturn;
+		}
+
+		// Get the shell exec item
+		ShellExecItemConfig oShellExecItem = RiseConfig.Current.dockers.getShellExecItem(asArgs.get(0));
+		
+		if (oShellExecItem == null) {
+			// Not found - Not good
+			RiseLog.warnLog("RunTimeUtils.dockerShellExec: impossible to find the command " + asArgs.get(0)+ ", try locally");
+			return localShellExec(asArgs, bWait, bReadOutput, bRedirectError, bLogCommandLine);
+		}
+		
+		RiseLog.debugLog("RunTimeUtils.dockerShellExec: got Shell Exec Item for " + asArgs.get(0));
+		
+		DockerUtils oDockerUtils = new DockerUtils();
+		
+		// Check if the first command is included or not
+		if (!oShellExecItem.includeFirstCommand) {
+			RiseLog.debugLog("RunTimeUtils.dockerShellExec: removing the first element of args");
+			asArgs.remove(0);
+		}
+		
+		// Check if we need to clean the path
+		if (oShellExecItem.removePathFromFirstArg) {
+			RiseLog.debugLog("RunTimeUtils.dockerShellExec: removing path from the first arg");
+			if (asArgs.size()>0) {
+				String sCommand = asArgs.get(0);
+				File oFile = new File(sCommand);
+				asArgs.set(0, oFile.getName());
+			}
+		}
+		
+		if (oShellExecItem.forceLocal) {
+			RiseLog.warnLog("RunTimeUtils.dockerShellExec: command " + asArgs.get(0)+ " has force Local flag true: run locally");
+			return localShellExec(asArgs, bWait, bReadOutput, bRedirectError, bLogCommandLine);			
+		}
+		
+		// Check if we need to add a prefix to our command
+		if (!Utils.isNullOrEmpty(oShellExecItem.addPrefixToCommand)) {
+			RiseLog.debugLog("RunTimeUtils.dockerShellExec: adding prefix to the command line - " + oShellExecItem.addPrefixToCommand);
+			asArgs.add(0, oShellExecItem.addPrefixToCommand);
+		}		
+		
+		if (oShellExecItem.overrideDockerConfig) {
+			oDockerUtils.setRiseSystemGroupId(oShellExecItem.systemGroupId);
+			oDockerUtils.setRiseSystemGroupName(oShellExecItem.systemGroupName);
+			oDockerUtils.setRiseSystemUserId(oShellExecItem.systemUserId);
+			oDockerUtils.setRiseSystemUserName(oShellExecItem.systemUserName);
+			oDockerUtils.setDockerNetworkMode(oShellExecItem.dockerNetworkMode);
+		}
+		
+		boolean bAutoRemove = false;
+		
+		if (!bWait && RiseConfig.Current.dockers.removeDockersAfterShellExec) {
+			RiseLog.debugLog("RunTimeUtils.dockerShellExec: setting auto remove flag true");
+			bAutoRemove = true;
+		}
+		
+		// Create and run the docker
+		String sContainerId = oDockerUtils.run(oShellExecItem.dockerImage, oShellExecItem.containerVersion, asArgs, true, oShellExecItem.additionalMountPoints, bAutoRemove);
+		
+		// Did we got a Container Name?
+		if (Utils.isNullOrEmpty(sContainerId)) {
+			RiseLog.warnLog("RunTimeUtils.dockerShellExec: impossible to get the container id from Docker utils.run: we stop here");
+			return oShellExecReturn;
+		}
+		else {
+			
+			oShellExecReturn.setContainerId(sContainerId);
+			
+			// Do we need to wait for it?
+			if (bWait) {
+				
+				RiseLog.debugLog("RunTimeUtils.dockerShellExec: wait for the container " + sContainerId + " to make its job");
+				boolean bFinished = oDockerUtils.waitForContainerToFinish(sContainerId);
+				
+				if (!bFinished) {
+					RiseLog.warnLog("RunTimeUtils.dockerShellExec: it looks we had some problems waiting the docker to finish :(");
+					return oShellExecReturn;
+				}
+				else {
+					RiseLog.debugLog("RunTimeUtils.dockerShellExec: job done");
+				}
+								
+				oShellExecReturn.setAsynchOperation(false);
+				oShellExecReturn.setOperationOk(true);
+				
+				if (bReadOutput || bRedirectError) {
+					RiseLog.debugLog("RunTimeUtils.dockerShellExec: collect also the logs");
+					String sLogs = oDockerUtils.getContainerLogsByContainerId(sContainerId);
+					oShellExecReturn.setOperationLogs(sLogs);
+				}
+				
+				// Clean the container
+				if (RiseConfig.Current.dockers.removeDockersAfterShellExec) {
+					RiseLog.debugLog("RunTimeUtils.dockerShellExec: clean the container");
+					oDockerUtils.removeContainer(sContainerId, true);					
+				}
+				else {
+					RiseLog.debugLog("RunTimeUtils.dockerShellExec: Container NOT cleaned: dockers.removeDockersAfterShellExec is false!!");
+				}
+			}
+			else {
+				RiseLog.debugLog("RunTimeUtils.dockerShellExec: no need to wait, we return");
+				oShellExecReturn.setAsynchOperation(true);
+				oShellExecReturn.setOperationOk(true);
+			}
+		}
+		
+		return oShellExecReturn;
+	}
+	
 
 	/**
 	 * Creates a temporary log file
@@ -196,6 +330,7 @@ public class RunTimeUtils {
 
 		return oLogFile;
 	}
+	
 	
 	/**
 	 * Logs the command line
@@ -241,5 +376,8 @@ public class RunTimeUtils {
 			RiseLog.errorLog("RunTimeUtils.deleteLogFile exception: " + e.getMessage());
 		}
 	}
+	 
 
+    
+    
 }

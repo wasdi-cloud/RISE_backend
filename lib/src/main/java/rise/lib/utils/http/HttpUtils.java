@@ -25,6 +25,7 @@ import org.apache.commons.net.io.Util;
 
 import rise.lib.config.RiseConfig;
 import rise.lib.data.MongoRepository;
+import rise.lib.utils.SocketUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
 
@@ -78,6 +79,10 @@ public final class HttpUtils {
 		String sResult = null;
 
 		try {
+			
+			if (sUrl.startsWith("unix:///")) {
+				return SocketUtils.httpGet(sUrl, asHeaders, aoOutputHeaders);
+			}
 						
 			// Create the Url and relative Connection
 			URL oURL = URI.create(sUrl).toURL();
@@ -229,6 +234,10 @@ public final class HttpUtils {
 		String sResult = null;
 		try {
 			
+			if (sUrl.startsWith("unix:///")) {
+				return SocketUtils.httpPost(sUrl, oFile, asHeaders);
+			}
+			
 			URL oURL = URI.create(sUrl).toURL();
 			HttpURLConnection oConnection = (HttpURLConnection) oURL.openConnection();
 			
@@ -323,7 +332,12 @@ public final class HttpUtils {
 		HttpCallResponse oHttpCallResponse = new HttpCallResponse();
 
 		String sResult = null;
+		
 		try {
+			
+			if (sUrl.startsWith("unix:///")) {
+				return SocketUtils.httpPost(sUrl, ayBytes, asHeaders, aoOutputHeaders);
+			}
 			
 			URL oURL = URI.create(sUrl).toURL();
 			HttpURLConnection oConnection = (HttpURLConnection) oURL.openConnection();
@@ -604,6 +618,17 @@ public final class HttpUtils {
 	public static String httpPut(String sUrl, String sPayload, Map<String, String> asHeaders, String sAuth) {
 
 		try {
+			
+			if (sUrl.startsWith("unix:///")) {
+				HttpCallResponse oResponse = SocketUtils.httpPut(sUrl, asHeaders, sPayload.getBytes());
+				
+				if (oResponse != null) {
+					return oResponse.getResponseBody();
+				}
+				else {
+					return "";
+				}
+			}
 						
 			URL oURL = URI.create(sUrl).toURL();
 			
@@ -681,6 +706,10 @@ public final class HttpUtils {
 		}
 
 		try {
+			
+			if (sUrl.startsWith("unix:///")) {
+				return SocketUtils.httpDelete(sUrl, asHeaders);
+			}
 			
 			boolean bLog = true;
 			
