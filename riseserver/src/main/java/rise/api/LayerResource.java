@@ -92,6 +92,17 @@ public class LayerResource {
 			else {
 				oLayer = oLayerRepository.getLayerByAreaMap(sAreaId, sMapId);
 			}
+			
+			if (oMap.getMaxAgeDays()>=0) {
+				long lReference = Double.valueOf(dDate).longValue();
+				long lDistance = Math.abs(lReference - oLayer.getReferenceDate().longValue());
+				long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l;
+				
+				if (lDistance>lMaxAge) {
+					RiseLog.infoLog("LayerResource.getLayer: found a layer but is too old, discard it");
+					oLayer = null;
+				}
+			}
 
 			if (oLayer != null) {
 				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
