@@ -96,7 +96,7 @@ public class LayerResource {
 			if (oMap.getMaxAgeDays()>=0) {
 				long lReference = Double.valueOf(dDate).longValue();
 				long lDistance = Math.abs(lReference - oLayer.getReferenceDate().longValue());
-				long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l;
+				long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l*1000l;
 				
 				if (lDistance>lMaxAge) {
 					RiseLog.infoLog("LayerResource.getLayer: found a layer but is too old, discard it");
