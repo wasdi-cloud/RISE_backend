@@ -93,9 +93,9 @@ public class LayerResource {
 				oLayer = oLayerRepository.getLayerByAreaMap(sAreaId, sMapId);
 			}
 			
-			if (oMap.getMaxAgeDays()>=0) {
+			if (oMap.getMaxAgeDays()>=0 && oMap.isDateFiltered()) {
 				long lReference = Double.valueOf(dDate).longValue();
-				long lDistance = Math.abs(lReference - oLayer.getReferenceDate().longValue());
+				long lDistance = Math.abs(lReference - oLayer.getReferenceDate().longValue()*1000l);
 				long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l*1000l;
 				
 				if (lDistance>lMaxAge) {
