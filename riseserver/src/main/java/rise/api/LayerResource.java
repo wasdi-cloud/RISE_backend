@@ -1,9 +1,8 @@
 package rise.api;
 
+import java.util.List;
+
 import jakarta.ws.rs.*;
-
-
-
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -82,19 +81,18 @@ public class LayerResource {
 			if (dDate <= 0.0)
 				dDate = DateUtils.getNowAsDouble();
 
-			
 			LayerRepository oLayerRepository = new LayerRepository();
 			Layer oLayer = null;
-			
+
 			if (oMap.isDateFiltered()) {
 				oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate);
-			}
-			else {
+			} else {
 				oLayer = oLayerRepository.getLayerByAreaMap(sAreaId, sMapId);
 			}
 
 			if (oLayer != null) {
-				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
+				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel
+						.getFromEntity(LayerViewModel.class.getName(), oLayer);
 				return Response.ok(oLayerViewModel).build();
 
 			} else {
@@ -140,41 +138,38 @@ public class LayerResource {
 				RiseLog.warnLog("LayerResource.downloadLayer: layer null");
 				return Response.status(Status.NOT_FOUND).build();
 			}
-			String sWorkspaceName=oLayer.getAreaId()+"|"+oLayer.getPluginId() +"|"+oLayer.getMapId();
-			WasdiLib  oWasdiLib=new WasdiLib();
-			
-			/*File oConfigFile = new File("/home/jihed/Desktop/config.properties");
-			Properties oProp = new Properties();
-			if (oConfigFile.exists()) {
-				System.out.println("/home/jihed/Desktop/config.properties");
-				InputStream oInputStream = new FileInputStream("/home/jihed/Desktop/config.properties");
+			String sWorkspaceName = oLayer.getAreaId() + "|" + oLayer.getPluginId() + "|" + oLayer.getMapId();
+			WasdiLib oWasdiLib = new WasdiLib();
 
-	            if (oInputStream != null) {
-	            	System.out.println("input steam works");
-	                oProp.load(oInputStream);
-	                Enumeration<String> aoProperties =  (Enumeration<String>) oProp.propertyNames();
-	                
-
-	                
-
-	                while (aoProperties.hasMoreElements()) {
-	                    String sKey = aoProperties.nextElement();
-	                    System.out.println(sKey);
-	                    System.out.println(oProp.getProperty(sKey));
-	                }
-	                
-	            }
-			}*/
-			if(oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
+			/*
+			 * File oConfigFile = new File("/home/jihed/Desktop/config.properties");
+			 * Properties oProp = new Properties(); if (oConfigFile.exists()) {
+			 * System.out.println("/home/jihed/Desktop/config.properties"); InputStream
+			 * oInputStream = new FileInputStream("/home/jihed/Desktop/config.properties");
+			 * 
+			 * if (oInputStream != null) { System.out.println("input steam works");
+			 * oProp.load(oInputStream); Enumeration<String> aoProperties =
+			 * (Enumeration<String>) oProp.propertyNames();
+			 * 
+			 * 
+			 * 
+			 * 
+			 * while (aoProperties.hasMoreElements()) { String sKey =
+			 * aoProperties.nextElement(); System.out.println(sKey);
+			 * System.out.println(oProp.getProperty(sKey)); }
+			 * 
+			 * } }
+			 */
+			if (oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
 				oWasdiLib.openWorkspace(sWorkspaceName);
-				String sLink=oWasdiLib.getPath(oLayer.getId()+".tif");
-				if(!Utils.isNullOrEmpty(sLink)) {
+				String sLink = oWasdiLib.getPath(oLayer.getId() + ".tif");
+				if (!Utils.isNullOrEmpty(sLink)) {
 					return Response.ok(sLink)
-							.header("Content-Disposition", "attachment; filename=" + sLayerId + "." + sFormat).build();	
-				}else {
+							.header("Content-Disposition", "attachment; filename=" + sLayerId + "." + sFormat).build();
+				} else {
 					return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-				}	
-			}else {
+				}
+			} else {
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 			}
 		} catch (Exception oEx) {
@@ -182,7 +177,36 @@ public class LayerResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	@GET
+	@Path("launch-wasdi-app")
+	public Response laucnhWasdiApp() {
+		try {
+			// const for test
+			String sWorkspaceId = "b4b4868d-00db-4c97-8f6b-cf394eb1c21f";
+			WasdiLib oWasdiLib = new WasdiLib();
+			if (oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
+				oWasdiLib.openWorkspaceById(sWorkspaceId);
+				String res = oWasdiLib.executeProcessor("viirs_flood", "{}");
+				
+				List<String> oList=oWasdiLib.getProductsByActiveWorkspace();
+				System.out.println(oList);
+				System.out.println(oList.get(0));
+				String sLink = oWasdiLib.getPath(oList.get(0));
+				if (!Utils.isNullOrEmpty(sLink)) {
+					return Response.ok(sLink)
+							.header("Content-Disposition", "attachment; filename=" + oList.get(0)).build();
+				} else {
+					return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+				}
+				
+			} else {
+				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+			}
 
-	
+		} catch (Exception oEx) {
+			RiseLog.errorLog("LayerResource.downloadLayer: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 
 }
