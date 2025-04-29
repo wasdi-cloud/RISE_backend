@@ -1,7 +1,5 @@
 package rise.lib.utils.log;
 
-import java.time.LocalDateTime;
-
 import rise.lib.utils.Utils;
 
 public class RiseLog {
