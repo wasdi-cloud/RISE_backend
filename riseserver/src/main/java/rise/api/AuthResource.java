@@ -104,6 +104,15 @@ public class AuthResource {
 	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();	    		
 	    	}
 	    	
+	    	// Add it to the Db
+	    	OTPRepository oOTPRepository = new OTPRepository();
+	    	
+	    	List<OTP> aoExistingsOTP = oOTPRepository.getByUserActionValidated(oUser.getUserId(), OTPOperations.LOGIN.name(), false);
+	    	
+	    	if (aoExistingsOTP.size()>0) {
+	    		RiseLog.warnLog("AuthResource.login: there is already an OTP for this operation!! " + oUser.getUserId());
+	    	}	    	
+	    	
 	    	// Create the OTP Entity
 	    	OTP oOTP = new OTP();
 	    	oOTP.setId(Utils.getRandomName());
@@ -111,10 +120,8 @@ public class AuthResource {
 	    	oOTP.setUserId(oUser.getUserId());
 	    	oOTP.setValidated(false);
 	    	oOTP.setOperation(OTPOperations.LOGIN.name());
-	    	oOTP.setTimestamp(DateUtils.getNowAsDouble());
+	    	oOTP.setTimestamp(DateUtils.getNowAsDouble());	    	
 	    	
-	    	// Add it to the Db
-	    	OTPRepository oOTPRepository = new OTPRepository();
 	    	oOTPRepository.add(oOTP);
 	    	
 	    	RiseLog.debugLog("AuthResource.login: created OTP " + oOTP.getId());
@@ -496,6 +503,7 @@ public class AuthResource {
     		
     		// We replace the link in the message
     		sMessage = sMessage.replace("%%LINK%%", sLink);
+    		sMessage = sMessage.replace("%%USER_NAME%%", oAdminUser.getUserId());
     		
     		// And we send an email to the user waiting for him to confirm!
     		MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oAdminUser.getEmail(), sTitle, sMessage, true);

@@ -1,9 +1,10 @@
 package rise.api;
 
-import java.util.List;
-
-import jakarta.ws.rs.*;
-
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
@@ -85,14 +86,26 @@ public class LayerResource {
 			Layer oLayer = null;
 
 			if (oMap.isDateFiltered()) {
-				oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate);
-			} else {
+				oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate/1000.0);
+			}
+			else {
 				oLayer = oLayerRepository.getLayerByAreaMap(sAreaId, sMapId);
 			}
 
 			if (oLayer != null) {
-				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel
-						.getFromEntity(LayerViewModel.class.getName(), oLayer);
+
+				if (oMap.getMaxAgeDays()>=0 && oMap.isDateFiltered()) {
+					long lReference = Double.valueOf(dDate).longValue();
+					long lDistance = Math.abs(lReference - oLayer.getReferenceDate().longValue()*1000l);
+					long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l*1000l;
+
+					if (lDistance>lMaxAge) {
+						RiseLog.infoLog("LayerResource.getLayer: found a layer but is too old, discard it");
+						oLayer = null;
+					}
+				}
+
+				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
 				return Response.ok(oLayerViewModel).build();
 
 			} else {
@@ -146,18 +159,18 @@ public class LayerResource {
 			 * Properties oProp = new Properties(); if (oConfigFile.exists()) {
 			 * System.out.println("/home/jihed/Desktop/config.properties"); InputStream
 			 * oInputStream = new FileInputStream("/home/jihed/Desktop/config.properties");
-			 * 
+			 *
 			 * if (oInputStream != null) { System.out.println("input steam works");
 			 * oProp.load(oInputStream); Enumeration<String> aoProperties =
 			 * (Enumeration<String>) oProp.propertyNames();
-			 * 
-			 * 
-			 * 
-			 * 
+			 *
+			 *
+			 *
+			 *
 			 * while (aoProperties.hasMoreElements()) { String sKey =
 			 * aoProperties.nextElement(); System.out.println(sKey);
 			 * System.out.println(oProp.getProperty(sKey)); }
-			 * 
+			 *
 			 * } }
 			 */
 			if (oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
@@ -187,7 +200,7 @@ public class LayerResource {
 			if (oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
 				oWasdiLib.openWorkspaceById(sWorkspaceId);
 				String res = oWasdiLib.executeProcessor("viirs_flood", "{}");
-				
+
 				List<String> oList=oWasdiLib.getProductsByActiveWorkspace();
 				System.out.println(oList);
 				System.out.println(oList.get(0));
@@ -198,7 +211,7 @@ public class LayerResource {
 				} else {
 					return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 				}
-				
+
 			} else {
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 			}

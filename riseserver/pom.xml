@@ -72,8 +72,7 @@
 		<dependency>
 			<groupId>fadeout.software.wasdi</groupId>
 			<artifactId>jwasdilib</artifactId>
-			<version>0.7.4</version>
-			<scope>compile</scope>
+			<version>0.7.5</version>
 		</dependency>
 		 <dependency>
             <groupId>com.stripe</groupId>
@@ -113,4 +112,21 @@
 			<version>0.0.1</version>
 		</dependency>
 	</dependencies>
+    <repositories>
+        <repository>
+            <id>wasdi-all-libraries</id>
+            <name>WASDI - INTERNAL REPOSITORY - LIBRARIES</name>
+            <url>${sWasdiNexusRepositoryLibrariesUrl}</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+        </repository>
+    </repositories>	
 </project>
