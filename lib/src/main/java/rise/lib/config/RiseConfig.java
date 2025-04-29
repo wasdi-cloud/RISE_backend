@@ -96,7 +96,7 @@ public class RiseConfig {
 	 */
 	public boolean shellExecLocally = true;
 	
-	public DockersConfig dockers;
+	public DockersConfig dockers = new DockersConfig();
 	
 	/**
 	 * Connection timeout when we call a third party API
