@@ -17,9 +17,9 @@ public class PathsConfig {
 	 * 	.processors
 	 *  .images
 	 */
-	public String downloadRootPath;
+	public String downloadRootPath="/data/wasdi/";
 	
-	public String scriptsPath = "/home/appwasdi/";
+	public String scriptsPath = "/home/appwasdi/scripts";
 	
 	
 	public static String getRiseBasePath() {
