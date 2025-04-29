@@ -114,9 +114,9 @@
 	</dependencies>
     <repositories>
         <repository>
-            <id>wasdi-snap-build</id>
-            <name>WASDI Local Repository for SNAP</name>
-            <url>${sWasdiNexusRepositorySnapBuildUrl}</url>
+            <id>wasdi-all-libraries</id>
+            <name>WASDI - INTERNAL REPOSITORY - LIBRARIES</name>
+            <url>${sWasdiNexusRepositoryLibrariesUrl}</url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
@@ -126,7 +126,7 @@
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
                 <checksumPolicy>warn</checksumPolicy>
-            </snapshots>
-        </repository>
+            </snapshots>            
+        </repository>        
     </repositories>	
 </project>

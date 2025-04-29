@@ -15,6 +15,10 @@ public class Map extends RiseEntity {
 	private boolean dateFiltered = true;
 	
 	private String className;
+	
+	private boolean hidden = false;
+	
+	private int maxAgeDays = -1;
 
 	public String getId() {
 		return id;
@@ -70,6 +74,22 @@ public class Map extends RiseEntity {
 
 	public void setClassName(String className) {
 		this.className = className;
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+
+	public void setHidden(boolean hidden) {
+		this.hidden = hidden;
+	}
+
+	public int getMaxAgeDays() {
+		return maxAgeDays;
+	}
+
+	public void setMaxAgeDays(int maxAgeDays) {
+		this.maxAgeDays = maxAgeDays;
 	}
 	
 	
