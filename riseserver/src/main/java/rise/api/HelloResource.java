@@ -57,7 +57,7 @@ public class HelloResource {
     public Response launchPythonScript(@QueryParam("pythonScriptPath") String sPythonScript) {
     	List<String> asArgs = new ArrayList<String>();
     	asArgs.add(sPythonScript);
-    	asArgs.add("me");
+    	//asArgs.add("me");
     	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
     	System.out.println(oReturn.getOperationLogs());
     	System.out.println(oReturn.getOperationReturn());
