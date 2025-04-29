@@ -25,6 +25,8 @@ import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import wasdi.jwasdilib.WasdiLib;
 
+import java.util.List;
+
 @Path("layer")
 public class LayerResource {
 
