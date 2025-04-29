@@ -43,14 +43,14 @@
 	"wasdiConfig": {
 		"wasdiBaseUrl": "https://www.wasdi.net/wasdiwebserver/rest",
 		"wasdiUser": "{{ aoRiseConfiguration['wasdi']['user'] }}",
-		"wasdiPassword": "{{ aoRiseConfiguration['wasdi']['password'] }}"
+		"wasdiPassword": "{{ aoRiseConfiguration['wasdi']['password'] }}",
+		"verbose": false
 	},
 	"geoserver": {
         "address": "{{ aoWasdiConfiguration['geoserver']['address'] }}",
         "user": "{{ aoWasdiConfiguration['geoserver']['user'] }}",
         "password": "{{ aoWasdiConfiguration['geoserver']['password'] }}",
-		"workspace": "rise",
-		"verbose": false
+		"workspace": "rise"
 	},
 	"daemon": {
 		"simulate": false,

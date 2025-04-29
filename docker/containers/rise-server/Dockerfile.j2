@@ -60,14 +60,14 @@ RUN apt-get update && \
     rm --recursive --force /var/lib/apt/lists/* && \
     find / -xdev -type d -name __pycache__ -exec rm --recursive --force {} +    
 
+    # From now, all commands executed are executed with the user 'appwasdi'
+USER appwasdi
+
 # install specific libraries for Python scripts
 RUN python3 -m venv --system-site-packages {{ sWasdiSystemUserHome }}/venv
 RUN chmod +x {{ sWasdiSystemUserHome }}/venv/bin/activate
 RUN {{ sWasdiSystemUserHome }}/venv/bin/activate
 RUN {{ sWasdiSystemUserHome }}/venv/bin/pip3 install --no-cache-dir --no-compile contourpy matplotlib requests pandas
-
-# From now, all commands executed are executed with the user 'appwasdi'
-USER appwasdi
 
 # RUN specific to install JRE 17
 RUN mkdir --parents \
@@ -154,7 +154,6 @@ RUN mkdir --parents \
 
 ENV TOMCAT_HOME="/opt/rise/rise-tomcat/v11.0.0-M26" PATH="/opt/rise/rise-tomcat/v11.0.0-M26/bin:${PATH}"
 
-
 # Set the workdir
 WORKDIR /opt/rise/rise-tomcat/v11.0.0-M26
 
@@ -164,7 +163,7 @@ COPY --chown=appwasdi:appwasdi ./dataToCopy/conf_server.xml /opt/rise/rise-tomca
 COPY --chown=appwasdi:appwasdi ./dataToCopy/docker-entrypoint.sh /docker-entrypoint.sh
 
 # Copy the scripts:
-COPY --chown=appwasdi:appwasdi ./dataToCopy/scripts/ /home/appwasdi/scripts/
+COPY --chown=appwasdi:appwasdi ./dataToCopy/scripts/ /home/appwasdi/
 
 # Start the container
 ENTRYPOINT ["/bin/bash", "/docker-entrypoint.sh"]
