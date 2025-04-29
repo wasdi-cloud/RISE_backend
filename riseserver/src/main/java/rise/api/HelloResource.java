@@ -60,6 +60,7 @@ public class HelloResource {
         	List<String> asArgs = new ArrayList<String>();
         	String sScriptsPath = RiseConfig.Current.paths.scriptsPath;
         	if (!sScriptsPath.endsWith("/")) sScriptsPath += "/";
+        	asArgs.add("python3");
         	asArgs.add(sScriptsPath+sPythonScript);
         	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
         	System.out.println(oReturn.getOperationLogs());
