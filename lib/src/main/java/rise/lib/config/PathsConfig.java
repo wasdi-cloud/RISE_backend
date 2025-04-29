@@ -19,6 +19,8 @@ public class PathsConfig {
 	 */
 	public String downloadRootPath;
 	
+	public String scriptsPath = "/home/appwasdi/";
+	
 	
 	public static String getRiseBasePath() {
 		// Take path
