@@ -1,7 +1,6 @@
 package rise.api;
 
 import java.time.LocalDateTime;
-
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -197,7 +196,7 @@ public class SubscriptionResource {
 				RiseLog.warnLog("SubscriptionResource.update: Subscription with this id " + oSubscriptionViewModel.id + " not found");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-
+			
 			// Create the updated entity
 			Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(), oSubscriptionViewModel);
 

@@ -7,6 +7,8 @@ public class SubscriptionType extends RiseEntity {
 	private String stringCode;
 
 	private String id;
+	
+	private int allowedAreas = 0;
 
 	public String getId() {
 		return id;
@@ -30,6 +32,14 @@ public class SubscriptionType extends RiseEntity {
 
 	public void setStringCode(String stringCode) {
 		this.stringCode = stringCode;
+	}
+
+	public int getAllowedAreas() {
+		return allowedAreas;
+	}
+
+	public void setAllowedAreas(int allowedAreas) {
+		this.allowedAreas = allowedAreas;
 	}
 	
 }

@@ -1,16 +1,20 @@
 package rise.lib.utils;
 
+import java.util.HashMap;
 import java.util.List;
 
 import rise.lib.business.Area;
 import rise.lib.business.Organization;
 import rise.lib.business.Subscription;
+import rise.lib.business.SubscriptionType;
 import rise.lib.business.User;
 import rise.lib.business.UserRole;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.SubscriptionRepository;
+import rise.lib.data.SubscriptionTypeRepository;
 import rise.lib.utils.date.DateUtils;
+import rise.lib.utils.log.RiseLog;
 
 /**
  * Permissions Utility methods
@@ -114,6 +118,71 @@ public class PermissionsUtils {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Get a valid subscription for the user
+	 * @param oUser
+	 * @return
+	 */
+	public static boolean canUserAddArea(User oUser) {
+		// Check the user 
+		if (oUser == null) return false;
+		if (Utils.isNullOrEmpty(oUser.getUserId())) return false;
+		if (Utils.isNullOrEmpty(oUser.getOrganizationId())) return false;
+		
+		// Get the list of subscriptions
+		SubscriptionRepository oSubscriptionRepository = new SubscriptionRepository();
+		List<Subscription> aoSubscriptions = oSubscriptionRepository.getSubscriptionsByOrganizationId(oUser.getOrganizationId());
+		if (aoSubscriptions==null) return false;
+		if (aoSubscriptions.size()<=0) return false;
+				
+		// Here we will keep the number of subscriptions the user purchased
+		int iAvalableSubscriptions = 0;
+		
+		// We will need the types, use dictionary for optimization
+		SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
+		HashMap<String, SubscriptionType> aoSubTypes = new HashMap<String, SubscriptionType>();
+
+		// For each
+		for (Subscription oSubscription : aoSubscriptions) {
+			// Must be valid
+			if (oSubscription.isValid()) {
+				// And not expired
+				double dNow = DateUtils.getNowAsDouble();
+				if (oSubscription.getExpireDate()>dNow) {
+					
+					// Do we have already this type?
+					if (aoSubTypes.containsKey(oSubscription.getType()) == false) {
+						// No, add it to the db
+						SubscriptionType oSubType = oSubscriptionTypeRepository.getByType(oSubscription.getType());
+						if (oSubType == null) {
+							RiseLog.warnLog("PermissionUtils.canUserAddArea: the subscription " + oSubscription.getId() + " has a not recognized type " + oSubscription.getType());
+							continue;
+						}
+						
+						// Ok add it the the dictionary
+						aoSubTypes.put(oSubscription.getType(), oSubType);
+					}
+					
+					// Must be available if we are here
+					SubscriptionType oSubType = aoSubTypes.get(oSubscription.getType());
+					
+					if (oSubType==null) continue;
+					
+					// We can sum the number of allowed areas
+					iAvalableSubscriptions += oSubType.getAllowedAreas();
+				};
+			}
+		}
+		
+		AreaRepository oAreaRepository = new AreaRepository();
+		List<Area> aoAreas = oAreaRepository.getByOrganization(oUser.getOrganizationId());
+		
+		// The number of areas cannot exceed the limit
+		if (aoAreas.size()>=iAvalableSubscriptions) return false;
+		else return true;
+		
 	}
 	
 	public static boolean canUserAccessArea(String sAreaId, User oUser) {

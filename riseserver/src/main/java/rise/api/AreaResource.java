@@ -275,6 +275,15 @@ public class AreaResource {
 				ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
 				return Response.status(Status.FORBIDDEN).entity(oError).build();
 			}
+			
+			boolean bCanAddAreas = PermissionsUtils.canUserAddArea(oUser);
+			
+			if (!bCanAddAreas) {
+				RiseLog.warnLog("SubscriptionResource.update: the org does not have more free areas");
+				ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
+				return Response.status(Status.UNAUTHORIZED).entity(oError).build();				
+			}
+			
 
 			// Check if we have this subscription
 			AreaRepository oAreaRepository = new AreaRepository();

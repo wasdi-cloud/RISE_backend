@@ -5,9 +5,13 @@ import java.util.List;
 
 import org.bson.Document;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.client.FindIterable;
 
+import rise.lib.business.OTP;
 import rise.lib.business.SubscriptionType;
+import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
 
 public class SubscriptionTypeRepository extends MongoRepository {
@@ -33,5 +37,22 @@ public class SubscriptionTypeRepository extends MongoRepository {
         }
 
         return aoReturnList;			
-	}	
+	}
+	
+	public SubscriptionType getByType(String sType) {
+		
+		try {
+			if (Utils.isNullOrEmpty(sType)) return null;
+			
+			BasicDBObject oCriteria = new BasicDBObject();
+			oCriteria.append("stringCode", sType);
+
+	        return (SubscriptionType) get(oCriteria);
+
+		} catch (Exception oEx) {
+        	RiseLog.errorLog("SubscriptionTypeRepository.getByType: error", oEx);
+        }
+		
+		return null;
+	}
 }
