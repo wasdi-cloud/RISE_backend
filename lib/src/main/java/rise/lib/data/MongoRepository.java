@@ -447,7 +447,17 @@ public class MongoRepository {
             
             UpdateResult oResult = getCollection(sCollectionName).updateOne(oCriteria, oUpdateOperationDocument);
             
-            if (oResult.getModifiedCount()==1) return true;
+            if (oResult.getModifiedCount()==0) {
+            	Object oTestObject = get(oCriteria);
+            	if (oTestObject==null) {
+            		return false;
+            	}
+            	else {
+            		return true;
+            	}
+            }
+            
+            return true;
         }
         catch (Exception oEx) {
         	RiseLog.errorLog("MongoRepository.update: excetpion " + oEx.toString());
