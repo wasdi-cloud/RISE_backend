@@ -113,8 +113,7 @@ public class EventResource {
 			// Create it
 			oEventsRepository.add(oEvent);
 
-			EventViewModel oNewEventViewModel = (EventViewModel) RiseViewModel
-					.getFromEntity(EventViewModel.class.getName(), oEvent);
+			EventViewModel oNewEventViewModel = (EventViewModel) RiseViewModel.getFromEntity(EventViewModel.class.getName(), oEvent);
 			return Response.ok(oNewEventViewModel).build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("EventResource.addEvent: " + oEx);
