@@ -194,8 +194,7 @@ public class SubscriptionResource {
 			Subscription oFromDbSub = (Subscription) oSubscriptionRepository.get(oSubscriptionViewModel.id);
 
 			if (oFromDbSub == null) {
-				RiseLog.warnLog("SubscriptionResource.update: Subscription with this id " + oSubscriptionViewModel.id
-						+ " not found");
+				RiseLog.warnLog("SubscriptionResource.update: Subscription with this id " + oSubscriptionViewModel.id + " not found");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 
@@ -208,6 +207,7 @@ public class SubscriptionResource {
 			oSubscription.setBuyDate(oFromDbSub.getBuyDate());
 			oSubscription.setExpireDate(oFromDbSub.getExpireDate());
 			oSubscription.setValid(oFromDbSub.isValid());
+			oSubscription.setBuySuccess(oFromDbSub.isBuySuccess());
 
 			if (!oSubscriptionRepository.update(oSubscription, oSubscription.getId())) {
 				RiseLog.warnLog("SubscriptionResource.update: There was an error updating the subscription");
@@ -365,8 +365,7 @@ public class SubscriptionResource {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 
-			Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(),
-					oSubscriptionViewModel);
+			Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(), oSubscriptionViewModel);
 			oSubscription.setPrice(getSubscriptionPrice(oSubscription));
 
 			double dNow = DateUtils.getNowAsDouble();
