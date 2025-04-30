@@ -65,6 +65,8 @@ public class RiseViewModel {
 	 */
 	public static Object getFromEntity(String sViewModelClass, RiseEntity oEntity) {
 		
+		if (oEntity==null) return null;
+		
 		try {
 			Object oViewModel = (Object) Class.forName(sViewModelClass).getDeclaredConstructor().newInstance();
 			

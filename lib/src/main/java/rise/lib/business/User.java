@@ -12,6 +12,8 @@ public class User extends RiseEntity {
 	
 	private String mobile;
 	
+	private String internationalPrefix;
+	
 	private UserRole role;
 	
 	private Double registrationDate;
@@ -220,6 +222,14 @@ public class User extends RiseEntity {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getInternationalPrefix() {
+		return internationalPrefix;
+	}
+
+	public void setInternationalPrefix(String internationalPrefix) {
+		this.internationalPrefix = internationalPrefix;
 	}
 
 }

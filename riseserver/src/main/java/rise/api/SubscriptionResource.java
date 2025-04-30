@@ -200,8 +200,7 @@ public class SubscriptionResource {
 			}
 
 			// Create the updated entity
-			Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(),
-					oSubscriptionViewModel);
+			Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(), oSubscriptionViewModel);
 
 			// We do not want to be cheated: the buy date, exire date and valid flag DOES
 			// NOT come from the client!

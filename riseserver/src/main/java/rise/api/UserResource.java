@@ -102,6 +102,10 @@ public class UserResource {
 			if (!Utils.isNullOrEmpty(oUserViewModel.mobile)) {
 				oUser.setMobile(oUserViewModel.mobile);
 			}
+			if (!Utils.isNullOrEmpty(oUserViewModel.internationalPrefix)) {
+				oUser.setInternationalPrefix(oUserViewModel.internationalPrefix);
+			}
+			
 			UserRepository oUserRepository = new UserRepository();
 			oUserRepository.updateUserByEmail(oUser);
 			return Response.ok().build();

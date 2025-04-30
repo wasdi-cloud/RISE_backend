@@ -13,6 +13,8 @@ public class UserViewModel extends RiseViewModel {
 	
 	public String mobile;
 	
+	public String internationalPrefix;
+	
 	public UserRole role;
 	
 	public boolean acceptedTermsAndConditions;

@@ -16,6 +16,8 @@ public class Organization extends RiseEntity {
 	
 	private String number;
 	
+	private String internationalPrefix;
+	
 	private String postalCode;
 	
 	private String vat;
@@ -111,6 +113,14 @@ public class Organization extends RiseEntity {
 
 	public void setVat(String vat) {
 		this.vat = vat;
+	}
+
+	public String getInternationalPrefix() {
+		return internationalPrefix;
+	}
+
+	public void setInternationalPrefix(String internationalPrefix) {
+		this.internationalPrefix = internationalPrefix;
 	}
 		
 }

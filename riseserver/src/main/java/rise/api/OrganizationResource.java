@@ -266,6 +266,9 @@ public class OrganizationResource {
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.number)) {
 				oOrganization.setNumber(oOrganizationViewModel.number);
 			}
+			if (!Utils.isNullOrEmpty(oOrganizationViewModel.internationalPrefix)) {
+				oOrganization.setInternationalPrefix(oOrganizationViewModel.internationalPrefix);
+			}			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.phone)) {
 				oOrganization.setPhone(oOrganizationViewModel.phone);
 			}

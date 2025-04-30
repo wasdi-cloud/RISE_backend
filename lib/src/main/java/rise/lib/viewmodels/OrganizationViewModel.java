@@ -21,6 +21,8 @@ public class OrganizationViewModel extends RiseViewModel {
 	
 	public String number;
 	
+	public String internationalPrefix;
+	
 	public String postalCode;
 	
 	public String vat;
