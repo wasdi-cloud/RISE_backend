@@ -32,4 +32,12 @@ public class AreaViewModel extends RiseViewModel  {
 	public boolean active = true;
 	
 	public ArrayList<String> plugins = new ArrayList<>();
+	
+	public boolean firstShortArchivesReady = false;
+	
+	public boolean allShortArchivesReady = false;
+
+	public boolean firstFullArchivesReady = false;
+	
+	public boolean allFullArchivesReady = false;	
 }

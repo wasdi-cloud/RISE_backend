@@ -35,6 +35,14 @@ public class Area extends RiseEntity {
 	private boolean newCreatedArea = true;
 	
 	private boolean active = true;
+	
+	private boolean firstShortArchivesReady = false;
+	
+	private boolean allShortArchivesReady = false;
+
+	private boolean firstFullArchivesReady = false;
+	
+	private boolean allFullArchivesReady = false;
 
 	public String getId() {
 		return id;
@@ -162,6 +170,38 @@ public class Area extends RiseEntity {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public boolean isFirstShortArchivesReady() {
+		return firstShortArchivesReady;
+	}
+
+	public void setFirstShortArchivesReady(boolean firstShortArchivesReady) {
+		this.firstShortArchivesReady = firstShortArchivesReady;
+	}
+
+	public boolean isAllShortArchivesReady() {
+		return allShortArchivesReady;
+	}
+
+	public void setAllShortArchivesReady(boolean allShortArchivesReady) {
+		this.allShortArchivesReady = allShortArchivesReady;
+	}
+
+	public boolean isFirstFullArchivesReady() {
+		return firstFullArchivesReady;
+	}
+
+	public void setFirstFullArchivesReady(boolean firstFullArchivesReady) {
+		this.firstFullArchivesReady = firstFullArchivesReady;
+	}
+
+	public boolean isAllFullArchivesReady() {
+		return allFullArchivesReady;
+	}
+
+	public void setAllFullArchivesReady(boolean allFullArchivesReady) {
+		this.allFullArchivesReady = allFullArchivesReady;
 	}
 	
 
