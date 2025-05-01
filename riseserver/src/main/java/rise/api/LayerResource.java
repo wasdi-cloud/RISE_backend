@@ -1,5 +1,8 @@
 package rise.api;
 
+import java.io.File;
+import java.util.List;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
@@ -7,6 +10,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
@@ -23,9 +27,8 @@ import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
+import rise.stream.FileStreamingOutput;
 import wasdi.jwasdilib.WasdiLib;
-
-import java.util.List;
 
 @Path("layer")
 public class LayerResource {
@@ -121,6 +124,7 @@ public class LayerResource {
 
 	@GET
 	@Path("download_layer")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response downloadLayer(@HeaderParam("x-session-token") String sSessionId,
 			@QueryParam("layer_id") String sLayerId, @QueryParam("format") String sFormat) {
 
@@ -153,38 +157,43 @@ public class LayerResource {
 				RiseLog.warnLog("LayerResource.downloadLayer: layer null");
 				return Response.status(Status.NOT_FOUND).build();
 			}
-			String sWorkspaceName = oLayer.getAreaId() + "|" + oLayer.getPluginId() + "|" + oLayer.getMapId();
+			
+			
 			WasdiLib oWasdiLib = new WasdiLib();
+			
+			oWasdiLib.setUser(RiseConfig.Current.wasdiConfig.wasdiUser);
+			oWasdiLib.setPassword(RiseConfig.Current.wasdiConfig.wasdiPassword);
+			
+			if (oWasdiLib.init()) {
+				
+				if (Utils.isNullOrEmpty(oLayer.getWorkspaceId())) {
+					String sWorkspaceName = oLayer.getAreaId() + "|" + oLayer.getPluginId() + "|" + oLayer.getMapId();
+					oWasdiLib.openWorkspace(sWorkspaceName);
+				}
+				else {
+					oWasdiLib.openWorkspaceById(oLayer.getWorkspaceId());
+				}
+				
+				String sLocalFilePath = oWasdiLib.getPath(oLayer.getId() + ".tif");
+				
+				if (!Utils.isNullOrEmpty(sLocalFilePath)) {
+					
+					// Ok send the file to the user
+					File oFile = new File(sLocalFilePath);
+					FileStreamingOutput oStream = new FileStreamingOutput(oFile);
+					ResponseBuilder oResponseBuilder = Response.ok(oStream);
+					String sFileName = oFile.getName();
+					oResponseBuilder.header("Content-Disposition", "attachment; filename=" + sFileName);
+					//oResponseBuilder.header("Content-Length", Long.toString(oFile.length()));
+					oResponseBuilder.header("Access-Control-Expose-Headers", "Content-Disposition");
 
-			/*
-			 * File oConfigFile = new File("/home/jihed/Desktop/config.properties");
-			 * Properties oProp = new Properties(); if (oConfigFile.exists()) {
-			 * System.out.println("/home/jihed/Desktop/config.properties"); InputStream
-			 * oInputStream = new FileInputStream("/home/jihed/Desktop/config.properties");
-			 *
-			 * if (oInputStream != null) { System.out.println("input steam works");
-			 * oProp.load(oInputStream); Enumeration<String> aoProperties =
-			 * (Enumeration<String>) oProp.propertyNames();
-			 *
-			 *
-			 *
-			 *
-			 * while (aoProperties.hasMoreElements()) { String sKey =
-			 * aoProperties.nextElement(); System.out.println(sKey);
-			 * System.out.println(oProp.getProperty(sKey)); }
-			 *
-			 * } }
-			 */
-			if (oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
-				oWasdiLib.openWorkspace(sWorkspaceName);
-				String sLink = oWasdiLib.getPath(oLayer.getId() + ".tif");
-				if (!Utils.isNullOrEmpty(sLink)) {
-					return Response.ok(sLink)
-							.header("Content-Disposition", "attachment; filename=" + sLayerId + "." + sFormat).build();
-				} else {
+					return oResponseBuilder.build();
+				} 
+				else {
 					return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 				}
-			} else {
+			} 
+			else {
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 			}
 		} catch (Exception oEx) {
@@ -194,22 +203,24 @@ public class LayerResource {
 	}
 	@GET
 	@Path("launch-wasdi-app")
-	public Response laucnhWasdiApp() {
+	public Response launchWasdiApp() {
 		try {
 			// const for test
 			String sWorkspaceId = "b4b4868d-00db-4c97-8f6b-cf394eb1c21f";
 			WasdiLib oWasdiLib = new WasdiLib();
-			if (oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
+			oWasdiLib.setUser(RiseConfig.Current.wasdiConfig.wasdiUser);
+			oWasdiLib.setPassword(RiseConfig.Current.wasdiConfig.wasdiPassword);
+			
+			if (oWasdiLib.init()) {
 				oWasdiLib.openWorkspaceById(sWorkspaceId);
-				String res = oWasdiLib.executeProcessor("viirs_flood", "{}");
+				String sProcessId = oWasdiLib.executeProcessor("viirs_flood", "{}");
+				
 
 				List<String> oList=oWasdiLib.getProductsByActiveWorkspace();
-				System.out.println(oList);
-				System.out.println(oList.get(0));
 				String sLink = oWasdiLib.getPath(oList.get(0));
+				
 				if (!Utils.isNullOrEmpty(sLink)) {
-					return Response.ok(sLink)
-							.header("Content-Disposition", "attachment; filename=" + oList.get(0)).build();
+					return Response.ok(sLink).header("Content-Disposition", "attachment; filename=" + oList.get(0)).build();
 				} else {
 					return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 				}

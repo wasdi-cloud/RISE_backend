@@ -694,18 +694,18 @@ public class AreaResource {
 			User oUser = Rise.getUserFromSession(sSessionId);
 
 			if (oUser == null) {
-				RiseLog.warnLog("AreaResource.addUser: invalid Session");
+				RiseLog.warnLog("AreaResource.deleteArea: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
-				RiseLog.warnLog("AreaResource.addUser: not an HQ level");
+				RiseLog.warnLog("AreaResource.deleteArea: not an HQ level");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
 			if (Utils.isNullOrEmpty(sAreaId)) {
-				RiseLog.warnLog("AreaResource.addUser: id null");
+				RiseLog.warnLog("AreaResource.deleteArea: area id null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			AreaRepository oAreaRepository = new AreaRepository();
@@ -722,7 +722,10 @@ public class AreaResource {
 			oWasdiTaskRepository.deleteByAreaId(sAreaId);
 			// todo Clean all the workspaces related to that area
 			WasdiLib oWasdiLib = new WasdiLib();
-			if (oWasdiLib.init(RiseConfig.Current.wasdiConfig.wasdiConfigProperties)) {
+			oWasdiLib.setUser(RiseConfig.Current.wasdiConfig.wasdiUser);
+			oWasdiLib.setPassword(RiseConfig.Current.wasdiConfig.wasdiPassword);
+			
+			if (oWasdiLib.init()) {
 				// get the list of the workspaces
 				List<Map<String, Object>> aoWorkspaces = oWasdiLib.getWorkspaces();
 				// find the workspaces that start with the area id and delete those
@@ -736,7 +739,7 @@ public class AreaResource {
 						if (sName.startsWith(sAreaId)) {
 							// Found a workspace that starts with the area ID
 							// You can delete or process it here
-							System.out.println("Found: " + sName + "with the Id : " + sId);
+							RiseLog.infoLog("AreaResource.deleteArea: Deleting Workspace " + sName + "with the Id : " + sId);
 
 							// Example: delete the workspace
 							oWasdiLib.deleteWorkspace(sId);

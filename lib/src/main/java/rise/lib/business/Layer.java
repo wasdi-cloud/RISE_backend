@@ -33,6 +33,8 @@ public class Layer extends RiseEntity {
 	private String resolution = "";
 	
 	private String inputData = "";
+	
+	private String workspaceId = "";
 
 	public String getId() {
 		return id;
@@ -152,6 +154,14 @@ public class Layer extends RiseEntity {
 
 	public void setInputData(String inputData) {
 		this.inputData = inputData;
+	}
+
+	public String getWorkspaceId() {
+		return workspaceId;
+	}
+
+	public void setWorkspaceId(String workspaceId) {
+		this.workspaceId = workspaceId;
 	}
 }
 

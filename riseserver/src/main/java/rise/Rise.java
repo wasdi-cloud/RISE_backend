@@ -34,7 +34,7 @@ public class Rise extends ResourceConfig {
 	@PostConstruct
 	public void initRise() {
 		
-		RiseLog.debugLog("----------- Welcome to RISE Remote Imaging Support for Emergencies 0.0.2-----------");
+		RiseLog.debugLog("----------- Welcome to RISE Remote Imaging Support for Emergencies 0.1.1 -----------");
 
 		String sConfigFilePath = "/etc/rise/riseConfig.json";
 		
