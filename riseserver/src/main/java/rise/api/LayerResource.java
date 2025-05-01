@@ -1,6 +1,7 @@
 package rise.api;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.ws.rs.GET;
@@ -22,6 +23,8 @@ import rise.lib.data.AreaRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.MapRepository;
 import rise.lib.utils.PermissionsUtils;
+import rise.lib.utils.RunTimeUtils;
+import rise.lib.utils.ShellExecReturn;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
@@ -201,5 +204,45 @@ public class LayerResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	
+
+    @GET
+    @Path("analyzer")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response launchPythonScript(@QueryParam("pythonScriptPath") String sPythonScript) {
+    	
+    	try {
+        	List<String> asArgs = new ArrayList<String>();
+        	
+        	// Python executable
+        	String sPythonPath = RiseConfig.Current.paths.pythonPath;
+        	asArgs.add(sPythonPath);
+
+        	// Our script
+        	String sScriptsPath = RiseConfig.Current.paths.scriptsPath;
+        	if (!sScriptsPath.endsWith("/")) sScriptsPath += "/";
+        	asArgs.add(sScriptsPath+sPythonScript);
+        	
+        	// Operation
+        	asArgs.add("analyze");
+        	
+        	// Input File
+        	asArgs.add("TODO_Json_with_Inputs");
+        	// Output File
+        	asArgs.add("TODO_Json_with_Outputs");
+        	// Config
+        	asArgs.add(RiseConfig.Current.paths.riseConfigPath);
+        	
+        	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
+        	
+        	RiseLog.debugLog(oReturn.getOperationLogs());
+        	
+        	return Response.ok().build();    		
+    	}
+    	catch (Exception oEx) {
+    		RiseLog.errorLog("HelloResource.launchPythonScript: exception " + oEx.toString());
+    		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+    }
 
 }

@@ -23,6 +23,11 @@ public class PathsConfig {
 	
 	public String pythonPath = "python3";
 	
+	/**
+	 * My own path
+	 */
+	public String riseConfigPath = "";	
+	
 	
 	public static String getRiseBasePath() {
 		// Take path

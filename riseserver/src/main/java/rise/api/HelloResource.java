@@ -51,30 +51,4 @@ public class HelloResource {
     	return oOrganization;
     }
     
-    @GET
-    @Path("pythonScript")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response launchPythonScript(@QueryParam("pythonScriptPath") String sPythonScript) {
-    	
-    	try {
-        	List<String> asArgs = new ArrayList<String>();
-
-        	String sPythonPath = RiseConfig.Current.paths.pythonPath;
-        	asArgs.add(sPythonPath);
-
-        	String sScriptsPath = RiseConfig.Current.paths.scriptsPath;
-        	if (!sScriptsPath.endsWith("/")) sScriptsPath += "/";
-        	asArgs.add(sScriptsPath+sPythonScript);
-        	
-        	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
-        	
-        	RiseLog.debugLog(oReturn.getOperationLogs());
-        	
-        	return Response.ok().build();    		
-    	}
-    	catch (Exception oEx) {
-    		RiseLog.errorLog("HelloResource.launchPythonScript: exception " + oEx.toString());
-    		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		}
-    }
 }

@@ -107,11 +107,13 @@ public class RiseConfig {
 	 * Set true to activate the logs of the http calls
 	 */
 	public boolean logHttpCalls = true;
-	
+		
 	/**
 	 * Static Reference to the actual configuration
 	 */
 	public static RiseConfig Current;
+	
+	
 	
 	protected boolean loadLanguageMessages(LanguageConfig oLangConfig) {
 		
@@ -212,7 +214,7 @@ public class RiseConfig {
         	oLinesStream = Files.lines(Paths.get(sConfigFilePath), StandardCharsets.UTF_8);
 			String sJson = oLinesStream.collect(Collectors.joining(System.lineSeparator()));
 			Current = MongoRepository.s_oMapper.readValue(sJson,RiseConfig.class);
-			//Current.paths.wasdiConfigFilePath = sConfigFilePath;
+			Current.paths.riseConfigPath = sConfigFilePath;
 			bRes = true;
 			
 		} catch (Exception oEx) {
