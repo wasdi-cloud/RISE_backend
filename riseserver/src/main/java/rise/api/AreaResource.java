@@ -714,13 +714,18 @@ public class AreaResource {
 				RiseLog.warnLog("AreaResource.deleteArea: area does not exist");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			
+			// TODO: Clean Geoserver before deleting layers
+			
 			// delete the layers
 			LayerRepository oLayerRepository = new LayerRepository();
 			oLayerRepository.deleteByAreaId(sAreaId);
+			
 			// delete the wasdi tasks related to this area
 			WasdiTaskRepository oWasdiTaskRepository = new WasdiTaskRepository();
 			oWasdiTaskRepository.deleteByAreaId(sAreaId);
-			// todo Clean all the workspaces related to that area
+			
+			// Clean all the workspaces related to that area
 			WasdiLib oWasdiLib = new WasdiLib();
 			oWasdiLib.setUser(RiseConfig.Current.wasdiConfig.wasdiUser);
 			oWasdiLib.setPassword(RiseConfig.Current.wasdiConfig.wasdiPassword);
@@ -736,10 +741,11 @@ public class AreaResource {
 					if (oName instanceof String && oId instanceof String) {
 						String sName = (String) oName;
 						String sId = (String) oId;
+						
 						if (sName.startsWith(sAreaId)) {
 							// Found a workspace that starts with the area ID
 							// You can delete or process it here
-							RiseLog.infoLog("AreaResource.deleteArea: Deleting Workspace " + sName + "with the Id : " + sId);
+							RiseLog.infoLog("AreaResource.deleteArea: Deleting WASDI Workspace " + sName + "with the Id : " + sId);
 
 							// Example: delete the workspace
 							oWasdiLib.deleteWorkspace(sId);
@@ -748,9 +754,8 @@ public class AreaResource {
 				}
 
 			}
+			
 			oAreaRepository.delete(sAreaId);
-
-			// RISE will stop the related subscription of the deleted Area of Operations
 
 			return Response.ok().build();
 		} catch (Exception oEx) {
@@ -758,5 +763,7 @@ public class AreaResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	
+	
 
 }

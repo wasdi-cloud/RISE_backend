@@ -21,6 +21,8 @@ public class PathsConfig {
 	
 	public String scriptsPath = "/home/appwasdi/scripts";
 	
+	public String pythonPath = "python3";
+	
 	
 	public static String getRiseBasePath() {
 		// Take path

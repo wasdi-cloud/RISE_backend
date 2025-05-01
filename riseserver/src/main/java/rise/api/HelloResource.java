@@ -58,13 +58,18 @@ public class HelloResource {
     	
     	try {
         	List<String> asArgs = new ArrayList<String>();
+
+        	String sPythonPath = RiseConfig.Current.paths.pythonPath;
+        	asArgs.add(sPythonPath);
+
         	String sScriptsPath = RiseConfig.Current.paths.scriptsPath;
         	if (!sScriptsPath.endsWith("/")) sScriptsPath += "/";
-        	asArgs.add("python3");
         	asArgs.add(sScriptsPath+sPythonScript);
+        	
         	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
-        	System.out.println(oReturn.getOperationLogs());
-        	System.out.println(oReturn.getOperationReturn());
+        	
+        	RiseLog.debugLog(oReturn.getOperationLogs());
+        	
         	return Response.ok().build();    		
     	}
     	catch (Exception oEx) {
