@@ -1,3 +1,6 @@
+import json
+import logging
+import sys
 import requests
 import matplotlib.pyplot as plt
 from io import BytesIO
@@ -6,13 +9,16 @@ import numpy as np
 from math import cos, radians
 import pandas as pd
 
-def main():
+def main(oConfig, oInput):
     # --- Layer Info ---
-    WMS_URL = "https://test.wasdi.net/geoserver/rise/wms"
-    LAYER_NAME = "rise:fca18f7f74c048768a8efc3259407a60viirsflood_2025-04-09_flooded"
+
+    WMS_URL = oConfig["geoserver"]["address"] + "/rise/wms"
+    LAYER_NAME = oInput["layer"]
     CRS = "EPSG:4326"
     WIDTH = 512
     HEIGHT = 512
+
+    sOutputPath = oInput["outputPath"]
 
     # --- BBOX from your shape ---
     bbox = (
@@ -145,12 +151,12 @@ def main():
     })
 
     # --- Export to CSV ---
-    hist_df.to_csv("histogram_output.csv", index=False)
-    print("\n✅ Histogram saved as 'histogram_output.csv'")
+    hist_df.to_csv(sOutputPath+"histogram_output.csv", index=False)
+    print("\nHistogram saved as 'histogram_output.csv'")
 
     # --- Optional: Export to Excel ---
-    hist_df.to_excel("histogram_output.xlsx", index=False)
-    print("✅ Histogram also saved as 'histogram_output.xlsx'")
+    hist_df.to_excel(sOutputPath+"histogram_output.xlsx", index=False)
+    print("Histogram also saved as 'histogram_output.xlsx'")
 
     # --- d.iv: The estimation of the area both drawn and with pixel affected ---
     # --- Get lat/lng resolution ---
@@ -199,9 +205,71 @@ def main():
 
     # --- Export to CSV ---
     export_df = pd.DataFrame(export_data, columns=["Latitude", "Longitude", "Pixel Value"])
-    export_df.to_csv("selected_area_pixels.csv", index=False)
-    print("✅ Exported pixel values and coordinates to 'selected_area_pixels.csv'")
+    export_df.to_csv(sOutputPath+"selected_area_pixels.csv", index=False)
+    print("Exported pixel values and coordinates to 'selected_area_pixels.csv'")
+
+def stringIsNullOrEmpty(sString):
+    return sString is None or sString == ""
+
+def readFileAsJsonObject(sFilePath):
+    if stringIsNullOrEmpty(sFilePath):
+        logging.warning(f'readFileAsJsonObject: file path is None or empty string: {sFilePath}')
+        return None
+
+    aoReturnObject = None
+    try:
+        with open(sFilePath) as oWasdiConfigJsonFile:
+            aoReturnObject = json.load(oWasdiConfigJsonFile)
+    except Exception as oEx:
+        logging.warning(f'readFileAsJsonObject: error reading the file: {sFilePath}, {oEx}')
+        return None
+
+    if aoReturnObject is None:
+        logging.warning(f'readFileAsJsonObject:  file is empty: {sFilePath}')
+        return None
+
+    return aoReturnObject
 
 
 if __name__ == "__main__":
-    main()
+    # let's read the arguments
+    asArgs = sys.argv
+
+    try:
+        if asArgs is None or len(asArgs) < 5:
+            logging.error("__main__: no arguments passed to the data provider")
+            sys.exit(1)
+
+        sOperation = asArgs[1]
+        sInputFile = asArgs[2]
+        sOutputFile = asArgs[3]
+        sRiseConfigFile = asArgs[4]
+
+        logging.debug('__main__: WASDI GFS Data Provider ' + sOperation)
+
+        # first argument asArgs[0] is the name of the file - we are not interested in it
+        logging.debug('__main__: operation ' + sOperation)
+        logging.debug('__main__: input file ' + sInputFile)
+        logging.debug('__main__: output file: ' + sOutputFile)
+        logging.debug('__main__: wasdi config path: ' + sRiseConfigFile)
+
+        oConfig = readFileAsJsonObject(sRiseConfigFile)
+        oInputFile = readFileAsJsonObject(sInputFile)
+
+        oOutput = main(oConfig, oInputFile)
+
+        if oOutput is None:
+            logging.error("__main__: no output")
+            sys.exit(1)    
+        
+        if not stringIsNullOrEmpty(sOutputFile):
+            with open(sOutputFile, 'w') as oOutputFile:
+                json.dump(oOutput, oOutputFile, indent=4)
+                logging.debug('__main__: output file: ' + sOutputFile)
+        else: 
+            logging.error("__main__: output file is None or Empty")
+            sys.exit(1)    
+
+    except Exception as oE:
+        logging.error('__main__: Exception ' + str(oE))
+        sys.exit(1)

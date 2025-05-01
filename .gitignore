@@ -12,3 +12,4 @@ riseserver/.settings/
 Servers/.project
 Servers/
 .flattened-pom.xml
+riseserver/scripts/.vscode/launch.json
