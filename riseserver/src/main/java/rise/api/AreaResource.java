@@ -72,9 +72,7 @@ public class AreaResource {
 
 			// Convert the entities
 			for (Area oArea : aoAreas) {
-
-				AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel
-						.getFromEntity(AreaListViewModel.class.getName(), oArea);
+				AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
 				aoAreasVM.add(oListItem);
 			}
 
@@ -138,6 +136,8 @@ public class AreaResource {
 				}
 
 			}
+			
+			// And the list of areas shared with the user
 			
 			// return the list to the client
 			return Response.ok(aoAreasVM).build();

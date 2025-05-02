@@ -3,7 +3,6 @@ package rise.lib.utils;
 import java.util.HashMap;
 import java.util.List;
 
-import jakarta.ws.rs.core.Response;
 import rise.lib.business.Area;
 import rise.lib.business.Organization;
 import rise.lib.business.ResourceTypes;
