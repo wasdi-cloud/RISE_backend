@@ -214,7 +214,7 @@ public class PermissionsUtils {
 			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
 			
 			// Search the permission
-			UserResourcePermission oPermission = oUserResourcePermissionRepository.getPermissionByTypeUserIdResourceId(ResourceTypes.AREA.name(),oUser.getUserId(), oArea.getId());
+			UserResourcePermission oPermission = oUserResourcePermissionRepository.getPermissionByTypeUserIdResourceId(ResourceTypes.AREA.getResourceType(),oUser.getUserId(), oArea.getId());
 			
 			if (oPermission != null)  {
 				// Valid! can see it
@@ -255,7 +255,7 @@ public class PermissionsUtils {
 			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
 			
 			// Search the permission
-			UserResourcePermission oPermission = oUserResourcePermissionRepository.getPermissionByTypeUserIdResourceId(ResourceTypes.AREA.name(),oUser.getUserId(), oArea.getId());
+			UserResourcePermission oPermission = oUserResourcePermissionRepository.getPermissionByTypeUserIdResourceId(ResourceTypes.AREA.getResourceType(),oUser.getUserId(), oArea.getId());
 			
 			if (oPermission != null)  {
 				if (oPermission.canWrite()) return true;

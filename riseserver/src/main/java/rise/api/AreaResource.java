@@ -153,7 +153,7 @@ public class AreaResource {
 			
 			// And the list of areas shared with the user
 			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
-			List<UserResourcePermission> aoAreasPermissions = oUserResourcePermissionRepository.getPermissionsByTypeAndUserId(ResourceTypes.AREA.name(), oUser.getUserId());
+			List<UserResourcePermission> aoAreasPermissions = oUserResourcePermissionRepository.getPermissionsByTypeAndUserId(ResourceTypes.AREA.getResourceType(), oUser.getUserId());
 			
 			for (UserResourcePermission oPermission : aoAreasPermissions) {
 				if (!asAddedAreasId.contains(oPermission.getResourceId())) {
