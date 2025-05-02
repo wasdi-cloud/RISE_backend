@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import rise.lib.business.Area;
+import rise.lib.business.Event;
+import rise.lib.business.ImagesCollections;
 import rise.lib.business.Organization;
 import rise.lib.business.ResourceTypes;
 import rise.lib.business.Subscription;
@@ -12,11 +14,14 @@ import rise.lib.business.User;
 import rise.lib.business.UserResourcePermission;
 import rise.lib.business.UserRole;
 import rise.lib.data.AreaRepository;
+import rise.lib.data.EventsRepository;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.SubscriptionRepository;
 import rise.lib.data.SubscriptionTypeRepository;
+import rise.lib.data.UserRepository;
 import rise.lib.data.UserResourcePermissionRepository;
 import rise.lib.utils.date.DateUtils;
+import rise.lib.utils.images.ImageResourceUtils;
 import rise.lib.utils.log.RiseLog;
 
 /**
@@ -289,4 +294,84 @@ public class PermissionsUtils {
 		
 		return false;
 	}
+	
+	public static boolean canUserWriteImage(String sUserId, String sCollection, String sFolder, String sImage) {
+		try {
+			if (Utils.isNullOrEmpty(sUserId) || Utils.isNullOrEmpty(sCollection)) {
+				return false;
+			}
+			
+			if (!ImageResourceUtils.isValidCollection(sCollection)) {
+				return false;
+			}
+			
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(sUserId);
+			
+			if (oUser == null) {
+				return false;
+			}
+			
+			if (sCollection.equals(ImagesCollections.EVENTS_DOCS.getFolder())) {
+				EventsRepository oEventsRepository = new EventsRepository();
+				Event oEvent = (Event) oEventsRepository.get(sFolder);
+				
+				if (oEvent == null) return false;
+				
+				AreaRepository oAreaRepository = new AreaRepository();
+				Area oArea = (Area) oAreaRepository.get(oEvent.getAreaId());
+				if (oArea == null) return false;
+				
+				return canUserWriteArea(oArea, oUser);
+			}
+			
+			return false;
+			
+		} 
+		catch (Exception oE) {
+			RiseLog.errorLog("PermissionsUtils.canUserWriteImage error: " + oE);
+		}
+
+		return false;			
+	}		
+	
+	public static boolean canUserAccessImage(String sUserId, String sCollection, String sFolder, String sImage) {
+		try {
+			if (Utils.isNullOrEmpty(sUserId) || Utils.isNullOrEmpty(sCollection)) {
+				return false;
+			}
+			
+			if (!ImageResourceUtils.isValidCollection(sCollection)) {
+				return false;
+			}
+			
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(sUserId);
+			
+			if (oUser == null) {
+				return false;
+			}
+			
+			if (sCollection.equals(ImagesCollections.EVENTS_DOCS.getFolder())) {
+				EventsRepository oEventsRepository = new EventsRepository();
+				Event oEvent = (Event) oEventsRepository.get(sFolder);
+				
+				if (oEvent == null) return false;
+				
+				AreaRepository oAreaRepository = new AreaRepository();
+				Area oArea = (Area) oAreaRepository.get(oEvent.getAreaId());
+				if (oArea == null) return false;
+				
+				return canUserAccessArea(oArea, oUser);
+			}
+			
+			return false;
+			
+		} 
+		catch (Exception oE) {
+			RiseLog.errorLog("PermissionsUtils.canUserAccessImage error: " + oE);
+		}
+
+		return false;			
+	}		
 }

@@ -10,18 +10,15 @@ public class PathsConfig {
 	
 	/**
 	 * Base root path that contains subfolders:
-	 * 	.workspaces
-	 * 	.metadata
-	 * 	.styles
-	 * 	.workflows
-	 * 	.processors
-	 *  .images
 	 */
+	
 	public String downloadRootPath="/data/wasdi/";
 	
 	public String scriptsPath = "/home/appwasdi/scripts";
 	
 	public String pythonPath = "python3";
+	
+	public String imagesBasePath = "/data/wasdi/rise-images/";
 	
 	/**
 	 * My own path
