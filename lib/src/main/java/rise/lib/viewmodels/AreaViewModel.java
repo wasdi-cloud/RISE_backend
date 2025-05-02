@@ -41,5 +41,5 @@ public class AreaViewModel extends RiseViewModel  {
 	
 	public boolean allFullArchivesReady = false;
 	
-	public boolean isPublicArea;
+	public boolean publicArea = false;
 }

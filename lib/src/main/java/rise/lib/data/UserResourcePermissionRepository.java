@@ -19,6 +19,12 @@ public class UserResourcePermissionRepository extends MongoRepository {
 	}
 	
 	
+	/**
+	 * Get the list of permissions by resource type and owner
+	 * @param sType
+	 * @param sUserId
+	 * @return
+	 */
 	public List<UserResourcePermission> getPermissionsByTypeAndOwnerId(String sType, String sUserId) {
 		final List<UserResourcePermission> aoReturnList = new ArrayList<>();
 
@@ -33,6 +39,12 @@ public class UserResourcePermissionRepository extends MongoRepository {
 		return aoReturnList;
 	}
 	
+	/**
+	 * Get the list of permissions by Resource Type and Target User
+	 * @param sType
+	 * @param sUserId
+	 * @return
+	 */
 	public List<UserResourcePermission> getPermissionsByTypeAndUserId(String sType, String sUserId) {
 		final List<UserResourcePermission> aoReturnList = new ArrayList<>();
 
@@ -47,6 +59,12 @@ public class UserResourcePermissionRepository extends MongoRepository {
 		return aoReturnList;
 	}	
 	
+	/**
+	 * Get the list of permissions associated to a resource
+	 * @param sType
+	 * @param sResourceId
+	 * @return
+	 */
 	public List<UserResourcePermission> getPermissionsByTypeAndResourceId(String sType, String sResourceId) {
 		final List<UserResourcePermission> aoReturnList = new ArrayList<>();
 
@@ -61,6 +79,13 @@ public class UserResourcePermissionRepository extends MongoRepository {
 		return aoReturnList;
 	}
 	
+	/**
+	 * Get the Permissions for a specific triple: Type, Target User, Resource Id
+	 * @param sType
+	 * @param sUserId
+	 * @param sResourceId
+	 * @return
+	 */
 	public UserResourcePermission getPermissionByTypeUserIdResourceId(String sType, String sUserId, String sResourceId) {
 
 		try {

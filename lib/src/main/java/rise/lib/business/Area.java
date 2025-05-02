@@ -44,7 +44,7 @@ public class Area extends RiseEntity {
 	
 	private boolean allFullArchivesReady = false;
 	
-	private boolean isPublicArea = false;
+	private boolean publicArea = false;
 
 	public String getId() {
 		return id;
@@ -207,11 +207,11 @@ public class Area extends RiseEntity {
 	}
 
 	public boolean isPublicArea() {
-		return isPublicArea;
+		return publicArea;
 	}
 
 	public void setPublicArea(boolean isPublicArea) {
-		this.isPublicArea = isPublicArea;
+		this.publicArea = isPublicArea;
 	}
 	
 

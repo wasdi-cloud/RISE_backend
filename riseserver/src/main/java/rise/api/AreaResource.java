@@ -20,12 +20,15 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
+import rise.lib.business.ResourceTypes;
 import rise.lib.business.Subscription;
 import rise.lib.business.User;
+import rise.lib.business.UserResourcePermission;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.UserRepository;
+import rise.lib.data.UserResourcePermissionRepository;
 import rise.lib.data.WasdiTaskRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
@@ -43,6 +46,12 @@ import wasdi.jwasdilib.WasdiLib;
 @Path("area")
 public class AreaResource {
 
+	/**
+	 * Get the list of Area of an organisation, if the user has the access to it
+	 * 
+	 * @param sSessionId
+	 * @return
+	 */
 	@GET
 	@Path("list")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -84,6 +93,11 @@ public class AreaResource {
 		}
 	}
 
+	/**
+	 * Get the list of areas a user can see
+	 * @param sSessionId
+	 * @return
+	 */
 	@GET
 	@Path("list-by-user")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -132,16 +146,28 @@ public class AreaResource {
 			for (Area oArea : aoPublicAreas) {
 				if (!asAddedAreasId.contains(oArea.getId())) {
 					AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
-					aoAreasVM.add(oListItem);					
+					aoAreasVM.add(oListItem);
+					asAddedAreasId.add(oArea.getId());
 				}
-
 			}
 			
 			// And the list of areas shared with the user
+			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			List<UserResourcePermission> aoAreasPermissions = oUserResourcePermissionRepository.getPermissionsByTypeAndUserId(ResourceTypes.AREA.name(), oUser.getUserId());
+			
+			for (UserResourcePermission oPermission : aoAreasPermissions) {
+				if (!asAddedAreasId.contains(oPermission.getResourceId())) {
+					Area oArea = (Area) oAreaRepository.get(oPermission.getResourceId());
+					AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
+					aoAreasVM.add(oListItem);
+					asAddedAreasId.add(oArea.getId());					
+				}
+			}
 			
 			// return the list to the client
 			return Response.ok(aoAreasVM).build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("AreaResource.getListByUser: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -186,12 +212,12 @@ public class AreaResource {
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			AreaViewModel oAreaViewModel = (AreaViewModel) RiseViewModel.getFromEntity(AreaViewModel.class.getName(),
-					oArea);
+			AreaViewModel oAreaViewModel = (AreaViewModel) RiseViewModel.getFromEntity(AreaViewModel.class.getName(), oArea);
 
 			// return the list to the client
 			return Response.ok(oAreaViewModel).build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("AreaResource.getById: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -233,8 +259,8 @@ public class AreaResource {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 
-			if (!PermissionsUtils.canUserAccessArea(oFromDbArea, oUser)) {
-				RiseLog.warnLog("AreaResource.update: user cannot access area");
+			if (!PermissionsUtils.canUserWriteArea(oFromDbArea, oUser)) {
+				RiseLog.warnLog("AreaResource.update: user cannot write area");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
@@ -245,15 +271,18 @@ public class AreaResource {
 			oFromDbArea.setDescription(oArea.getDescription());
 			oFromDbArea.setName(oArea.getName());
 			oFromDbArea.setPlugins(oArea.getPlugins());
+			oFromDbArea.setPublicArea(oArea.isPublicArea());
 
 			// Update it
 			if (!oAreaRepository.update(oFromDbArea, oFromDbArea.getId())) {
 				RiseLog.warnLog("AreaResource.update: There was an error updating the area");
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-			} else {
+			} 
+			else {
 				return Response.ok().build();
 			}
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("AreaResource.update: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -311,16 +340,20 @@ public class AreaResource {
 			oArea.setOrganizationId(oUser.getOrganizationId());
 			oArea.setArchiveStartDate(-1.0);
 			oArea.setArchiveEndDate(-1.0);
+			oArea.setAllFullArchivesReady(false);
+			oArea.setAllShortArchivesReady(false);
+			oArea.setFirstFullArchivesReady(false);
+			oArea.setFirstShortArchivesReady(false);
 			oArea.setActive(true);
 
 			// Create it
 			oAreaRepository.add(oArea);
 
-			AreaViewModel oNewAreaViewModel = (AreaViewModel) RiseViewModel.getFromEntity(AreaViewModel.class.getName(),
-					oArea);
+			AreaViewModel oNewAreaViewModel = (AreaViewModel) RiseViewModel.getFromEntity(AreaViewModel.class.getName(), oArea);
 
 			return Response.ok(oNewAreaViewModel).build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("AreaResource.add: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -371,18 +404,22 @@ public class AreaResource {
 			// check if there are any field operators
 			if (asFieldOperatorsIds != null && !asFieldOperatorsIds.isEmpty()) {
 				for (String sFieldOperatorId : asFieldOperatorsIds) {
+					
 					if (Utils.isNullOrEmpty(sFieldOperatorId)) {
 						RiseLog.warnLog("AreaResource.getUsers: user id  null");
 						continue;
 
 					}
+					
 					User oFieldOperatorOfArea = oUserRepository.getUser(sFieldOperatorId);
+					
 					if (oFieldOperatorOfArea == null) {
 						RiseLog.warnLog("AreaResource.getUsers: user " + sFieldOperatorId + "is not found");
 						continue;
 					}
-					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
-							.getFromEntity(UserOfAreaViewModel.class.getName(), oFieldOperatorOfArea);
+					
+					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel.getFromEntity(UserOfAreaViewModel.class.getName(), oFieldOperatorOfArea);
+					
 					oUserAreaVM.areaId = sId;
 					aoUsersVM.add(oUserAreaVM);
 				}
@@ -392,8 +429,7 @@ public class AreaResource {
 
 			for (User oAdminUser : aoAdmins) {
 
-				UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
-						.getFromEntity(UserOfAreaViewModel.class.getName(), oAdminUser);
+				UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel.getFromEntity(UserOfAreaViewModel.class.getName(), oAdminUser);
 				oUserAreaVM.areaId = sId;
 				aoUsersVM.add(oUserAreaVM);
 			}
@@ -402,8 +438,7 @@ public class AreaResource {
 			if (!aoHQOperators.isEmpty()) {
 				for (User oHQOperator : aoHQOperators) {
 
-					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel
-							.getFromEntity(UserOfAreaViewModel.class.getName(), oHQOperator);
+					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel.getFromEntity(UserOfAreaViewModel.class.getName(), oHQOperator);
 					oUserAreaVM.areaId = sId;
 					aoUsersVM.add(oUserAreaVM);
 				}
@@ -411,7 +446,8 @@ public class AreaResource {
 
 			// return the list to the client
 			return Response.ok(aoUsersVM).build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("AreaResource.getUsers: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -420,8 +456,7 @@ public class AreaResource {
 	@POST
 	@Path("users")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response addUser(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId,
-			UserOfAreaViewModel oUserToAdd) {
+	public Response addUser(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId, UserOfAreaViewModel oUserToAdd) {
 
 		try {
 			// Check the session
@@ -765,9 +800,9 @@ public class AreaResource {
 						}
 					}
 				}
-
 			}
 			
+			RiseLog.infoLog("AreaResource.deleteArea: Deleting Area " + oArea.getName() + " with the Id : " + sAreaId + " from user " + oUser.getUserId());
 			oAreaRepository.delete(sAreaId);
 
 			return Response.ok().build();
