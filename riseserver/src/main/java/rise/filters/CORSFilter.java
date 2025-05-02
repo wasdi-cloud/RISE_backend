@@ -9,7 +9,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.container.ContainerRequestContext;
 
 /**
  * Standard CORS Filter: it adds CORS headers to all the call
@@ -58,6 +57,4 @@ public class CORSFilter implements Filter {
 	@Override
 	public void init(FilterConfig arg0) throws ServletException {
 	}
-	
-
 }

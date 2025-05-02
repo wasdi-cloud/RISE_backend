@@ -6,10 +6,8 @@ import java.util.List;
 import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.client.FindIterable;
 
-import rise.lib.business.OTP;
 import rise.lib.business.SubscriptionType;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;

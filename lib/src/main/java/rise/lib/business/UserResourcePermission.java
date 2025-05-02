@@ -4,6 +4,7 @@ import rise.lib.utils.date.DateUtils;
 
 public class UserResourcePermission {
 	
+	private String id;
 	private String resourceId;
 	private String resourceType;
 	private String userId;
@@ -114,5 +115,15 @@ public class UserResourcePermission {
 		catch (Exception oEx) {
 			return false;
 		}
+	}
+
+
+	public String getId() {
+		return id;
+	}
+
+
+	public void setId(String id) {
+		this.id = id;
 	}	
 }
