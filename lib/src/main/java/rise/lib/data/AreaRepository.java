@@ -42,7 +42,7 @@ public class AreaRepository extends MongoRepository {
 
         try {
 
-        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("isPublicArea", true));        	
+        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("publicArea", true));        	
         	
         	fillList(aoReturnList, oWSDocument, Area.class);
         	

@@ -17,6 +17,8 @@ public class AreaViewModel extends RiseViewModel  {
 	
 	public String subscriptionId;
 	
+	public String organizationId;
+	
 	public String bbox;
 	
 	public String markerCoordinates;
