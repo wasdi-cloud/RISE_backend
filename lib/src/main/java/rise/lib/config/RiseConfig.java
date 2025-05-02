@@ -83,7 +83,7 @@ public class RiseConfig {
 	/**
 	 * Paths config
 	 */
-	public PathsConfig paths;
+	public PathsConfig paths = new PathsConfig();
 	
 	/**
 	 * Map of shell exec commands
@@ -218,7 +218,7 @@ public class RiseConfig {
 			bRes = true;
 			
 		} catch (Exception oEx) {
-			RiseLog.errorLog("WasdiConfig.readConfig: exception ", oEx);
+			RiseLog.errorLog("RiseConfig.readConfig: exception ", oEx);
 		} finally {
 			if (oLinesStream != null) 
 				oLinesStream.close();

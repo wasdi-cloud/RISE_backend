@@ -425,6 +425,7 @@ public class AreaResource {
 				}
 			}
 
+			// Get all the admin of the org 
 			List<User> aoAdmins = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
 
 			for (User oAdminUser : aoAdmins) {
@@ -433,7 +434,8 @@ public class AreaResource {
 				oUserAreaVM.areaId = sId;
 				aoUsersVM.add(oUserAreaVM);
 			}
-
+			
+			// Get all the HQ Operators
 			List<User> aoHQOperators = oUserRepository.getHQOperatorsOfOrganization(oUser.getOrganizationId());
 			if (!aoHQOperators.isEmpty()) {
 				for (User oHQOperator : aoHQOperators) {
@@ -443,6 +445,20 @@ public class AreaResource {
 					aoUsersVM.add(oUserAreaVM);
 				}
 			}
+			
+			// Get all the shared users:
+			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			List<UserResourcePermission> aoSharedUsers = oUserResourcePermissionRepository.getPermissionsByTypeAndResourceId("area", oArea.getId());
+			
+			for (UserResourcePermission oPermission : aoSharedUsers) {
+				User oSharedUser = oUserRepository.getUser(oPermission.getUserId());
+				if (oSharedUser != null) {
+					UserOfAreaViewModel oUserAreaVM = (UserOfAreaViewModel) RiseViewModel.getFromEntity(UserOfAreaViewModel.class.getName(), oSharedUser);
+					oUserAreaVM.areaId = sId;
+					aoUsersVM.add(oUserAreaVM);					
+				}
+			}
+			
 
 			// return the list to the client
 			return Response.ok(aoUsersVM).build();

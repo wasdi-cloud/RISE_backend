@@ -16,4 +16,6 @@ public class AreaListViewModel extends RiseViewModel {
 	public String markerCoordinates;
 	
 	public boolean publicArea;
+	
+	public String organizationId;
 }

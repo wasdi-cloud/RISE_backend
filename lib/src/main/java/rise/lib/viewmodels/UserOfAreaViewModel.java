@@ -14,4 +14,6 @@ public class UserOfAreaViewModel extends RiseViewModel {
 	public UserRole role;
 	
 	public String areaId;
+	
+	public String organizationId;
 }

@@ -105,6 +105,13 @@ public class PermissionsResource {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			
+			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			
+			UserResourcePermission oTestExisting = oUserResourcePermissionRepository.getPermissionByTypeUserIdResourceId(sResourceType, sDestinationUserId, sResourceId);
+			if (oTestExisting != null) {
+				return Response.ok().build();
+			}
+			
 			UserResourcePermission oUserResourcePermission = new UserResourcePermission();
 			oUserResourcePermission.setId(Utils.getRandomName());
 			oUserResourcePermission.setCreatedBy(oRequesterUser.getUserId());
@@ -115,7 +122,7 @@ public class PermissionsResource {
 			oUserResourcePermission.setResourceType(sResourceType);
 			oUserResourcePermission.setUserId(oTargetUser.getUserId());
 			
-			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			
 			oUserResourcePermissionRepository.add(oUserResourcePermission);
 			
 			return Response.ok().build();
