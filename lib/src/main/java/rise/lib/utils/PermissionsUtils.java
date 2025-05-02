@@ -3,16 +3,20 @@ package rise.lib.utils;
 import java.util.HashMap;
 import java.util.List;
 
+import jakarta.ws.rs.core.Response;
 import rise.lib.business.Area;
 import rise.lib.business.Organization;
+import rise.lib.business.ResourceTypes;
 import rise.lib.business.Subscription;
 import rise.lib.business.SubscriptionType;
 import rise.lib.business.User;
+import rise.lib.business.UserResourcePermission;
 import rise.lib.business.UserRole;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.SubscriptionRepository;
 import rise.lib.data.SubscriptionTypeRepository;
+import rise.lib.data.UserResourcePermissionRepository;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
 
@@ -191,14 +195,86 @@ public class PermissionsUtils {
 		return canUserAccessArea(oArea, oUser);
 	}
 	
+	/**
+	 * Verify if an user can access an area
+	 * @param oArea
+	 * @param oUser
+	 * @return
+	 */
 	public static boolean canUserAccessArea(Area oArea, User oUser) {
+		// Safe check
 		if (oArea == null) return false;
 		if (oUser == null) return false;
 		
-		//TODO
+		// Public Area are ok
+		if (oArea.isPublicArea()) return true;
 		
-		return true;
+		// If it is not public, must be for sure same org
+		if (!oArea.getOrganizationId().equals(oUser.getOrganizationId())) {
+			// It is not: is the area shared with the user?
+			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			
+			// Search the permission
+			UserResourcePermission oPermission = oUserResourcePermissionRepository.getPermissionByTypeUserIdResourceId(ResourceTypes.AREA.name(),oUser.getUserId(), oArea.getId());
+			
+			if (oPermission != null)  {
+				// Valid! can see it
+				return true;
+			}
+			else {
+				// Nothing, not your area dude
+				return false;	
+			}
+		}
+		else {
+			// If it is in the same org and is admin or HQ can see it
+			if (hasHQRights(oUser)) {
+				return true;
+			}
+			else if (hasFieldRights(oUser)) {
+				// If instead is field user We need to check if is assigned to this area
+				if (oArea.getFieldOperators() != null) {
+					if (oArea.getFieldOperators().contains(oUser.getUserId())) {
+						return true;
+					}
+				}
+			}
+		}
+				
+		// If we arrive here, is not your area dude!
+		return false;
 	}
+	
+	public static boolean canUserWriteArea(Area oArea, User oUser) {
+		// Safe check
+		if (oArea == null) return false;
+		if (oUser == null) return false;
+		
+		// If it is not public, must be for sure same org
+		if (!oArea.getOrganizationId().equals(oUser.getOrganizationId())) {
+			// It is not: is the area shared with the user?
+			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			
+			// Search the permission
+			UserResourcePermission oPermission = oUserResourcePermissionRepository.getPermissionByTypeUserIdResourceId(ResourceTypes.AREA.name(),oUser.getUserId(), oArea.getId());
+			
+			if (oPermission != null)  {
+				if (oPermission.canWrite()) return true;
+			}
+			
+			return false;		
+		}
+		else {
+			// If it is in the same org and is admin or HQ can see it
+			if (hasHQRights(oUser)) {
+				return true;
+			}
+		}
+				
+		// If we arrive here, is not your area dude!
+		return false;
+	}
+		
 	
 	public static boolean canUserAccessOrganization(String sOrganizationId, User oUser) {
 		OrganizationRepository oOrganizationRepository = new OrganizationRepository();

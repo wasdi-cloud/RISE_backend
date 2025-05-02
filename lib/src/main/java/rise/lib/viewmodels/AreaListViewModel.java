@@ -14,4 +14,6 @@ public class AreaListViewModel extends RiseViewModel {
 	public boolean supportArchive;
 	
 	public String markerCoordinates;
+	
+	public boolean isPublicArea;
 }

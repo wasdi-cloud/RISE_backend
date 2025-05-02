@@ -36,4 +36,23 @@ public class AreaRepository extends MongoRepository {
 
         return aoReturnList;			
 	}
+	
+	public List<Area> getPublicAreas() {
+    	List<Area> aoReturnList = new ArrayList<Area>();
+
+        try {
+
+        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("isPublicArea", true));        	
+        	
+        	fillList(aoReturnList, oWSDocument, Area.class);
+        	
+        	return aoReturnList;
+        	
+        } 
+        catch (Exception oEx) {
+        	RiseLog.errorLog("AreaRepository.getPublicAraes: error", oEx);
+        }
+
+        return aoReturnList;			
+	}
 }

@@ -104,28 +104,41 @@ public class AreaResource {
 			AreaRepository oAreaRepository = new AreaRepository();
 			// Get the areas of this org
 			List<Area> aoAreas = oAreaRepository.getByOrganization(oUser.getOrganizationId());
+			List<String> asAddedAreasId = new ArrayList<>();
+			
 			if (PermissionsUtils.hasHQRights(oUser)) {
 				// Convert the entities
 				for (Area oArea : aoAreas) {
 
-					AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel
-							.getFromEntity(AreaListViewModel.class.getName(), oArea);
+					AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
 					aoAreasVM.add(oListItem);
+					asAddedAreasId.add(oArea.getId());
 				}
 
-			} else if (PermissionsUtils.hasFieldRights(oUser)) {
+			} 
+			else if (PermissionsUtils.hasFieldRights(oUser)) {
 				for (Area oArea : aoAreas) {
 					if (oArea.getFieldOperators() != null && oArea.getFieldOperators().contains(oUser.getUserId())) {
-						AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel
-								.getFromEntity(AreaListViewModel.class.getName(), oArea);
+						
+						AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
 						aoAreasVM.add(oListItem);
+						asAddedAreasId.add(oArea.getId());
 					}
 				}
-			} else {
-				RiseLog.warnLog("AreaResource.getListByUser: cannot handle area");
-				return Response.status(Status.UNAUTHORIZED).build();
 			}
+			
+			// Get also the list of public Areas
+			List<Area> aoPublicAreas = oAreaRepository.getPublicAreas();
+			
+			
+			for (Area oArea : aoPublicAreas) {
+				if (!asAddedAreasId.contains(oArea.getId())) {
+					AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
+					aoAreasVM.add(oListItem);					
+				}
 
+			}
+			
 			// return the list to the client
 			return Response.ok(aoAreasVM).build();
 		} catch (Exception oEx) {
