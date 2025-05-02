@@ -7,4 +7,5 @@ public class SubscriptionTypeViewModel extends RiseViewModel {
 	public String id;
 	public String stringCode;
 	public int allowedAreas;
+	public double price;
 }

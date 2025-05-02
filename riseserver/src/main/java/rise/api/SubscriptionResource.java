@@ -229,8 +229,12 @@ public class SubscriptionResource {
 	public double getSubscriptionPrice(Subscription oSubscription) {
 		if (oSubscription == null)
 			return -1;
+		
+		SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
+		SubscriptionType oSubscriptionType = oSubscriptionTypeRepository.getByType(oSubscription.getType());
+		if (oSubscriptionType == null) return -1.0;
 
-		double dPrice = 0;
+		double dPrice = oSubscriptionType.getPrice();
 
 		PluginRepository oPluginRepository = new PluginRepository();
 
@@ -262,8 +266,7 @@ public class SubscriptionResource {
 	@POST
 	@Path("price")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getPrice(@HeaderParam("x-session-token") String sSessionId,
-			SubscriptionViewModel oSubscriptionViewModel) {
+	public Response getPrice(@HeaderParam("x-session-token") String sSessionId, SubscriptionViewModel oSubscriptionViewModel) {
 		try {
 			// Check the session
 			User oUser = Rise.getUserFromSession(sSessionId);
@@ -283,14 +286,18 @@ public class SubscriptionResource {
 				RiseLog.warnLog("SubscriptionResource.getPrice: sub view model null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			
+			if (oSubscriptionViewModel.paymentType.equals(PaymentType.MONTH)) {
+				oSubscriptionViewModel.type = oSubscriptionViewModel.type + "_QUARTER"; 
+			}
 
-			Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(),
-					oSubscriptionViewModel);
+			Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(), oSubscriptionViewModel);
 
 			oSubscriptionViewModel.price = getSubscriptionPrice(oSubscription);
 
 			return Response.ok(oSubscriptionViewModel).build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("SubscriptionResource.getPrice: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -327,13 +334,16 @@ public class SubscriptionResource {
 			ArrayList<SubscriptionTypeViewModel> aoTypeViewModels = new ArrayList<>();
 
 			for (SubscriptionType oType : aoTypes) {
-				SubscriptionTypeViewModel oSubscriptionTypesViewModel = (SubscriptionTypeViewModel) RiseViewModel
-						.getFromEntity(SubscriptionTypeViewModel.class.getName(), oType);
+				
+				if (oType.getStringCode().contains("_QUARTER")) continue;
+				
+				SubscriptionTypeViewModel oSubscriptionTypesViewModel = (SubscriptionTypeViewModel) RiseViewModel.getFromEntity(SubscriptionTypeViewModel.class.getName(), oType);
 				aoTypeViewModels.add(oSubscriptionTypesViewModel);
 			}
 
 			return Response.ok(aoTypeViewModels).build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("SubscriptionResource.getTypes: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -363,6 +373,10 @@ public class SubscriptionResource {
 				RiseLog.warnLog("SubscriptionResource.getPrice: sub view model null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			
+			if (oSubscriptionViewModel.paymentType.equals(PaymentType.MONTH)) {
+				oSubscriptionViewModel.type = oSubscriptionViewModel.type + "_QUARTER"; 
+			}			
 
 			Subscription oSubscription = (Subscription) RiseViewModel.copyToEntity(Subscription.class.getName(), oSubscriptionViewModel);
 			oSubscription.setPrice(getSubscriptionPrice(oSubscription));

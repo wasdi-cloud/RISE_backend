@@ -9,6 +9,8 @@ public class SubscriptionType extends RiseEntity {
 	private String id;
 	
 	private int allowedAreas = 0;
+	
+	private double price = 0.0;
 
 	public String getId() {
 		return id;
@@ -40,6 +42,14 @@ public class SubscriptionType extends RiseEntity {
 
 	public void setAllowedAreas(int allowedAreas) {
 		this.allowedAreas = allowedAreas;
+	}
+
+	public double getPrice() {
+		return price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
 	}
 	
 }
