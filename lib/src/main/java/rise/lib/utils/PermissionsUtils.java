@@ -312,7 +312,7 @@ public class PermissionsUtils {
 				return false;
 			}
 			
-			if (sCollection.equals(ImagesCollections.EVENTS_DOCS.getFolder())) {
+			if (sCollection.equals(ImagesCollections.EVENTS_DOCS.getFolder()) || sCollection.equals(ImagesCollections.EVENTS_IMAGES.getFolder())) {
 				EventsRepository oEventsRepository = new EventsRepository();
 				Event oEvent = (Event) oEventsRepository.get(sFolder);
 				

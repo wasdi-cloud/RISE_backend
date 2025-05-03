@@ -3,6 +3,7 @@ package rise;
 import java.io.File;
 
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import jakarta.annotation.PostConstruct;
@@ -27,6 +28,7 @@ public class Rise extends ResourceConfig {
 	public Rise() {
 		register(JacksonFeature.class);
 		register(JerseyMapperProvider.class);
+		register(MultiPartFeature.class);
 		
 		packages(true, "rise.api");
 	}
@@ -34,7 +36,7 @@ public class Rise extends ResourceConfig {
 	@PostConstruct
 	public void initRise() {
 		
-		RiseLog.debugLog("----------- Welcome to RISE Remote Imaging Support for Emergencies 0.1.1 -----------");
+		RiseLog.debugLog("----------- Welcome to RISE Remote Imaging Support for Emergencies 0.8.1 -----------");
 
 		String sConfigFilePath = "/etc/rise/riseConfig.json";
 		
