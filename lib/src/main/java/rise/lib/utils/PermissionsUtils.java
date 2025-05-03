@@ -20,8 +20,8 @@ import rise.lib.data.SubscriptionRepository;
 import rise.lib.data.SubscriptionTypeRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.data.UserResourcePermissionRepository;
+import rise.lib.utils.attachments.AttachmentResourceUtils;
 import rise.lib.utils.date.DateUtils;
-import rise.lib.utils.images.ImageResourceUtils;
 import rise.lib.utils.log.RiseLog;
 
 /**
@@ -295,13 +295,13 @@ public class PermissionsUtils {
 		return false;
 	}
 	
-	public static boolean canUserWriteImage(String sUserId, String sCollection, String sFolder, String sImage) {
+	public static boolean canUserWriteAttachment(String sUserId, String sCollection, String sFolder, String sImage) {
 		try {
 			if (Utils.isNullOrEmpty(sUserId) || Utils.isNullOrEmpty(sCollection)) {
 				return false;
 			}
 			
-			if (!ImageResourceUtils.isValidCollection(sCollection)) {
+			if (!AttachmentResourceUtils.isValidCollection(sCollection)) {
 				return false;
 			}
 			
@@ -335,13 +335,13 @@ public class PermissionsUtils {
 		return false;			
 	}		
 	
-	public static boolean canUserAccessImage(String sUserId, String sCollection, String sFolder, String sImage) {
+	public static boolean canUserAccessAttachment(String sUserId, String sCollection, String sFolder, String sAttachment) {
 		try {
 			if (Utils.isNullOrEmpty(sUserId) || Utils.isNullOrEmpty(sCollection)) {
 				return false;
 			}
 			
-			if (!ImageResourceUtils.isValidCollection(sCollection)) {
+			if (!AttachmentResourceUtils.isValidCollection(sCollection)) {
 				return false;
 			}
 			

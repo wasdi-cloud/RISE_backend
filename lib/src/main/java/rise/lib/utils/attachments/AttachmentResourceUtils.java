@@ -1,8 +1,6 @@
-package rise.lib.utils.images;
+package rise.lib.utils.attachments;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -19,12 +17,12 @@ import rise.lib.utils.log.RiseLog;
  * @author p.campanella
  *
  */
-public class ImageResourceUtils {
+public class AttachmentResourceUtils {
 	
 	/**
-	 * List of extensions enabled to upload a user image
+	 * List of extensions enabled to upload a user attachment
 	 */
-	public static String[] USER_IMAGE_ENABLED_EXTENSIONS = {"jpg", "png", "svg"};
+	public static String[] ENABLED_EXTENSIONS = {"jpg", "png", "svg", "doc", "pdf", "txt", "json", "xls"};
 	
 	/**
 	 * Width of Thumbail images
@@ -38,7 +36,7 @@ public class ImageResourceUtils {
 	/**
 	 * Max image size in Mb
 	 */
-	public static int s_iMAX_IMAGE_MB_SIZE = 2;
+	public static int s_iMAX_IMAGE_MB_SIZE = 20;
 	/**
 	 * Default base name of the processor logo
 	 */
@@ -53,7 +51,7 @@ public class ImageResourceUtils {
 	public static String[] s_asIMAGE_NAMES = { "1", "2", "3", "4", "5", "6" };	
 
 	
-	private ImageResourceUtils() { 
+	private AttachmentResourceUtils() { 
 	}
 	
 	/**
@@ -69,7 +67,7 @@ public class ImageResourceUtils {
 	 */
 	public static boolean isValidExtension(String sExt){
 		//Check if the extension is valid
-		for (String sValidExtension : USER_IMAGE_ENABLED_EXTENSIONS) {
+		for (String sValidExtension : ENABLED_EXTENSIONS) {
 			  if(sValidExtension.equals(sExt.toLowerCase()) ){
 				  return true;
 			  }
@@ -91,31 +89,31 @@ public class ImageResourceUtils {
 	
 	/**
 	 * Get the image file of the logo
-	 * @param sPathLogoFolder
+	 * @param sPathAttachmentFolder
 	 * @param asEnableExtension
 	 * @return
 	 */
-	public static ImageFile getImageInFolder(String sPathLogoFolder){
-		ImageFile oImage = null;
-		String sLogoExtension = getExtensionOfImageInFolder(sPathLogoFolder);
+	public static AttachmentFile getAttachmentInFolder(String sPathAttachmentFolder){
+		AttachmentFile oAttachment = null;
+		String sLogoExtension = getExtensionOfFileInFolder(sPathAttachmentFolder);
 		
-		RiseLog.debugLog("ImageResourceUtils.getImageInFolder " + sLogoExtension);
+		RiseLog.debugLog("AttachmentResourceUtils.getAttachmentInFolder " + sLogoExtension);
 		
 		if(sLogoExtension.isEmpty() == false){
-			String sPath = sPathLogoFolder;
+			String sPath = sPathAttachmentFolder;
 			
-			RiseLog.debugLog("ImageResourceUtils.getImageInFolder: sPath "+ sPath);
+			RiseLog.debugLog("AttachmentResourceUtils.getAttachmentInFolder: sPath "+ sPath);
 			
 			if (sPath.endsWith("."+sLogoExtension) == false) {
-				sPath = sPathLogoFolder + "." + sLogoExtension ;
+				sPath = sPathAttachmentFolder + "." + sLogoExtension ;
 			}
 			
-			oImage = new ImageFile(sPath);
+			oAttachment = new AttachmentFile(sPath);
 		}
 		else {
-			RiseLog.debugLog("ImageResourceUtils.getImageInFolder: logo empty ");
+			RiseLog.debugLog("AttachmentResourceUtils.getAttachmentInFolder: logo empty ");
 		}
-		return oImage;
+		return oAttachment;
 		
 	}
 	
@@ -124,8 +122,8 @@ public class ImageResourceUtils {
 	 * Get the path of a subofolder of images in WASDI
 	 * @return
 	 */
-	public static String getImagesSubPath(String sCollection, String sFolder) {
-		String sPath = RiseConfig.Current.paths.imagesBasePath;
+	public static String getAttachmentSubPath(String sCollection, String sFolder) {
+		String sPath = RiseConfig.Current.paths.attachmentsBasePath;
 		sPath += sCollection;
 		if (!sPath.endsWith("/")) sPath += "/";
 		
@@ -134,7 +132,7 @@ public class ImageResourceUtils {
 			if (!sPath.endsWith("/")) sPath += "/";
 		}
 		
-		ImageResourceUtils.createDirectory(sPath);
+		AttachmentResourceUtils.createDirectory(sPath);
 		
 		return sPath;
 	}
@@ -143,16 +141,16 @@ public class ImageResourceUtils {
 	
 	/**
 	 * Search the extension of a image
-	 * @param sPathLogoFolder
+	 * @param sPathAttachmentFileWithoutExt
 	 * @param asEnableExtension
 	 * @return
 	 */
-	public static String getExtensionOfImageInFolder (String sPathLogoFolder){
-		File oLogo = null;
+	public static String getExtensionOfFileInFolder (String sPathAttachmentFileWithoutExt){
+		File oFile = null;
 		String sExtensionReturnValue = "";
-		for (String sValidExtension : USER_IMAGE_ENABLED_EXTENSIONS) {
-			oLogo = new File(sPathLogoFolder + "." + sValidExtension );
-		    if (oLogo.exists()){
+		for (String sValidExtension : ENABLED_EXTENSIONS) {
+			oFile = new File(sPathAttachmentFileWithoutExt + "." + sValidExtension );
+		    if (oFile.exists()){
 		    	sExtensionReturnValue = sValidExtension;
 		    	break;
 		    }
@@ -175,7 +173,7 @@ public class ImageResourceUtils {
 			
 			if(sDeleteFileName.equalsIgnoreCase(sFileName)){
 				if (!oImage.delete()) {
-					RiseLog.debugLog("Image resource Utils - File " + sFileName + " can't be deleted");
+					RiseLog.debugLog("Attachment resource Utils - File " + sFileName + " can't be deleted");
 					}
 				break;
 			} 
@@ -194,7 +192,7 @@ public class ImageResourceUtils {
 
 		String sReturnValueName = "";
 		boolean bIsAvaibleName = false; 
-		for (String sAvaibleFileName : ImageResourceUtils.s_asIMAGE_NAMES){
+		for (String sAvaibleFileName : AttachmentResourceUtils.s_asIMAGE_NAMES){
 			bIsAvaibleName = true;
 			sReturnValueName = sAvaibleFileName;
 			
@@ -227,19 +225,19 @@ public class ImageResourceUtils {
 	    try {
 	    	
 	    	if (Utils.isNullOrEmpty(sAbsoluteImageFilePath)) {
-	    		RiseLog.infoLog("ImageResourceUtils.createThumbOfImage: sAbsoluteImageFilePath null ");
+	    		RiseLog.infoLog("AttachmentResourceUtils.createThumbOfImage: sAbsoluteImageFilePath null ");
 	    		return null;
 	    	}
 	    	
-	    	ImageFile oNewImage = new ImageFile(sAbsoluteImageFilePath);
+	    	AttachmentFile oNewImage = new AttachmentFile(sAbsoluteImageFilePath);
 	    	
 	    	if (oNewImage.exists() == false) {
-	    		RiseLog.infoLog("ImageResourceUtils.createThumbOfImage: oNewImage not found at " + sAbsoluteImageFilePath);
+	    		RiseLog.infoLog("AttachmentResourceUtils.createThumbOfImage: oNewImage not found at " + sAbsoluteImageFilePath);
 	    		return null;
 	    	}
 	    	
 		    // Create the thumb:	    	
-	    	RiseLog.debugLog("ImageResourceUtils.createThumbOfImage: creating thumb");
+	    	RiseLog.debugLog("AttachmentResourceUtils.createThumbOfImage: creating thumb");
 	    	
 	    	String [] asSplit = sAbsoluteImageFilePath.split("\\.");
 	    	
@@ -249,19 +247,19 @@ public class ImageResourceUtils {
 	    	
 	    	Files.copy(oNewImage, oThumb);
 	    	
-	    	RiseLog.debugLog("ImageResourceUtils.createThumbOfImage: thumb file created " + sThumbPath);
+	    	RiseLog.debugLog("AttachmentResourceUtils.createThumbOfImage: thumb file created " + sThumbPath);
 	    	
-	    	ImageFile oImageThumb = new ImageFile(sThumbPath);
+	    	AttachmentFile oImageThumb = new AttachmentFile(sThumbPath);
 	    	
-	    	if (!oImageThumb.resizeImage(ImageResourceUtils.s_iTHUMB_HEIGHT, ImageResourceUtils.s_iTHUMB_WIDTH)) {
-	    		RiseLog.debugLog("ImageResourceUtils.createThumbOfImage: error resizing the thumb");
+	    	if (!oImageThumb.resizeImage(AttachmentResourceUtils.s_iTHUMB_HEIGHT, AttachmentResourceUtils.s_iTHUMB_WIDTH)) {
+	    		RiseLog.debugLog("AttachmentResourceUtils.createThumbOfImage: error resizing the thumb");
 	    	}
 	    	
 	    	return sThumbPath;
 	    	
 	    }
 	    catch (Exception oEx) {
-	    	RiseLog.debugLog("ImageResourceUtils.createThumbOfImage:  error creating the thumb " + oEx.toString());
+	    	RiseLog.debugLog("AttachmentResourceUtils.createThumbOfImage:  error creating the thumb " + oEx.toString());
 		}
 	    
 	    return null;
@@ -270,10 +268,10 @@ public class ImageResourceUtils {
 	/**
 	 * Get the http link to access an image
 	 * @param sCollection Image Collection 
-	 * @param sImage Image Name
+	 * @param sAttachment Image Name
 	 * @return Url to get the image or empty string
 	 */
-	public static String getImageLink(String sCollection, String sFolder, String sImage) {
+	public static String getAttachmentLink(String sCollection, String sFolder, String sAttachment) {
 		try {
 			String sAddress = RiseConfig.Current.serverApiAddress;
 			
@@ -284,12 +282,12 @@ public class ImageResourceUtils {
 				sAddress += "&folder=" + sFolder;
 			}
 			
-			sAddress += "&name="+sImage;
+			sAddress += "&name="+sAttachment;
 			
 			return sAddress;
 		}
 	    catch (Exception oEx) {
-	    	RiseLog.debugLog("ImageResourceUtils.getImageLink:  error " + oEx.toString());
+	    	RiseLog.debugLog("AttachmentResourceUtils.getAttachmentLink:  error " + oEx.toString());
 		}		
 		
 		return "";
@@ -317,7 +315,7 @@ public class ImageResourceUtils {
 			return bValidCollection;			
 		}
 		catch (Exception oEx) {
-			RiseLog.errorLog("ImageResourceUtils.isValidCollection: error " + oEx.toString());
+			RiseLog.errorLog("AttachmentResourceUtils.isValidCollection: error " + oEx.toString());
 		}
 		
 		return false;

@@ -28,7 +28,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 
-import rise.lib.utils.images.ImageResourceUtils;
+import rise.lib.utils.attachments.AttachmentResourceUtils;
 import rise.lib.utils.log.RiseLog;
 
 /**
@@ -713,7 +713,7 @@ public class RiseFileUtils {
 			String sFileName = oFile.getName();
 			String sExt = FilenameUtils.getExtension(sFileName);
 
-			if(ImageResourceUtils.isValidExtension(sExt)){
+			if(AttachmentResourceUtils.isValidExtension(sExt)){
 				return true;
 			}					
 		}

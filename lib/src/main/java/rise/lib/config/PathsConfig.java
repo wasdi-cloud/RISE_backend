@@ -18,7 +18,7 @@ public class PathsConfig {
 	
 	public String pythonPath = "python3";
 	
-	public String imagesBasePath = "/data/wasdi/rise-images/";
+	public String attachmentsBasePath = "/data/wasdi/rise-images/";
 	
 	/**
 	 * My own path

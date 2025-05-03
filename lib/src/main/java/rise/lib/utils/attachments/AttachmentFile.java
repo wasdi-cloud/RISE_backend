@@ -1,4 +1,4 @@
-package rise.lib.utils.images;
+package rise.lib.utils.attachments;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,19 +19,19 @@ import org.apache.commons.io.FilenameUtils;
 
 import rise.lib.utils.log.RiseLog;
 
-public class ImageFile extends File {
+public class AttachmentFile extends File {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -643189587567960950L;
 
-	public ImageFile(String paramString) {
-		super(paramString);
+	public AttachmentFile(String sPath) {
+		super(sPath);
 
 	}
 	
-	public boolean saveImage (InputStream oInputStream){
+	public boolean saveAttachment (InputStream oInputStream){
 		return save(oInputStream);
 
 	}
@@ -42,16 +43,20 @@ public class ImageFile extends File {
 
 		// Try with resources. Resource declaration auto closes object(even if IOExeption occours)
 		try (OutputStream oOutStream = new FileOutputStream(this)){
+			
 			while ((iRead = oInputStream.read(ayBytes)) != -1) {
 				oOutStream.write(ayBytes, 0, iRead);
 			}
+			
 			oOutStream.flush();
 			oOutStream.close();
-		} catch (FileNotFoundException e) {
-			RiseLog.errorLog("ImageFile.save: error", e);
+		} 
+		catch (FileNotFoundException e) {
+			RiseLog.errorLog("AttachmentFile.save: error", e);
 			return false;
-		} catch (IOException e) {
-			RiseLog.errorLog("ImageFile.save: error", e);
+		} 
+		catch (IOException e) {
+			RiseLog.errorLog("AttachmentFile.save: error", e);
 			return false;
 		}
 		return true;
@@ -79,29 +84,38 @@ public class ImageFile extends File {
 		        ImageIO.write(oResized, sExt.toLowerCase(), this);	        	
 	        }
 		} catch (FileNotFoundException e) {
-			RiseLog.errorLog("ImageFile.resizeImage: error", e);
+			RiseLog.errorLog("AttachmentFile.resizeImage: error", e);
 			return false;
 		} catch (IOException e) {
-			RiseLog.errorLog("ImageFile.resizeImage: error", e);
+			RiseLog.errorLog("AttachmentFile.resizeImage: error", e);
 			return false;
 		}
 		return true;
 	}
 	
-	public ByteArrayInputStream getByteArrayImage(){
-		byte[] abLogo = null;
-		String sExt = FilenameUtils.getExtension(this.getAbsolutePath());
+	public ByteArrayInputStream getByteArrayInputStream(){
+		
+		ByteArrayOutputStream oByteArrayOutputStream = new ByteArrayOutputStream();
+		
 		try {
-			BufferedImage oBufferedLogo = ImageIO.read(this);
-			ByteArrayOutputStream oBaos = new ByteArrayOutputStream();
-			ImageIO.write(oBufferedLogo, sExt, oBaos);
-			abLogo = oBaos.toByteArray();
+			FileInputStream oFileInputStream = new FileInputStream(this);
 			
-		} catch (IOException e) {
-			RiseLog.errorLog("ImageFile.getByteArrayImage: error", e);
+			
+            byte[] ayBuffer = new byte[1024];
+            int iBytesRead;
+            while ((iBytesRead = oFileInputStream.read(ayBuffer)) != -1) {
+            	oByteArrayOutputStream.write(ayBuffer, 0, iBytesRead);
+            }
+            
+            oFileInputStream.close();
+            
+		} 
+		catch (IOException e) {
+			RiseLog.errorLog("AttachmentFile.getByteArrayImage: error", e);
 			return null;
 		}
-		return new ByteArrayInputStream(abLogo);
+		
+		return new ByteArrayInputStream(oByteArrayOutputStream.toByteArray());
 	} 
 	
     private static BufferedImage resize(BufferedImage img, int height, int width) {
