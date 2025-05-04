@@ -264,17 +264,18 @@ public class LayerResource {
         	if (oOutputFile.exists()) {
         		JSONObject oJsonOutput = JsonUtils.loadJsonFromFile(sOutputFullPath);
         		// TODO
-        		
-        		oOutput.areaPixelAffected = "100";
-        		oOutput.estimatedArea = "123";
-        		oOutput.percentAreaAffectedPixels = "44";
-        		oOutput.percentTotAreaAffectedPixels = "33";
-        		oOutput.totAreaPixels = "1893";
-        		
+        		        		
         	}
         	else {
         		// Problems reading the output
         	}
+        	
+    		oOutput.areaPixelAffected = "100";
+    		oOutput.estimatedArea = "123";
+    		oOutput.percentAreaAffectedPixels = "44";
+    		oOutput.percentTotAreaAffectedPixels = "33";
+    		oOutput.totAreaPixels = "1893";
+        	
         	
         	RiseFileUtils.deleteFile(sInputFullPath);
         	RiseFileUtils.deleteFile(sOutputFullPath);
