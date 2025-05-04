@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -23,7 +25,9 @@ import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.MapRepository;
+import rise.lib.utils.JsonUtils;
 import rise.lib.utils.PermissionsUtils;
+import rise.lib.utils.RiseFileUtils;
 import rise.lib.utils.RunTimeUtils;
 import rise.lib.utils.ShellExecReturn;
 import rise.lib.utils.Utils;
@@ -223,21 +227,47 @@ public class LayerResource {
         	// Our script
         	String sScriptsPath = RiseConfig.Current.paths.scriptsPath;
         	if (!sScriptsPath.endsWith("/")) sScriptsPath += "/";
-        	asArgs.add(sScriptsPath+"layerAnalyzer.py");
+        	asArgs.add(sScriptsPath+"layer_analyzer.py");
         	
         	// Operation
         	asArgs.add("analyze");
         	
+        	String sTmpPath = RiseConfig.Current.paths.riseTempFolder;
+        	if (!sTmpPath.endsWith("/")) sTmpPath += "/";
+        	
+        	String sInputFileName = Utils.getRandomName() + ".json";
+        	String sOutputFileName = Utils.getRandomName() + ".json";
+        	String sInputFullPath = sTmpPath + sInputFileName;
+        	String sOutputFullPath = sTmpPath + sOutputFileName;
+        	
+        	oInput.outputPath = sTmpPath;
+        	
+        	String sInputJson = JsonUtils.stringify(oInput);
+        	RiseFileUtils.writeFile(sInputJson, new File(sInputFullPath));
+        	
         	// Input File
-        	asArgs.add("TODO_Json_with_Inputs");
+        	asArgs.add(sInputFullPath);
         	// Output File
-        	asArgs.add("TODO_Json_with_Outputs");
+        	asArgs.add(sOutputFullPath);
         	// Config
         	asArgs.add(RiseConfig.Current.paths.riseConfigPath);
         	
         	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
         	
         	RiseLog.debugLog(oReturn.getOperationLogs());
+        	
+        	File oOutputFile = new File(sOutputFullPath);
+        	
+        	if (oOutputFile.exists()) {
+        		JSONObject oOutput = JsonUtils.loadJsonFromFile(sOutputFullPath);
+        		// TODO
+        	}
+        	else {
+        		// Problems reading the output
+        	}
+        	
+        	RiseFileUtils.deleteFile(sInputFullPath);
+        	RiseFileUtils.deleteFile(sOutputFullPath);
         	
         	return Response.ok().build();    		
     	}

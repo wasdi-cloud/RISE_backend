@@ -8,33 +8,36 @@ from PIL import Image
 import numpy as np
 from math import cos, radians
 import pandas as pd
+from shapely.wkt import loads as wkt_loads
 
 def main(oConfig, oInput):
     # --- Layer Info ---
 
     WMS_URL = oConfig["geoserver"]["address"] + "/rise/wms"
-    LAYER_NAME = oInput["layer"]
+    LAYER_NAME = oInput["layerIds"][0]  # Assuming only one layer ID is provided
     CRS = "EPSG:4326"
     WIDTH = 512
     HEIGHT = 512
 
     sOutputPath = oInput["outputPath"]
 
-    # --- BBOX from your shape ---
-    bbox = (
-        -17.07253857905758,  # min lat
-        47.79153557507427,  # min lng
-        -14.083301314706778,  # max lat
-        50.899877141324055  # max lng
-    )
+    sBbox = oInput["bbox"]
 
-    # Note: WMS uses bbox as (minx, miny, maxx, maxy) => (min_lng, min_lat, max_lng, max_lat)
-    # So we need to swap lat/lng for WMS correctly
+    # --- Extract BBOX from WKT ---
+    try:
+        oGeometry = wkt_loads(sBbox)  # Parse WKT string
+        min_lng, min_lat, max_lng, max_lat = oGeometry.bounds  # Extract bounds
+        bbox = (min_lat, min_lng, max_lat, max_lng)  # Format as (min_lat, min_lng, max_lat, max_lng)
+    except Exception as e:
+        logging.error(f"Error parsing WKT string: {sBbox}, {e}")
+        return
+
+    # --- BBOX from your shape ---
     bbox_corrected = (
         bbox[1],  # min lng
         bbox[0],  # min lat
         bbox[3],  # max lng
-        bbox[2]  # max lat
+        bbox[2]   # max lat
     )
 
     # --- Build WMS request ---
