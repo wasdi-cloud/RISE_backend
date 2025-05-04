@@ -6,6 +6,7 @@ import java.util.List;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -28,6 +29,7 @@ import rise.lib.utils.ShellExecReturn;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
+import rise.lib.viewmodels.LayerAnalyzerInputViewModel;
 import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.stream.FileStreamingOutput;
@@ -206,10 +208,10 @@ public class LayerResource {
 	}
 	
 
-    @GET
+    @POST
     @Path("analyzer")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response launchPythonScript(@QueryParam("pythonScriptPath") String sPythonScript) {
+    public Response layerAnalyzer(@HeaderParam("x-session-token") String sSessionId, LayerAnalyzerInputViewModel oInput) {
     	
     	try {
         	List<String> asArgs = new ArrayList<String>();
@@ -221,7 +223,7 @@ public class LayerResource {
         	// Our script
         	String sScriptsPath = RiseConfig.Current.paths.scriptsPath;
         	if (!sScriptsPath.endsWith("/")) sScriptsPath += "/";
-        	asArgs.add(sScriptsPath+sPythonScript);
+        	asArgs.add(sScriptsPath+"layerAnalyzer.py");
         	
         	// Operation
         	asArgs.add("analyze");
