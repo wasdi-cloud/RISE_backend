@@ -34,6 +34,7 @@ import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.LayerAnalyzerInputViewModel;
+import rise.lib.viewmodels.LayerAnalyzerOutputViewModel;
 import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.stream.FileStreamingOutput;
@@ -218,6 +219,8 @@ public class LayerResource {
     public Response layerAnalyzer(@HeaderParam("x-session-token") String sSessionId, LayerAnalyzerInputViewModel oInput) {
     	
     	try {
+    		LayerAnalyzerOutputViewModel oOutput = new LayerAnalyzerOutputViewModel();
+    		
         	List<String> asArgs = new ArrayList<String>();
         	
         	// Python executable
@@ -259,8 +262,15 @@ public class LayerResource {
         	File oOutputFile = new File(sOutputFullPath);
         	
         	if (oOutputFile.exists()) {
-        		JSONObject oOutput = JsonUtils.loadJsonFromFile(sOutputFullPath);
+        		JSONObject oJsonOutput = JsonUtils.loadJsonFromFile(sOutputFullPath);
         		// TODO
+        		
+        		oOutput.areaPixelAffected = "100";
+        		oOutput.estimatedArea = "123";
+        		oOutput.percentAreaAffectedPixels = "44";
+        		oOutput.percentTotAreaAffectedPixels = "33";
+        		oOutput.totAreaPixels = "1893";
+        		
         	}
         	else {
         		// Problems reading the output
@@ -269,7 +279,7 @@ public class LayerResource {
         	RiseFileUtils.deleteFile(sInputFullPath);
         	RiseFileUtils.deleteFile(sOutputFullPath);
         	
-        	return Response.ok().build();    		
+        	return Response.ok(oOutput).build();    		
     	}
     	catch (Exception oEx) {
     		RiseLog.errorLog("HelloResource.launchPythonScript: exception " + oEx.toString());
