@@ -33,6 +33,7 @@ import rise.lib.data.PasswordChangeRequestRepository;
 
 import rise.lib.data.UserRepository;
 import rise.lib.utils.PasswordAuthentication;
+import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.i8n.LangUtils;
@@ -473,15 +474,26 @@ public class UserResource {
 				RiseLog.warnLog("UserResource.deleteUser: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-			// verify if it is the only admin in the org
+			
 			UserRepository oUserRepository = new UserRepository();
-			List<User> aoUsers = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
-			if (aoUsers.size() == 1 && aoUsers.contains(oUser)) {
-				// org has only the current user as admin
-				RiseLog.warnLog("UserResource.deleteUser: the current user is the only last admin for the org ");
-				return Response.status(Status.FORBIDDEN).build();
+			
+			boolean bIsAdmin = PermissionsUtils.isAdmin(oUser);
+			
+			if (bIsAdmin) {
+				// Get the list of administrators
+				List<User> aoAdmins = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
+				// And the list of users
+				List<User> aoUsers = oUserRepository.getUsersByOrganizationId(oUser.getOrganizationId());
+				
+				if (aoUsers.size()>1 && aoAdmins.size()==1) {
+					if (aoAdmins.get(0).getUserId().equals(oUser.getUserId())) {
+						// org has only the current user as admin
+						RiseLog.warnLog("UserResource.deleteUser: the current user is the only last admin for the org that have also other users");
+						return Response.status(Status.FORBIDDEN).build();						
+					}
+				}				
 			}
-
+			
 			// Create the OTP Entity
 			OTP oOTP = new OTP();
 			oOTP.setId(Utils.getRandomName());
@@ -526,7 +538,7 @@ public class UserResource {
 
 	@DELETE
 	@Path("verify_delete_user")
-	public Response verifyDeleteUser(OTPVerifyViewModel oOTPVerifyVM) {
+	public Response verifyDeleteUser(@HeaderParam("x-session-token") String sSessionId, OTPVerifyViewModel oOTPVerifyVM) {
 		try {
 
 			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(),
@@ -578,11 +590,39 @@ public class UserResource {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: user not found");
 				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
 			}
-			oOTPRepository.delete(oOTPVerifyVM.id);
-			// delete user
+			
+			oOTPRepository.delete(oOTPVerifyVM.id);			
+			
+			boolean bIsAdmin = PermissionsUtils.isAdmin(oUser);
+			
+			if (bIsAdmin) {
+				// Get the list of administrators
+				List<User> aoAdmins = oUserRepository.getAdminsOfOrganization(oUser.getOrganizationId());
+				// And the list of users
+				List<User> aoUsers = oUserRepository.getUsersByOrganizationId(oUser.getOrganizationId());
+				
+				if (aoUsers.size()>1 && aoAdmins.size()==1) {
+					// If this is the only admin of this org that has more users, we want to delete the org before
+					if (aoAdmins.get(0).getUserId().equals(oUser.getUserId())) {
+						// org has only the current user as admin
+						RiseLog.warnLog("UserResource.deleteUser: the current user is the only last admin for the org that have also other users");
+						return Response.status(Status.FORBIDDEN).build();						
+					}
+				}
+				else if (aoUsers.size()==1 && aoAdmins.size()==1) {
+					if (aoAdmins.get(0).getUserId().equals(oUser.getUserId())) {
+						// This is my own and personal org: clean all
+						OrganizationResource oOrganizationResource = new OrganizationResource();
+						oOrganizationResource.internalDeleteOrganization(sSessionId, oUser);
+					}
+				}
+			}
+			
+			// We can now just delete user
 			oUserRepository.deleteByUserId(oUser.getUserId());
 			return Response.ok().build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.verifyDeleteUser: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}

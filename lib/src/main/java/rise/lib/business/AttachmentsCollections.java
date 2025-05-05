@@ -6,13 +6,13 @@ package rise.lib.business;
  * @author p.campanella
  *
  */
-public enum ImagesCollections {	
+public enum AttachmentsCollections {	
 	EVENTS_IMAGES("event_images"),
 	EVENTS_DOCS("event_docs");
 	
 	private String m_sFolder;
 	
-	ImagesCollections(String sFolder) {
+	AttachmentsCollections(String sFolder) {
 		this.m_sFolder=sFolder;
 	}
 	public String getFolder() {

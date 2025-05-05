@@ -20,12 +20,14 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
+import rise.lib.business.Event;
 import rise.lib.business.ResourceTypes;
 import rise.lib.business.Subscription;
 import rise.lib.business.User;
 import rise.lib.business.UserResourcePermission;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
+import rise.lib.data.EventsRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.data.UserResourcePermissionRepository;
@@ -816,6 +818,18 @@ public class AreaResource {
 						}
 					}
 				}
+			}
+			
+			// Get all the events of the area
+			EventsRepository oEventsRepository = new EventsRepository();
+			List<Event> aoAreaEvents = oEventsRepository.getByAreaId(sAreaId);
+			
+			// We reuse the API code
+			EventResource oEventResource = new EventResource();
+			
+			// We can delete all the events
+			for (Event oEvent : aoAreaEvents) {
+				oEventResource.deleteEvent(sSessionId, oEvent.getId());
 			}
 			
 			RiseLog.infoLog("AreaResource.deleteArea: Deleting Area " + oArea.getName() + " with the Id : " + sAreaId + " from user " + oUser.getUserId());

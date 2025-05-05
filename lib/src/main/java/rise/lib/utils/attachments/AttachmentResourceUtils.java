@@ -6,7 +6,7 @@ import org.apache.commons.io.FilenameUtils;
 
 import com.google.common.io.Files;
 
-import rise.lib.business.ImagesCollections;
+import rise.lib.business.AttachmentsCollections;
 import rise.lib.config.RiseConfig;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
@@ -306,7 +306,7 @@ public class AttachmentResourceUtils {
 		
 		try {
 			boolean bValidCollection = false;
-			for (ImagesCollections oCollection : ImagesCollections.values()) {
+			for (AttachmentsCollections oCollection : AttachmentsCollections.values()) {
 				if (oCollection.getFolder().equals(sCollection)) {
 					bValidCollection = true;
 					break;

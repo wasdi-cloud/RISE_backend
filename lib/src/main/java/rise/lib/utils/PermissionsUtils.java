@@ -5,7 +5,7 @@ import java.util.List;
 
 import rise.lib.business.Area;
 import rise.lib.business.Event;
-import rise.lib.business.ImagesCollections;
+import rise.lib.business.AttachmentsCollections;
 import rise.lib.business.Organization;
 import rise.lib.business.ResourceTypes;
 import rise.lib.business.Subscription;
@@ -312,7 +312,7 @@ public class PermissionsUtils {
 				return false;
 			}
 			
-			if (sCollection.equals(ImagesCollections.EVENTS_DOCS.getFolder()) || sCollection.equals(ImagesCollections.EVENTS_IMAGES.getFolder())) {
+			if (sCollection.equals(AttachmentsCollections.EVENTS_DOCS.getFolder()) || sCollection.equals(AttachmentsCollections.EVENTS_IMAGES.getFolder())) {
 				EventsRepository oEventsRepository = new EventsRepository();
 				Event oEvent = (Event) oEventsRepository.get(sFolder);
 				
@@ -352,7 +352,7 @@ public class PermissionsUtils {
 				return false;
 			}
 			
-			if (sCollection.equals(ImagesCollections.EVENTS_DOCS.getFolder()) || sCollection.equals(ImagesCollections.EVENTS_IMAGES.getFolder())) {
+			if (sCollection.equals(AttachmentsCollections.EVENTS_DOCS.getFolder()) || sCollection.equals(AttachmentsCollections.EVENTS_IMAGES.getFolder())) {
 				EventsRepository oEventsRepository = new EventsRepository();
 				Event oEvent = (Event) oEventsRepository.get(sFolder);
 				
