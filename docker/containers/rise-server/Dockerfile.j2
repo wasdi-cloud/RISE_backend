@@ -67,7 +67,7 @@ USER appwasdi
 RUN python3 -m venv --system-site-packages {{ sWasdiSystemUserHome }}/venv
 RUN chmod +x {{ sWasdiSystemUserHome }}/venv/bin/activate
 RUN {{ sWasdiSystemUserHome }}/venv/bin/activate
-RUN {{ sWasdiSystemUserHome }}/venv/bin/pip3 install --no-cache-dir --no-compile contourpy matplotlib requests pandas openpyxl shapely
+RUN {{ sWasdiSystemUserHome }}/venv/bin/pip3 install --no-cache-dir --no-compile contourpy matplotlib requests pandas openpyxl shapely lxml
 
 # RUN specific to install JRE 17
 RUN mkdir --parents \

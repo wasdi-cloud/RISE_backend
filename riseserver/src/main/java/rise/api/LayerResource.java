@@ -257,25 +257,25 @@ public class LayerResource {
         	
         	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
         	
+        	RiseLog.debugLog("LayerResource.layerAnalyzer: got ouput from python script:");
+        	
         	RiseLog.debugLog(oReturn.getOperationLogs());
         	
         	File oOutputFile = new File(sOutputFullPath);
         	
         	if (oOutputFile.exists()) {
         		JSONObject oJsonOutput = JsonUtils.loadJsonFromFile(sOutputFullPath);
-        		// TODO
-        		        		
+        		
+        		oOutput.areaPixelAffected = oJsonOutput.optString("areaPixelAffected");
+        		oOutput.estimatedArea = oJsonOutput.optString("estimatedArea");;
+        		oOutput.percentAreaAffectedPixels = oJsonOutput.optString("percentAreaAffectedPixels");;
+        		oOutput.percentTotAreaAffectedPixels = oJsonOutput.optString("percentTotAreaAffectedPixels");;
+        		oOutput.totAreaPixels = oJsonOutput.optString("totAreaPixels");;
         	}
         	else {
         		// Problems reading the output
-        	}
-        	
-    		oOutput.areaPixelAffected = "100";
-    		oOutput.estimatedArea = "123";
-    		oOutput.percentAreaAffectedPixels = "44";
-    		oOutput.percentTotAreaAffectedPixels = "33";
-    		oOutput.totAreaPixels = "1893";
-        	
+        		RiseLog.warnLog("LayerResource.layerAnalyzer: impossible to find the output file from the python script");
+        	}        	
         	
         	RiseFileUtils.deleteFile(sInputFullPath);
         	RiseFileUtils.deleteFile(sOutputFullPath);
@@ -283,7 +283,7 @@ public class LayerResource {
         	return Response.ok(oOutput).build();    		
     	}
     	catch (Exception oEx) {
-    		RiseLog.errorLog("HelloResource.launchPythonScript: exception " + oEx.toString());
+    		RiseLog.errorLog("LayerResource.layerAnalyzer: exception " + oEx.toString());
     		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
     }
