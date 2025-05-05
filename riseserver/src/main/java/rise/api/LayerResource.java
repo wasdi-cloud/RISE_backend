@@ -264,6 +264,7 @@ public class LayerResource {
         	File oOutputFile = new File(sOutputFullPath);
         	
         	if (oOutputFile.exists()) {
+        		RiseLog.infoLog("LayerResource.layerAnalyzer: try to read Output " + sOutputFullPath);
         		JSONObject oJsonOutput = JsonUtils.loadJsonFromFile(sOutputFullPath);
         		
         		oOutput.areaPixelAffected = oJsonOutput.optString("areaPixelAffected");

@@ -298,13 +298,13 @@ if __name__ == "__main__":
         sOutputFile = asArgs[3]
         sRiseConfigFile = asArgs[4]
 
-        logging.debug('__main__: RISE Layer Analyzer ' + sOperation)
+        print('__main__: RISE Layer Analyzer ' + sOperation)
 
         # first argument asArgs[0] is the name of the file - we are not interested in it
-        logging.debug('__main__: operation ' + sOperation)
-        logging.debug('__main__: input file ' + sInputFile)
-        logging.debug('__main__: output file: ' + sOutputFile)
-        logging.debug('__main__: wasdi config path: ' + sRiseConfigFile)
+        print('__main__: operation ' + sOperation)
+        print('__main__: input file ' + sInputFile)
+        print('__main__: output file: ' + sOutputFile)
+        print('__main__: wasdi config path: ' + sRiseConfigFile)
 
         oConfig = readFileAsJsonObject(sRiseConfigFile)
         oInputFile = readFileAsJsonObject(sInputFile)
@@ -312,17 +312,17 @@ if __name__ == "__main__":
         oOutput = main(oConfig, oInputFile)
 
         if oOutput is None:
-            logging.error("__main__: no output")
+            print("__main__: no output")
             sys.exit(1)    
         
         if not stringIsNullOrEmpty(sOutputFile):
             with open(sOutputFile, 'w') as oOutputFile:
                 json.dump(oOutput, oOutputFile, indent=4)
-                logging.debug('__main__: output file: ' + sOutputFile)
+                print('__main__: output file: ' + sOutputFile)
         else: 
-            logging.error("__main__: output file is None or Empty")
+            print("__main__: output file is None or Empty")
             sys.exit(1)    
 
     except Exception as oE:
-        logging.error('__main__: Exception ' + str(oE))
+        print('__main__: Exception ' + str(oE))
         sys.exit(1)
