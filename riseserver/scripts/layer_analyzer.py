@@ -159,11 +159,11 @@ def main(oConfig, oInput):
     percent_affected_drawn = (iAffectedPixels / iTargetAreaTotalPixels) * 100
     percent_affected_full = (iAffectedPixels / iTotalFullPixels) * 100
 
-    oOutput["totAreaPixels"] = iTotalFullPixels
+    oOutput["totAreaPixels"] = str(iTotalFullPixels)
     
-    oOutput["areaPixelAffected"] = iAffectedPixels
-    oOutput["percentTotAreaAffectedPixels"] = percent_affected_full
-    oOutput["percentAreaAffectedPixels"] = percent_affected_drawn
+    oOutput["areaPixelAffected"] = str(iAffectedPixels)
+    oOutput["percentTotAreaAffectedPixels"] = str(percent_affected_full)
+    oOutput["percentAreaAffectedPixels"] = str(percent_affected_drawn)
 
     print("\n=== [d.i] The total number of pixel affected in the area drawn ===")
     # print(f"Total pixels in the drawn shape: {total_pixels}")
@@ -230,10 +230,10 @@ def main(oConfig, oInput):
 
     print("\n=== [d.iv] Area Estimation ===")
     print(f"Pixel size: {iPixelWidthM:.2f}m x {iPixelHeightM:.2f}m")
-    print(f"Area of drawn shape: {fAreaDrawnM2 / 1e6:.2f} km²")
-    print(f"Area affected (filtered pixels): {fAreaAffectedM2 / 1e6:.2f} km²")
-    oOutput["estimatedArea"] = fAreaDrawnM2 / 1e6
-    oOutput["estimatedAffectedArea"] = fAreaAffectedM2 / 1e6
+    print(f"Area of drawn shape: {fAreaDrawnM2 / 1e6:.2f} square km ")
+    print(f"Area affected (filtered pixels): {fAreaAffectedM2 / 1e6:.2f} square km")
+    oOutput["estimatedArea"] = str(fAreaDrawnM2 / 1e6)
+    oOutput["estimatedAffectedArea"] = str(fAreaAffectedM2 / 1e6)
 
     # --- d.v:  export and download the area selected ---
 
