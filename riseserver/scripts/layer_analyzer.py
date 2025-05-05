@@ -185,12 +185,13 @@ def main(oConfig, oInput):
     plt.show()
 
     # Use the whole image or only filtered values
-    hist_data = afTargetAreaImageArray.flatten()
+    aiHistogramData = afTargetAreaImageArray.flatten()
     # Optional: uncomment below to export only affected (non-zero) pixels
     # hist_data = image_array[filtered_mask].flatten()
+    oOutput["histogram"] = [str(iValue) for iValue in aiHistogramData]
 
     # --- Compute histogram ---
-    hist, bin_edges = np.histogram(hist_data, bins=50)
+    hist, bin_edges = np.histogram(aiHistogramData, bins=50)
 
     # Build DataFrame for export
     hist_df = pd.DataFrame({

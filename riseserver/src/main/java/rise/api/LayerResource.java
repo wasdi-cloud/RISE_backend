@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import jakarta.ws.rs.GET;
@@ -268,10 +269,21 @@ public class LayerResource {
         		JSONObject oJsonOutput = JsonUtils.loadJsonFromFile(sOutputFullPath);
         		
         		oOutput.areaPixelAffected = oJsonOutput.optString("areaPixelAffected");
-        		oOutput.estimatedArea = oJsonOutput.optString("estimatedArea");;
-        		oOutput.percentAreaAffectedPixels = oJsonOutput.optString("percentAreaAffectedPixels");;
-        		oOutput.percentTotAreaAffectedPixels = oJsonOutput.optString("percentTotAreaAffectedPixels");;
-        		oOutput.totAreaPixels = oJsonOutput.optString("totAreaPixels");;
+        		oOutput.estimatedArea = oJsonOutput.optString("estimatedArea");
+        		oOutput.percentAreaAffectedPixels = oJsonOutput.optString("percentAreaAffectedPixels");
+        		oOutput.percentTotAreaAffectedPixels = oJsonOutput.optString("percentTotAreaAffectedPixels");
+        		oOutput.totAreaPixels = oJsonOutput.optString("totAreaPixels");
+        		JSONArray oHistogram = oJsonOutput.optJSONArray("histogram");
+        		
+        		if (oHistogram != null) {
+        			List<Object> aoHistogramValues =oHistogram.toList();
+        			for (Object oValue : aoHistogramValues) {
+						oOutput.histogram.add(oValue.toString());
+					}
+        		}
+        		else {
+        			RiseLog.warnLog("LayerResource.layerAnalyzer: cannot find the histogram");
+        		}
         	}
         	else {
         		// Problems reading the output
