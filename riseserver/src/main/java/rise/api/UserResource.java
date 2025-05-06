@@ -32,6 +32,7 @@ import rise.lib.data.OTPRepository;
 import rise.lib.data.PasswordChangeRequestRepository;
 
 import rise.lib.data.UserRepository;
+import rise.lib.data.UserResourcePermissionRepository;
 import rise.lib.utils.PasswordAuthentication;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
@@ -617,6 +618,11 @@ public class UserResource {
 					}
 				}
 			}
+			
+			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			
+			oUserResourcePermissionRepository.deleteByOwnerUserId(oUser.getUserId());
+			oUserResourcePermissionRepository.deleteByTargetUserId(oUser.getUserId());
 			
 			// We can now just delete user
 			oUserRepository.deleteByUserId(oUser.getUserId());

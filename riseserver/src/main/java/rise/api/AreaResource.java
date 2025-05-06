@@ -159,10 +159,14 @@ public class AreaResource {
 			
 			for (UserResourcePermission oPermission : aoAreasPermissions) {
 				if (!asAddedAreasId.contains(oPermission.getResourceId())) {
+					
 					Area oArea = (Area) oAreaRepository.get(oPermission.getResourceId());
-					AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
-					aoAreasVM.add(oListItem);
-					asAddedAreasId.add(oArea.getId());					
+					
+					if (oArea!=null) {
+						AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
+						aoAreasVM.add(oListItem);
+						asAddedAreasId.add(oArea.getId());						
+					}
 				}
 			}
 			
@@ -831,6 +835,9 @@ public class AreaResource {
 			for (Event oEvent : aoAreaEvents) {
 				oEventResource.deleteEvent(sSessionId, oEvent.getId());
 			}
+			
+			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			oUserResourcePermissionRepository.deleteByTypeAndResourceId(ResourceTypes.AREA.getResourceType(), sAreaId);
 			
 			RiseLog.infoLog("AreaResource.deleteArea: Deleting Area " + oArea.getName() + " with the Id : " + sAreaId + " from user " + oUser.getUserId());
 			oAreaRepository.delete(sAreaId);
