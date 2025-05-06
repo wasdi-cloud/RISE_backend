@@ -11,62 +11,13 @@
 				"CDS_API_Key": "{{sRiseCDSApiKey}}",   
 				"BASENAME": "Europe"
 			},
-			"processor": "imerg_fixed_time_cumulate",
+			"processor": "rti_to_drought",
 			"shortArchiveDaysBack": 0,
-			"startArchiveDate": "2015-01-01",
-			"style": "imerg_cumulate",
+			"startArchiveDate": "2015-01-01"
+			"style": "rti",
 			"resolution": "0.1 deg × 0.1 deg",
-			"dataSource": "IMERG",
-			"inputData": "IMERG"
-		},
-		{
-			"id": "imerg_cumulate_24",
-			"params": {
-				"BASE_NAME": "Rain",
-				"BBOX": {},
-				"REFERENCE_DATETIME": "2025-02-15 17:55",
-				"DELETE": true
-			},
-			"processor": "imerg_fixed_time_cumulate",
-			"shortArchiveDaysBack": 0,
-			"startArchiveDate": "2015-01-01",
-			"style": "imerg_cumulate",
-			"resolution": "0.1 deg × 0.1 deg",
-			"dataSource": "IMERG",
-			"inputData": "IMERG"
-		},
-		{
-			"id": "imerg_cumulate_6",
-			"params": {
-				"BASE_NAME": "Rain",
-				"BBOX": {},
-				"REFERENCE_DATETIME": "2025-02-15 17:55",
-				"DELETE": true
-			},
-			"processor": "imerg_fixed_time_cumulate",
-			"shortArchiveDaysBack": 0,
-			"startArchiveDate": "2015-01-01",
-			"style": "imerg_cumulate",
-			"resolution": "0.1 deg × 0.1 deg",
-			"dataSource": "IMERG",
-			"inputData": "IMERG"
-		},
-		{
-			"id": "imerg_cumulate_3",
-			"params": {
-				"BASE_NAME": "Rain",
-				"BBOX": {},
-				"REFERENCE_DATETIME": "2025-02-15 17:55",
-				"DELETE": true
-			},
-			"processor": "imerg_fixed_time_cumulate",
-			"shortArchiveDaysBack": 0,
-			"startArchiveDate": "2015-01-01",
-			"style": "imerg_cumulate",
-			"resolution": "0.1 deg × 0.1 deg",
-			"dataSource": "IMERG",
-			"inputData": "IMERG"
+			"dataSource": "MODIS",
+			"inputData": "MODIS"
 		}
-		
 	]
 }
