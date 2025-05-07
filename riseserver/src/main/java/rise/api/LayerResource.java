@@ -116,7 +116,7 @@ public class LayerResource {
 					long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l*1000l;
 
 					if (lDistance>lMaxAge) {
-						RiseLog.infoLog("LayerResource.getLayer: found a layer but is too old, discard it");
+						RiseLog.debugLog("LayerResource.getLayer: found a layer but is too old, discard it");
 						oLayer = null;
 					}
 				}
@@ -124,7 +124,8 @@ public class LayerResource {
 				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
 				return Response.ok(oLayerViewModel).build();
 
-			} else {
+			} 
+			else {
 				return Response.status(Status.NO_CONTENT).build();
 			}
 		} catch (Exception oEx) {
