@@ -1,0 +1,81 @@
+{
+	"cleanNotMapsWasdiWorkspaceFiles": false,
+	"maps": [
+		{
+			"id": "building_cw",
+			"params": {
+				"ARCHIVE_START_DATE": "",
+				"ARCHIVE_END_DATE": "",
+				"NUMBER_DAYS_PER_MAP": 180,
+				"OUTPUT_BASENAME": "",
+				"OUTPUT_NAME_SUFFIX": "Urban",
+				"BBOX": {},
+				"NUMBER_OF_DAYS_FIRST_SEARCH": 30,
+				"NUMBER_OF_GRD_IMAGES_PER_ORBIT_AND_SLICE": 1,
+				"SPATIAL_RESOLUTION_M": 10,
+				"DELETE": true,
+				"DIAGONAL_KM": 200,
+				"MAX_N_GRD_IMAGES": 1000,
+				"MAX_N_TILES": 10,
+				"PROVIDER": "AUTO",
+				"FAST_EXTRACTOR": true
+			},
+			"processor": "building_archive_generator",
+			"shortArchiveDaysBack": 361,
+			"startArchiveDate": "2022-12-01",
+			"style": "wasdi_buildings",
+			"resolution":"10m",
+			"dataSource":"Sentinel-1, Sentinel-2, ESA Land Use Land Cover",
+			"inputData":"S1 SLC, S2"
+		},
+		{
+			"id": "citywatch",
+			"params": {
+				"OUTPUT_BASENAME": "UrbanArea",
+				"OUTPUT_NAME_SUFFIX": "Urban",
+				"END_DATE": "",
+				"BBOX": {},
+				"NUMBER_OF_DAYS_FIRST_SEARCH_S1": 30,
+				"NUMBER_OF_GRD_IMAGES_PER_ORBIT_AND_SLICE": 2,
+				"maxNumberBackwardDaysS1": 60,
+				"grdWorkflow": "LISTSinglePreproc_dualpol_citywatch10mTC",
+				"averageProcessor": "tiff_images_average",
+				"BAND_NAMES": "B02_10m,B03_10m,B04_10m,B05_20m,B06_20m,B07_20m,B08_10m,B8A_20m,B11_20m,B12_20m",
+				"NUMBER_OF_DAYS_FIRST_SEARCH_S2": 30,
+				"minPerc": 90,
+				"maxNumberBackwardDaysS2": 60,
+				"PROVIDER": "AUTO",
+				"SPATIAL_RESOLUTION_M": 10,
+				"DELETE": true,
+				"DIAGONAL_KM": 200,
+				"MAX_N_GRD_IMAGES": 1000,
+				"MAX_N_TILES": 10
+			},
+			"processor": "citywatch_launcher",
+			"shortArchiveDaysBack": 260,
+			"startArchiveDate": "2022-12-01",
+			"style": "wasdi_buildings",
+			"resolution": "10m",
+			"dataSource": "Sentinel-1, Sentinel-2, ESA Land Use Land Cover",
+			"inputData": "S1 SLC, S2"
+		},
+		{
+			"id": "world_cover_buildings",
+			"params": {
+				  "OUTPUT": "",
+				  "BBOX": {},
+				  "MAX_GRID_STEP": 5,
+				  "MAP_TO_EXTRACT": "BUILDINGS",
+				  "EXTRACTED_MAP_NAME": "",
+				  "EXTRACTED_MAP_STYLE": "",
+				  "EXTRACT_MAP": true,
+				  "DELETE": true
+			},
+			"processor": "world_cover_extractor",
+			"style": "wasdi_buildings",
+			"resolution": "10m",
+			"dataSource": "ESA Land Use Land Cover",
+			"inputData": "ESA LULC 10m_2020_V1"
+		}		
+	]
+}

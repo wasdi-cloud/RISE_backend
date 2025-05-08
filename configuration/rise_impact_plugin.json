@@ -1,0 +1,115 @@
+{
+	"floods_plugin_id": "rise_flood_plugin",
+	"flood_sarmap_id": "sar_flood",
+	"maps": [
+		{
+			"id": "rasor_impacts",
+			"params": {
+				"date": "2023-06-29",
+				"hazard_input": "AZ_maxExtent_Masked.tif",
+				"hazard_type": "flood_extend",
+				"hazard_pixel_value": 1,
+				"hazard_pixel_operation": "EQ",
+				"compute_infrastructures": true,
+				"osm_mappings": "",
+				"exposure_file_name": "exposures.shp",
+				"exposures_file_style": "rasor_impacts_exposure_damages_avg",
+				"exposure_markers_file": "exposure_markers.shp",
+				"exposure_markers_style": "rasor_impacts_exposure_location",
+				"compute_roads": true,
+				"osm_road_mappings": "",
+				"roads_file_name": "roads.shp",
+				"roads_file_style": "rasor_impacts_roads_types",
+				"compute_population": true,
+				"pop_layer": "GHS_POP_P2030_GLOBE_R2022A_WGS84_100_V1_0",
+				"affected_pop_style": "pop_affected",
+				"user_pop_layer": "",
+				"lulc_map_name": "lulc_map.tif",
+				"crops_file_name": "crops.tif",
+				"crops_file_style": "world_cover_crops",
+				"delete": true,
+				"buildings_input_shape": "",
+				"buildings_input_raster": ""
+			},
+			"processor": "rasor_impacts",
+			"shortArchiveDaysBack": 35,
+			"startArchiveDate": "2015-01-01",
+			"style": "",
+			"resolution": "10m",
+			"dataSource": "",
+			"inputData": ""
+		},
+		{
+			"id": "exposures",
+			"params": {
+			},
+			"processor": "rasor_impacts",
+			"shortArchiveDaysBack": 0,
+			"startArchiveDate": "2015-01-01",
+			"style": "rasor_impacts_exposure_damages_avg",
+			"resolution": "N.A.",
+			"dataSource": "Open Street Maps",
+			"inputData": ""
+		},
+		{
+			"id": "markers",
+			"params": {
+			},
+			"processor": "rasor_impacts",
+			"shortArchiveDaysBack": 0,
+			"startArchiveDate": "2015-01-01",
+			"style": "rasor_impacts_exposure_location",
+			"resolution": "N.A.",
+			"dataSource": "Open Street Maps",
+			"inputData": ""
+		},
+		{
+			"id": "roads",
+			"params": {
+			},
+			"processor": "rasor_impacts",
+			"shortArchiveDaysBack": 0,
+			"startArchiveDate": "2015-01-01",
+			"style": "rasor_impacts_roads_types",
+			"resolution": "N.A.",
+			"dataSource": "Open Street Maps",
+			"inputData": ""
+		},
+		{
+			"id": "lulc",
+			"params": {
+			},
+			"processor": "rasor_impacts",
+			"shortArchiveDaysBack": 0,
+			"startArchiveDate": "2015-01-01",
+			"style": "rasor_impacts_exposure_damages_avg",
+			"resolution": "N.A.",
+			"dataSource": "ESA Land Use Land Cover 2022",
+			"inputData": ""
+		},
+		{
+			"id": "crops",
+			"params": {
+			},
+			"processor": "rasor_impacts",
+			"shortArchiveDaysBack": 0,
+			"startArchiveDate": "2015-01-01",
+			"style": "world_cover_crops",
+			"resolution": "N.A.",
+			"dataSource": "ESA Land Use Land Cover 2022",
+			"inputData": ""
+		},
+		{
+			"id": "population",
+			"params": {
+			},
+			"processor": "rasor_impacts",
+			"shortArchiveDaysBack": 0,
+			"startArchiveDate": "2015-01-01",
+			"style": "pop_affected",
+			"resolution": "N.A.",
+			"dataSource": "World Pop",
+			"inputData": ""
+		}		
+	]
+}

@@ -1,6 +1,11 @@
 package rise.lib.utils;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.Map;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,5 +50,25 @@ public class JsonUtils {
 
 		return "";
 	}
+	
+	/**
+	 * Load the JSON content of a file.
+	 * @param sFileFullPath the full path of the file
+	 * @return the JSONObject that contains the payload
+	 */
+	public static JSONObject loadJsonFromFile(String sFileFullPath) {
+
+		JSONObject oJson = null;
+		try(FileReader oReader = new FileReader(sFileFullPath);){
+			
+			JSONTokener oTokener = new JSONTokener(oReader);
+			oJson = new JSONObject(oTokener);
+		} catch (FileNotFoundException oFnf) {
+			RiseLog.errorLog("JsonUtils.loadJsonFromFile: file " + sFileFullPath + " was not found: " + oFnf);
+		} catch (Exception oE) {
+			RiseLog.errorLog("JsonUtils.loadJsonFromFile: " + oE);
+		}
+		return oJson;
+	}	
 
 }

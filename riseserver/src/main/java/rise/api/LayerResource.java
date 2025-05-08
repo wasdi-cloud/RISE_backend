@@ -4,8 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -22,12 +26,16 @@ import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.MapRepository;
+import rise.lib.utils.JsonUtils;
 import rise.lib.utils.PermissionsUtils;
+import rise.lib.utils.RiseFileUtils;
 import rise.lib.utils.RunTimeUtils;
 import rise.lib.utils.ShellExecReturn;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
+import rise.lib.viewmodels.LayerAnalyzerInputViewModel;
+import rise.lib.viewmodels.LayerAnalyzerOutputViewModel;
 import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.stream.FileStreamingOutput;
@@ -108,7 +116,7 @@ public class LayerResource {
 					long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l*1000l;
 
 					if (lDistance>lMaxAge) {
-						RiseLog.infoLog("LayerResource.getLayer: found a layer but is too old, discard it");
+						RiseLog.debugLog("LayerResource.getLayer: found a layer but is too old, discard it");
 						oLayer = null;
 					}
 				}
@@ -116,7 +124,8 @@ public class LayerResource {
 				LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
 				return Response.ok(oLayerViewModel).build();
 
-			} else {
+			} 
+			else {
 				return Response.status(Status.NO_CONTENT).build();
 			}
 		} catch (Exception oEx) {
@@ -206,12 +215,14 @@ public class LayerResource {
 	}
 	
 
-    @GET
+    @POST
     @Path("analyzer")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response launchPythonScript(@QueryParam("pythonScriptPath") String sPythonScript) {
+    public Response layerAnalyzer(@HeaderParam("x-session-token") String sSessionId, LayerAnalyzerInputViewModel oInput) {
     	
     	try {
+    		LayerAnalyzerOutputViewModel oOutput = new LayerAnalyzerOutputViewModel();
+    		
         	List<String> asArgs = new ArrayList<String>();
         	
         	// Python executable
@@ -221,26 +232,72 @@ public class LayerResource {
         	// Our script
         	String sScriptsPath = RiseConfig.Current.paths.scriptsPath;
         	if (!sScriptsPath.endsWith("/")) sScriptsPath += "/";
-        	asArgs.add(sScriptsPath+sPythonScript);
+        	asArgs.add(sScriptsPath+"layer_analyzer.py");
         	
         	// Operation
         	asArgs.add("analyze");
         	
+        	String sTmpPath = RiseConfig.Current.paths.riseTempFolder;
+        	if (!sTmpPath.endsWith("/")) sTmpPath += "/";
+        	
+        	String sInputFileName = Utils.getRandomName() + ".json";
+        	String sOutputFileName = Utils.getRandomName() + ".json";
+        	String sInputFullPath = sTmpPath + sInputFileName;
+        	String sOutputFullPath = sTmpPath + sOutputFileName;
+        	
+        	oInput.outputPath = sTmpPath;
+        	
+        	String sInputJson = JsonUtils.stringify(oInput);
+        	RiseFileUtils.writeFile(sInputJson, new File(sInputFullPath));
+        	
         	// Input File
-        	asArgs.add("TODO_Json_with_Inputs");
+        	asArgs.add(sInputFullPath);
         	// Output File
-        	asArgs.add("TODO_Json_with_Outputs");
+        	asArgs.add(sOutputFullPath);
         	// Config
         	asArgs.add(RiseConfig.Current.paths.riseConfigPath);
         	
         	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
         	
+        	RiseLog.debugLog("LayerResource.layerAnalyzer: got ouput from python script:");
+        	
         	RiseLog.debugLog(oReturn.getOperationLogs());
         	
-        	return Response.ok().build();    		
+        	File oOutputFile = new File(sOutputFullPath);
+        	
+        	if (oOutputFile.exists()) {
+        		RiseLog.infoLog("LayerResource.layerAnalyzer: try to read Output " + sOutputFullPath);
+        		JSONObject oJsonOutput = JsonUtils.loadJsonFromFile(sOutputFullPath);
+        		
+        		oOutput.areaPixelAffected = oJsonOutput.optString("areaPixelAffected");
+        		oOutput.estimatedArea = oJsonOutput.optString("estimatedArea");
+        		oOutput.percentAreaAffectedPixels = oJsonOutput.optString("percentAreaAffectedPixels");
+        		oOutput.percentTotAreaAffectedPixels = oJsonOutput.optString("percentTotAreaAffectedPixels");
+        		oOutput.totAreaPixels = oJsonOutput.optString("totAreaPixels");
+        		JSONArray oHistogram = oJsonOutput.optJSONArray("histogram");
+        		
+        		if (oHistogram != null) {
+        			List<Object> aoHistogramValues =oHistogram.toList();
+        			for (Object oValue : aoHistogramValues) {
+						oOutput.histogram.add(oValue.toString());
+					}
+        		}
+        		else {
+        			RiseLog.warnLog("LayerResource.layerAnalyzer: cannot find the histogram");
+        		}
+        	}
+        	else {
+        		// Problems reading the output
+        		RiseLog.warnLog("LayerResource.layerAnalyzer: impossible to find the output file from the python script");
+        	}        	
+        	
+        	RiseFileUtils.deleteFile(sInputFullPath);
+        	RiseFileUtils.deleteFile(sOutputFullPath);
+        	
+        	return Response.ok(oOutput).build();    		
     	}
     	catch (Exception oEx) {
-    		RiseLog.errorLog("HelloResource.launchPythonScript: exception " + oEx.toString());
+    		RiseLog.errorLog("LayerResource.layerAnalyzer: exception " + oEx.toString());
     		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
     }

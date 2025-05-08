@@ -107,4 +107,62 @@ public class UserResourcePermissionRepository extends MongoRepository {
 
 		return null;
 	}	
+	
+	/**
+	 * Get the list of permissions associated to a resource
+	 * @param sType
+	 * @param sResourceId
+	 * @return
+	 */
+	public boolean deleteByTypeAndResourceId(String sType, String sResourceId) {
+
+		try {
+			getCollection(m_sThisCollection).deleteMany(Filters.and(Filters.eq("resourceType", sType), Filters.eq("resourceId", sResourceId)));
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResourcePermissionRepository.getPermissionsByTypeAndResourceId : exception ", oEx);
+			return false;
+		}
+
+		return true;
+	}
+	
+	/**
+	 * Get the list of permissions associated to a resource
+	 * @param sType
+	 * @param sResourceId
+	 * @return
+	 */
+	public boolean deleteByTargetUserId(String sUserId) {
+
+		try {
+			getCollection(m_sThisCollection).deleteMany(Filters.and(Filters.eq("userId", sUserId)));
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResourcePermissionRepository.getPermissionsByTypeAndResourceId : exception ", oEx);
+			return false;
+		}
+
+		return true;
+	}	
+
+	/**
+	 * Get the list of permissions associated to a resource
+	 * @param sType
+	 * @param sResourceId
+	 * @return
+	 */
+	public boolean deleteByOwnerUserId(String sUserId) {
+
+		try {
+			getCollection(m_sThisCollection).deleteMany(Filters.and(Filters.eq("owner", sUserId)));
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResourcePermissionRepository.getPermissionsByTypeAndResourceId : exception ", oEx);
+			return false;
+		}
+
+		return true;
+	}	
+
 }

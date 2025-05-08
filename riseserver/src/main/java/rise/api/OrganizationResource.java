@@ -16,13 +16,12 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
-import rise.lib.business.OTP;
-import rise.lib.business.OTPOperations;
-import rise.lib.business.Organization;
+import rise.lib.business.Area;
+import rise.lib.business.*;
 
-import rise.lib.business.User;
-import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
+import rise.lib.data.AreaRepository;
+import rise.lib.data.AreaRepository;
 import rise.lib.data.OTPRepository;
 import rise.lib.data.OrganizationRepository;
 
@@ -379,8 +378,8 @@ public class OrganizationResource {
 				RiseLog.warnLog("OrganizationResource.deleteOrganzation: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
-				RiseLog.warnLog("OrganizationResource.deleteOrganzation: not an admin");
+			if (!PermissionsUtils.isAdmin(oUser)) {
+				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 			// create otp
@@ -430,7 +429,7 @@ public class OrganizationResource {
 	@DELETE
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("verify-delete-org")
-	public Response verifyDeleteOrg(OTPVerifyViewModel oOTPVerifyVM) {
+	public Response verifyDeleteOrg(@HeaderParam("x-session-token") String sSessionId, OTPVerifyViewModel oOTPVerifyVM) {
 		try {
 
 			// Validate inputs
@@ -457,8 +456,7 @@ public class OrganizationResource {
 			}
 
 			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
-				RiseLog.warnLog(
-						"OrganizationResource.verifyDeleteOrg: otp user id does not match, user not authenticated");
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: otp user id does not match, user not authenticated");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
@@ -480,24 +478,51 @@ public class OrganizationResource {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: user not found");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
-			String sOrganizationId = oUser.getOrganizationId();
 
-			// delete users of the org
-			List<User> aoUsers = oUserRepository.getUsersByOrganizationId(sOrganizationId);
-			for (User oOrgUser : aoUsers) {
-				oUserRepository.deleteByUserId(oOrgUser.getUserId());
+			if (!PermissionsUtils.isAdmin(oUser)) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: user not admin");
+				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			// delete org and otp
-			oOrganizationRepository.delete(sOrganizationId);
 			oOTPRepository.delete(oOTPVerifyVM.id);
+
+			this.internalDeleteOrganization(sSessionId, oUser);
 
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("OrganizationResource.verifyDeleteOrg: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
+	}
+
+	public void internalDeleteOrganization(String sSessionId, User oUser) {
+		UserRepository oUserRepository = new UserRepository();
+
+		OrganizationRepository oOrganizationRepository = new OrganizationRepository();
+		String sOrganizationId = oUser.getOrganizationId();
+
+		// Find All the area belonging to the org
+		AreaRepository oAreaRepository = new AreaRepository();
+		List<Area> aoOrgAreas = oAreaRepository.getByOrganization(sOrganizationId);
+
+		// We reuse the API call
+		AreaResource oAreaResource = new AreaResource();
+
+		for (Area oArea : aoOrgAreas) {
+			oAreaResource.deleteArea(sSessionId, oArea.getId());
+		}
+
+		// Shall we do anything for subscriptions?
+
+		// delete users of the org
+		List<User> aoUsers = oUserRepository.getUsersByOrganizationId(sOrganizationId);
+		for (User oOrgUser : aoUsers) {
+			oUserRepository.deleteByUserId(oOrgUser.getUserId());
+		}
+
+		// delete org and otp
+		oOrganizationRepository.delete(sOrganizationId);
+
 	}
 
 }

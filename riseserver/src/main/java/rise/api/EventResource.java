@@ -16,6 +16,7 @@ import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
 import rise.lib.business.Event;
+import rise.lib.business.AttachmentsCollections;
 import rise.lib.business.Subscription;
 import rise.lib.business.User;
 import rise.lib.data.AreaRepository;
@@ -24,6 +25,7 @@ import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
+import rise.lib.viewmodels.AttachmentListViewModel;
 import rise.lib.viewmodels.ErrorViewModel;
 import rise.lib.viewmodels.EventViewModel;
 import rise.lib.viewmodels.RiseViewModel;
@@ -221,12 +223,47 @@ public class EventResource {
 				RiseLog.warnLog("EventResource.deleteEvent: event  does not exist");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			
+			cleanAttachmentsForEvent(sSessionId, AttachmentsCollections.EVENTS_DOCS, sEventId);
+			cleanAttachmentsForEvent(sSessionId, AttachmentsCollections.EVENTS_IMAGES, sEventId);
+			
 			oEventsRepository.delete(sEventId);
+			
 			return Response.ok().build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("EventResource.updateEvent: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
+	}
+	
+	/**
+	 * Clean all the attachments for an event
+	 * @param sSessionId
+	 * @param oCollection
+	 * @param sEventId
+	 * @return
+	 */
+	private boolean cleanAttachmentsForEvent(String sSessionId, AttachmentsCollections oCollection, String sEventId) {
+		try {
+			AttachmentResource oAttachmentResource = new AttachmentResource();
+			
+			Response oResponse = oAttachmentResource.list(sSessionId, oCollection.getFolder(), sEventId);
+			if (oResponse.getEntity() != null) {
+				AttachmentListViewModel oAttachmentListViewModel = (AttachmentListViewModel) oResponse.getEntity();
+				
+				for (String sAttachment : oAttachmentListViewModel.files) {
+					oAttachmentResource.delete(sSessionId, oCollection.getFolder(), sEventId, sAttachment);
+				}
+			}			
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("EventResource.cleanAttachmentsForEvent: " + oEx);
+			return false;
+		}
+		
+		return true;
+		
 	}
 
 }

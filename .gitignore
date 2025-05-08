@@ -13,3 +13,5 @@ Servers/.project
 Servers/
 .flattened-pom.xml
 riseserver/scripts/.vscode/launch.json
+configuration/riseLocalTESTConfig.json
+configuration/rise_drought_plugin.json

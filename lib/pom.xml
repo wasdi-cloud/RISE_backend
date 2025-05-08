@@ -20,6 +20,7 @@
         <sVersionJackson>2.14.1</sVersionJackson>
         <sVersionMercurius>1.0</sVersionMercurius>
         <sVersionCommonsNet>3.11.1</sVersionCommonsNet>
+        <sVersionJson>20240303</sVersionJson>
     </properties>
     
     <build>
@@ -129,6 +130,13 @@
 		    <artifactId>docker-java-transport-httpclient5</artifactId>
 		    <version>3.5.0</version>
 		</dependency>
+        <!-- https://mvnrepository.com/artifact/org.json/json -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>${sVersionJson}</version>
+        </dependency>
+		
   </dependencies>
   
       <!--

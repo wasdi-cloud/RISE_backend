@@ -20,12 +20,14 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
+import rise.lib.business.Event;
 import rise.lib.business.ResourceTypes;
 import rise.lib.business.Subscription;
 import rise.lib.business.User;
 import rise.lib.business.UserResourcePermission;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
+import rise.lib.data.EventsRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.data.UserResourcePermissionRepository;
@@ -157,10 +159,14 @@ public class AreaResource {
 			
 			for (UserResourcePermission oPermission : aoAreasPermissions) {
 				if (!asAddedAreasId.contains(oPermission.getResourceId())) {
+					
 					Area oArea = (Area) oAreaRepository.get(oPermission.getResourceId());
-					AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
-					aoAreasVM.add(oListItem);
-					asAddedAreasId.add(oArea.getId());					
+					
+					if (oArea!=null) {
+						AreaListViewModel oListItem = (AreaListViewModel) RiseViewModel.getFromEntity(AreaListViewModel.class.getName(), oArea);
+						aoAreasVM.add(oListItem);
+						asAddedAreasId.add(oArea.getId());						
+					}
 				}
 			}
 			
@@ -817,6 +823,21 @@ public class AreaResource {
 					}
 				}
 			}
+			
+			// Get all the events of the area
+			EventsRepository oEventsRepository = new EventsRepository();
+			List<Event> aoAreaEvents = oEventsRepository.getByAreaId(sAreaId);
+			
+			// We reuse the API code
+			EventResource oEventResource = new EventResource();
+			
+			// We can delete all the events
+			for (Event oEvent : aoAreaEvents) {
+				oEventResource.deleteEvent(sSessionId, oEvent.getId());
+			}
+			
+			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
+			oUserResourcePermissionRepository.deleteByTypeAndResourceId(ResourceTypes.AREA.getResourceType(), sAreaId);
 			
 			RiseLog.infoLog("AreaResource.deleteArea: Deleting Area " + oArea.getName() + " with the Id : " + sAreaId + " from user " + oUser.getUserId());
 			oAreaRepository.delete(sAreaId);

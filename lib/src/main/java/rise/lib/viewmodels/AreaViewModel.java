@@ -25,7 +25,7 @@ public class AreaViewModel extends RiseViewModel  {
 	
 	public String shapeFileMask;
 	
-	public boolean supportArchive;
+	public boolean supportArchive = false;
 	
 	public Double archiveStartDate;
 	
