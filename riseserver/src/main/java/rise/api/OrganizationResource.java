@@ -131,7 +131,7 @@ public class OrganizationResource {
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			if (!oUser.getRole().equals(UserRole.ADMIN)) {
+			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
 				RiseLog.warnLog("OrganizationResource.invite: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
@@ -236,7 +236,7 @@ public class OrganizationResource {
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			if (!oUser.getRole().equals(UserRole.ADMIN)) {
+			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
 				RiseLog.warnLog("OrganizationResource.updateOrganization: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
@@ -301,12 +301,12 @@ public class OrganizationResource {
 			User oUser = Rise.getUserFromSession(sSessionId);
 
 			if (oUser == null) {
-				RiseLog.warnLog("OrganizationResource.invite: invalid Session");
+				RiseLog.warnLog("OrganizationResource.getOrganizationUsers: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			if (!oUser.getRole().equals(UserRole.ADMIN)) {
-				RiseLog.warnLog("OrganizationResource.invite: not an admin");
+			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
+				RiseLog.warnLog("OrganizationResource.getOrganizationUsers: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 			String sOrganizationId = oUser.getOrganizationId();
@@ -343,7 +343,7 @@ public class OrganizationResource {
 				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-			if (!oUser.getRole().equals(UserRole.ADMIN)) {
+			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
 				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
@@ -376,11 +376,11 @@ public class OrganizationResource {
 		try {
 			User oUser = Rise.getUserFromSession(sSessionId);
 			if (oUser == null) {
-				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: invalid Session");
+				RiseLog.warnLog("OrganizationResource.deleteOrganzation: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-			if (!oUser.getRole().equals(UserRole.ADMIN)) {
-				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: not an admin");
+			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
+				RiseLog.warnLog("OrganizationResource.deleteOrganzation: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 			// create otp
