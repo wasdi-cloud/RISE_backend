@@ -96,7 +96,8 @@
 				"nonsi_mask": "",
 				"hand_mask": "",
 				"VIIRS_DELETE": true,
-				"APPLY_WATER_MAP": true
+				"APPLY_WATER_MAP": true,
+				"VIIRS_WAIT_PROCESSORS": true
 			},
 			"processor": "sar_viirs_archive_generator",
 			"shortArchiveDaysBack": 30,
