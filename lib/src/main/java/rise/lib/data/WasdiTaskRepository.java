@@ -10,6 +10,8 @@ public class WasdiTaskRepository extends MongoRepository {
 	
 	public WasdiTaskRepository() {
 		m_sThisCollection = "wasdi_tasks";
+		// We neither have this entity in Java
+		//this.m_oEntityClass = WasdiTas
 	}
 	
 	public long deleteByAreaId(String sAreaId) {

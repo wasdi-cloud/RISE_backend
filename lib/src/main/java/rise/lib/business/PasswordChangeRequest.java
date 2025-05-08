@@ -1,6 +1,6 @@
 package rise.lib.business;
 
-public class PasswordChangeRequest {
+public class PasswordChangeRequest extends RiseEntity {
 	private String otpId;
 	private String userId;
 	private String password;

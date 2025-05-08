@@ -183,8 +183,12 @@ public class AuthResource {
 			OTPRepository oOTPRepository = new OTPRepository();
 			
 			OTP oDbOTP = oOTPRepository.getOTP(oOTPVM.id);
+			
 			if (oDbOTP == null) {
-				RiseLog.warnLog("AuthResource.otp: otp not found, user not authenticated");
+				String sUserId = "N.A.";
+				if (!Utils.isNullOrEmpty(oOTPVM.userId)) sUserId = oOTPVM.userId;
+				
+				RiseLog.warnLog("AuthResource.otp: otp not found, user not authenticated UserId=" + sUserId);
 				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
 			}
 			

@@ -2,7 +2,7 @@ package rise.lib.business;
 
 import rise.lib.utils.date.DateUtils;
 
-public class UserResourcePermission {
+public class UserResourcePermission extends RiseEntity {
 	
 	private String id;
 	private String resourceId;
