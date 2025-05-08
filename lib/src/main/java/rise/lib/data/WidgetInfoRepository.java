@@ -1,6 +1,7 @@
 package rise.lib.data;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.bson.Document;
@@ -11,6 +12,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 
 import rise.lib.business.WidgetInfo;
+import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
 
 public class WidgetInfoRepository extends MongoRepository {
@@ -63,5 +65,30 @@ public class WidgetInfoRepository extends MongoRepository {
 		
 		return null;
 	}
+	
+	public List<WidgetInfo> getListByWidgetOrganizationIdForDay(String sWidget, String sOrganizationId, Date oDay) {
+
+		List<WidgetInfo> aoReturnList = new ArrayList<WidgetInfo>();
+		try {
+			
+			double dStartDay = DateUtils.getBeginningOfDayTimestamp(oDay)*1000;
+			double dEndDay = DateUtils.getEndOfDayTimestamp(oDay)*1000;
+			
+			
+			DBObject oSort= new BasicDBObject();
+			oSort.put("referenceTime", -1);
+			Document oSortDoc = new Document(oSort.toMap());
+			FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.and(Filters.eq("widget", sWidget), Filters.eq("organizationId", sOrganizationId), Filters.lte("referenceTime", dEndDay), Filters.gte("referenceTime", dStartDay) )).sort(oSortDoc);
+			fillList(aoReturnList, oWSDocument, WidgetInfo.class);
+			
+
+            return aoReturnList;			
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("WidgetInfoRepository.getByWidgetOrganizationIdTime exception: " + oEx.toString());
+		}
+		
+		return aoReturnList;
+	}	
 		
 }

@@ -241,5 +241,31 @@ public class DateUtils {
 	public static Double nowInMillis() {
 		return (double) new Date().getTime();
 	}
-	
+
+    public static long getEndOfDayTimestamp(Date oDate) {
+        Calendar oCalendar = Calendar.getInstance();
+        oCalendar.setTime(oDate);
+        
+        // Set time to 23:59:59
+        oCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        oCalendar.set(Calendar.MINUTE, 59);
+        oCalendar.set(Calendar.SECOND, 59);
+        oCalendar.set(Calendar.MILLISECOND, 999);
+        
+        return oCalendar.getTime().getTime() / 1000; // Convert to Unix timestamp (seconds)
+    }
+    
+    public static long getBeginningOfDayTimestamp(Date oDate) {
+        Calendar oCalendar = Calendar.getInstance();
+        oCalendar.setTime(oDate);
+        
+        // Set time to 23:59:59
+        oCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        oCalendar.set(Calendar.MINUTE, 0);
+        oCalendar.set(Calendar.SECOND, 0);
+        oCalendar.set(Calendar.MILLISECOND, 0);
+        
+        return oCalendar.getTime().getTime() / 1000; // Convert to Unix timestamp (seconds)
+    }    
+
 }
