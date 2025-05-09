@@ -360,6 +360,41 @@
 			"resolution": "10m",
 			"dataSource": "Sentinel-1",
 			"inputData": "S1 GRD"
-		}
+		}, 
+		{
+			"id": "flood_depth_map",
+			"params":  {
+				"BBOX": {
+				"northEast": {
+					"lat": 14.81,
+					"lng": 3.9
+				},
+				"southWest": {
+					"lat": 12.72,
+					"lng": 0.67
+				}
+				},
+				"DEM_OUTPUT": "Niamey_UrbanArea_DEM.tif",
+				"DEM_RES": "DEM_30M",
+				"DEM_DELETE": false,
+				"GENERATE_DEM": true,
+				"DELETE_CONVERTED_FILE": true,
+				"DEM": "",
+				"FLOODMAP": "PW-Niamey_1_2024-08-25_flood.tif",
+				"ist": 0.1,
+				"PATCH_SIZE": 512,
+				"OVERLAP": 0.5,
+				"OUTPUT_WATER_DEPTH": "PW-Niamey_1_2024-08-25_flood_WDM.tif",
+				"OUTPUT_WATER_SURFACE": "PW-Niamey_1_2024-08-25_flood_WSEM.tif",
+				"SMOOTHING_WINDOW": 256
+			},
+			"processor": "hydrothresholds_launcher",
+			"shortArchiveDaysBack": 35,
+			"startArchiveDate": "2022-12-01",
+			"style": "flood_depth",
+			"resolution": "10m",
+			"dataSource": "Sentinel-1",
+			"inputData": "S1 GRD"
+		}		
 	]
 }
