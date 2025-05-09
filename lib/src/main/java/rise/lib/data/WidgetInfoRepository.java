@@ -71,8 +71,8 @@ public class WidgetInfoRepository extends MongoRepository {
 		List<WidgetInfo> aoReturnList = new ArrayList<WidgetInfo>();
 		try {
 			
-			double dStartDay = DateUtils.getBeginningOfDayTimestamp(oDay)*1000;
-			double dEndDay = DateUtils.getEndOfDayTimestamp(oDay)*1000;
+			double dStartDay = DateUtils.getBeginningOfDayTimestamp(oDay);
+			double dEndDay = DateUtils.getEndOfDayTimestamp(oDay);
 			
 			
 			DBObject oSort= new BasicDBObject();

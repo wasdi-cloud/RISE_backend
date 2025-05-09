@@ -69,7 +69,7 @@ public class WidgetResource {
 			double dDate = (double) lDate;
 
 			if (dDate <= 0.0)
-				dDate = DateUtils.getNowAsDouble()/1000;
+				dDate = DateUtils.getNowAsDouble();
     		
     		
     		WidgetInfoRepository oWidgetInfoRepository = new WidgetInfoRepository();
@@ -138,7 +138,7 @@ public class WidgetResource {
 			double dDate = (double) lDate;
 
 			if (dDate <= 0.0)
-				dDate = DateUtils.getNowAsDouble()/1000;
+				dDate = DateUtils.getNowAsDouble();
 			
 			Date oDate = new Date((long) dDate);
     		
