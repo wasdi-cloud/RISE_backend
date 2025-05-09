@@ -137,8 +137,10 @@ public class WidgetResource {
 
 			double dDate = (double) lDate;
 
-			if (dDate <= 0.0)
+			if (dDate <= 0.0) {
+				RiseLog.debugLog("WidgetResource.getWidgetByTime: taking now as reference");
 				dDate = DateUtils.getNowAsDouble();
+			}
 			
 			Date oDate = new Date((long) dDate);
     		
@@ -146,11 +148,14 @@ public class WidgetResource {
     		WidgetInfoRepository oWidgetInfoRepository = new WidgetInfoRepository();
     		List<WidgetInfo> aoWidgets = oWidgetInfoRepository.getListByWidgetOrganizationIdForDay(sWidget, sOrganizationId, oDate);
     		
+    		RiseLog.infoLog("WidgetResource.getWidgetByTime: found " + aoWidgets.size() + " Widgets on db");
+    		
     		List<WidgetInfoViewModel> aoViewModels = new ArrayList<>();
     		
     		Map<String, Area> aoAreas = new HashMap<String, Area>();
     		
     		for (WidgetInfo oWidgetInfo : aoWidgets) {
+    			
     			WidgetInfoViewModel oWidgetInfoViewModel = (WidgetInfoViewModel) RiseViewModel.getFromEntity(WidgetInfoViewModel.class.getName(), oWidgetInfo);
     			
     			AreaRepository oAreaRepository = new AreaRepository();
@@ -176,7 +181,9 @@ public class WidgetResource {
     			
     			aoViewModels.add(oWidgetInfoViewModel);
 			}
-    		    		
+    		
+    		RiseLog.infoLog("WidgetResource.getWidgetByTime: return " + aoViewModels.size() + " Widgets View models");
+    		
     		return Response.ok(aoViewModels).build();
 		}
 		catch (Exception oEx) {
