@@ -148,7 +148,7 @@ public class WidgetResource {
     		WidgetInfoRepository oWidgetInfoRepository = new WidgetInfoRepository();
     		List<WidgetInfo> aoWidgets = oWidgetInfoRepository.getListByWidgetOrganizationIdForDay(sWidget, sOrganizationId, oDate);
     		
-    		RiseLog.infoLog("WidgetResource.getWidgetByTime: found " + aoWidgets.size() + " Widgets on db");
+    		RiseLog.debugLog("WidgetResource.getWidgetByTime: found " + aoWidgets.size() + " Widgets on db");
     		
     		List<WidgetInfoViewModel> aoViewModels = new ArrayList<>();
     		
@@ -182,7 +182,7 @@ public class WidgetResource {
     			aoViewModels.add(oWidgetInfoViewModel);
 			}
     		
-    		RiseLog.infoLog("WidgetResource.getWidgetByTime: return " + aoViewModels.size() + " Widgets View models");
+    		RiseLog.debugLog("WidgetResource.getWidgetByTime: return " + aoViewModels.size() + " Widgets View models");
     		
     		return Response.ok(aoViewModels).build();
 		}
