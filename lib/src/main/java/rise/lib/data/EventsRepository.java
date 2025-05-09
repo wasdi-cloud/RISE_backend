@@ -34,4 +34,22 @@ public class EventsRepository extends MongoRepository {
 		return aoReturnList;
 	}
 
+	public List<Event> getOngoingByAreaId(String sAreaId) {
+		List<Event> aoReturnList = new ArrayList<Event>();
+
+		try {
+
+			FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.and(Filters.eq("areaId", sAreaId), Filters.eq("inGoing", true)));
+
+			fillList(aoReturnList, oWSDocument, Event.class);
+
+			return aoReturnList;
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("EventsRepository.getOngoingByAreaId: error", oEx);
+		}
+
+		return aoReturnList;
+	}
+	
 }

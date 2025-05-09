@@ -265,5 +265,46 @@ public class EventResource {
 		return true;
 		
 	}
+	
+	@GET
+	@Path("ongoing")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getOngoing(@HeaderParam("x-session-token") String sSessionId) {
+
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("EventResource.getList: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			EventsRepository oEventsRepository = new EventsRepository();
+			
+			AreaRepository oAreaRepository = new AreaRepository();
+			List<Area> oAreaOrganizations = oAreaRepository.getByOrganization(oUser.getOrganizationId());
+			
+			List<EventViewModel> aoEventVM = new ArrayList<>();
+			
+			for (Area oArea : oAreaOrganizations) {
+				
+				List<Event> aoTempEvents = oEventsRepository.getOngoingByAreaId(oArea.getId());
+				
+				for (Event oEvent : aoTempEvents) {
+					EventViewModel oEventViewModel = (EventViewModel) RiseViewModel.getFromEntity(EventViewModel.class.getName(), oEvent);
+					oEventViewModel.areaName = oArea.getName();
+					aoEventVM.add(oEventViewModel);
+				}				
+			}
+
+
+			// return the list to the client
+			return Response.ok(aoEventVM).build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("EventResource.getList: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}	
 
 }

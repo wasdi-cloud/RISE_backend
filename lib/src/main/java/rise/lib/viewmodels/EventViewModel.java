@@ -29,4 +29,8 @@ public class EventViewModel extends RiseViewModel {
 	public boolean inGoing;
 	
 	public boolean publicEvent;
+	
+	public String areaName;
+	
+	public String areaId;
 }

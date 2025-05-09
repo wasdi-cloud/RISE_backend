@@ -184,7 +184,8 @@
 				"REUSE_SARARCHIVE_ID": "",
 				"REUSE_PW_ID": "",
 				"REUSE_EVENT_FINDER": "",
-				"SUFFIX": "baresoil-flood.tif"
+				"SUFFIX": "baresoil-flood.tif",
+				"SAVE_PAYLOAD_TO_JSON": true
 			},
 			"processor": "integrated_sar_flood_archive",
 			"shortArchiveDaysBack": 35,
@@ -395,6 +396,30 @@
 			"resolution": "10m",
 			"dataSource": "Sentinel-1",
 			"inputData": "S1 GRD"
-		}		
+		},
+		{
+			"id": "flood_event_finder",
+			"params": {
+				"BASENAME": "Tillaberi-Niamey",
+				"SUFFIX": "baresoil-flood.tif",
+				"FLOOD_VALUE": 3,
+				"PERMANENT_WATER_VALUE": 2,
+				"NOT_FLOODED_VALUE": 1,
+				"NO_DATA_VALUE": 0,
+				"THREE_STATE": 1,
+				"MIN_PERC": 0,
+				"PERC_ON_FULL_IMAGE": true,
+				"REUSE_FLOOD_FINDER_ID": null,
+				"UPDATE_MODE": true,
+				"SPECIFIC_DATE": ""
+			},
+			"processor": "event_finder_in_archive",
+			"shortArchiveDaysBack": 0,
+			"startArchiveDate": "",
+			"style": "",
+			"resolution": "",
+			"dataSource": "",
+			"inputData": ""
+		}			
 	]
 }
