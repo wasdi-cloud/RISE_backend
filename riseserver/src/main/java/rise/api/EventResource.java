@@ -293,7 +293,7 @@ public class EventResource {
 				
 				for (Event oEvent : aoTempEvents) {
 					EventViewModel oEventViewModel = (EventViewModel) RiseViewModel.getFromEntity(EventViewModel.class.getName(), oEvent);
-					oEventViewModel.areaName = oArea.getName();
+					oEventViewModel.areaName= oArea.getName();
 					aoEventVM.add(oEventViewModel);
 				}				
 			}

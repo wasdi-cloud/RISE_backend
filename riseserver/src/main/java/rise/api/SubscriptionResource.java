@@ -559,6 +559,12 @@ public class SubscriptionResource {
 					RiseLog.debugLog("SubscriptionResource.confirmation: subscription does not exist");
 					return Response.status(Status.BAD_REQUEST).build();
 				} else {
+					
+					//check if its already paid 
+					if(oSubscription.isBuySuccess()) {
+						RiseLog.debugLog("SubscriptionResource.confirmation: subscription already paid");
+						return Response.status(Status.BAD_REQUEST).build();
+					}
 					double dNow = DateUtils.getNowAsDouble();
 					oSubscription.setBuyDate(dNow);
 					oSubscription.setBuySuccess(true);
