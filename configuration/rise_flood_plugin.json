@@ -416,7 +416,7 @@
 			"processor": "event_finder_in_archive",
 			"shortArchiveDaysBack": 0,
 			"startArchiveDate": "",
-			"style": "",
+			"style": "flood_depth",
 			"resolution": "",
 			"dataSource": "",
 			"inputData": ""
