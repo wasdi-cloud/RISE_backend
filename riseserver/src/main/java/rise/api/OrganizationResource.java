@@ -130,7 +130,7 @@ public class OrganizationResource {
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
+			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN) || oUser.getRole().equals(UserRole.HQ))) {
 				RiseLog.warnLog("OrganizationResource.invite: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
@@ -167,22 +167,42 @@ public class OrganizationResource {
 
 			// Check if we have an existing user with same user id
 			UserRepository oUserRepository = new UserRepository();
+			
+			double dNow = DateUtils.getNowAsDouble();
 
 			User oPotentialExistingUser = oUserRepository.getUserByEmail(oInviteVM.email);
 
 			if (oPotentialExistingUser != null) {
-				RiseLog.errorLog(
-						"OrganizationResource.invite: there are already a user with this mail, impossible to proceed");
-				ArrayList<String> asErrors = new ArrayList<>();
-				asErrors.add(StringCodes.ERROR_API_MAIL_ALREADY_EXISTS.name());
-				ErrorViewModel oErrorViewModel = new ErrorViewModel(asErrors, Status.CONFLICT.getStatusCode());
-				return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();
+				
+				RiseLog.warnLog("OrganizationResource.invite: there is already a user with this mail, check if it is an expired invite");
+				
+				if (oPotentialExistingUser.getConfirmationDate() == null) {
+					double dRegistrationDate = oPotentialExistingUser.getRegistrationDate();
+					if (dNow-dRegistrationDate > RiseConfig.Current.security.maxConfirmationAgeSeconds * 1000) {
+						// The old invitation expired
+						RiseLog.warnLog("OrganizationResource.invite: this is an expired invite, we delete it so we can proceed");
+						oUserRepository.deleteByUserId(oPotentialExistingUser.getUserId());
+					}
+					else {
+						// A valid invitation is still ongoing
+						ArrayList<String> asErrors = new ArrayList<>();
+						asErrors.add(StringCodes.ERROR_API_INVITE_STILL_PENDING.name());
+						ErrorViewModel oErrorViewModel = new ErrorViewModel(asErrors, Status.CONFLICT.getStatusCode());
+						return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();						
+					}
+				}
+				else {
+					RiseLog.errorLog("OrganizationResource.invite: there is already a user with this mail, impossible to proceed");
+					
+					ArrayList<String> asErrors = new ArrayList<>();
+					asErrors.add(StringCodes.ERROR_API_MAIL_ALREADY_EXISTS.name());
+					ErrorViewModel oErrorViewModel = new ErrorViewModel(asErrors, Status.CONFLICT.getStatusCode());
+					return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();					
+				}
 			}
 
 			// Now translate the user
 			User oInvitedUser = (User) RiseViewModel.copyToEntity(User.class.getName(), oInviteVM);
-
-			double dNow = DateUtils.getNowAsDouble();
 
 			// Initialize the dates as now
 			oInvitedUser.setRegistrationDate(dNow);
@@ -198,10 +218,8 @@ public class OrganizationResource {
 			oUserRepository.add(oInvitedUser);
 
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_TITLE.name(),
-					Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_MESSAGE.name(),
-					Languages.EN.name());
+			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_TITLE.name(), Languages.EN.name());
+			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_MESSAGE.name(), Languages.EN.name());
 
 			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
 			String sLink = RiseConfig.Current.security.inviteConfirmAddress;
@@ -213,8 +231,7 @@ public class OrganizationResource {
 			sMessage = sMessage.replace("%%ORG%%", oOrganization.getName());
 
 			// And we send an email to the user waiting for him to confirm!
-			MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oInvitedUser.getEmail(), sTitle,
-					sMessage, true);
+			MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oInvitedUser.getEmail(), sTitle, sMessage, true);
 
 			return Response.ok().build();
 		} catch (Exception oEx) {
@@ -248,38 +265,50 @@ public class OrganizationResource {
 				RiseLog.warnLog("OrganizationResource.updateOrganization: invalid permission");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
+			
 			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
 			Organization oOrganization = oOrganizationRepository.getOrganization(oUser.getOrganizationId());
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.city)) {
 				oOrganization.setCity(oOrganizationViewModel.city);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.country)) {
 				oOrganization.setCountry(oOrganizationViewModel.country);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.creationDate)) {
 				oOrganization.setCreationDate(oOrganizationViewModel.creationDate);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.name)) {
 				oOrganization.setName(oOrganizationViewModel.name);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.number)) {
 				oOrganization.setNumber(oOrganizationViewModel.number);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.internationalPrefix)) {
 				oOrganization.setInternationalPrefix(oOrganizationViewModel.internationalPrefix);
-			}			
+			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.phone)) {
 				oOrganization.setPhone(oOrganizationViewModel.phone);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.postalCode)) {
 				oOrganization.setPostalCode(oOrganizationViewModel.postalCode);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.street)) {
 				oOrganization.setStreet(oOrganizationViewModel.street);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.type)) {
 				oOrganization.setType(oOrganizationViewModel.type);
 			}
+			
 			if (!Utils.isNullOrEmpty(oOrganizationViewModel.vat)) {
 				oOrganization.setVat(oOrganizationViewModel.vat);
 			}

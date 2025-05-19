@@ -43,7 +43,8 @@
 				"NOISE_REDUCTION": 100,
 				"bin_step": 0.3,
 				"copdem_wm": "",
-				"SUFFIX": "baresoil-flood.tif"
+				"SUFFIX": "baresoil-flood.tif",
+				"PLATFORM_FILTER": "S1A,S1B"
 			},
 			"processor": "sar_archive_generator",
 			"shortArchiveDaysBack": 35,
@@ -185,7 +186,8 @@
 				"REUSE_PW_ID": "",
 				"REUSE_EVENT_FINDER": "",
 				"SUFFIX": "baresoil-flood.tif",
-				"SAVE_PAYLOAD_TO_JSON": true
+				"SAVE_PAYLOAD_TO_JSON": true,
+				"PLATFORM_FILTER": "S1A,S1B"
 			},
 			"processor": "integrated_sar_flood_archive",
 			"shortArchiveDaysBack": 35,
@@ -252,7 +254,8 @@
 				"SHAPEFILEMASK": "",
 				"APPLY_WATER_MAP": true,
 				"PERMANENT_WATER_MAP_NAME": "HighResWaterMap.tif",
-				"SUFFIX": "baresoil-flood.tif"
+				"SUFFIX": "baresoil-flood.tif",
+				"PLATFORM_FILTER": "S1A,S1B"
 			},
 			"processor": "autofloodchain2",
 			"style": "DDS_FLOODED_AREAS",
