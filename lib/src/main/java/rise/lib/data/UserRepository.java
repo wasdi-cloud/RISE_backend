@@ -163,5 +163,12 @@ public class UserRepository extends MongoRepository {
 		oCriteria.append("userId", sUserId);
 		return delete(oCriteria);
 	}
+	
+
+	public int deleteByEMail(String sUserMail) {
+		BasicDBObject oCriteria = new BasicDBObject();
+		oCriteria.append("email", sUserMail);
+		return delete(oCriteria);
+	}	
 
 }

@@ -110,7 +110,8 @@ public class OrganizationResource {
 					.getFromEntity(OrganizationViewModel.class.getName(), oOrganization);
 
 			return Response.ok(oOrganizationViewModel).build();
-		} catch (Exception oEx) {
+		} 
+		catch (Exception oEx) {
 			RiseLog.errorLog("OrganizationResource.getByUser: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -181,7 +182,7 @@ public class OrganizationResource {
 					if (dNow-dRegistrationDate > RiseConfig.Current.security.maxConfirmationAgeSeconds * 1000) {
 						// The old invitation expired
 						RiseLog.warnLog("OrganizationResource.invite: this is an expired invite, we delete it so we can proceed");
-						oUserRepository.deleteByUserId(oPotentialExistingUser.getUserId());
+						oUserRepository.deleteByEMail(oPotentialExistingUser.getEmail());
 					}
 					else {
 						// A valid invitation is still ongoing
@@ -240,90 +241,6 @@ public class OrganizationResource {
 		}
 	}
 	
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("reinvite")
-	public Response resendInvite(@HeaderParam("x-session-token") String sSessionId, @QueryParam("userId") String sTargetUserId) {
-
-		try {
-
-			User oUser = Rise.getUserFromSession(sSessionId);
-
-			if (oUser == null) {
-				RiseLog.warnLog("OrganizationResource.resendInvite: invalid Session");
-				return Response.status(Status.UNAUTHORIZED).build();
-			}
-
-			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN) || oUser.getRole().equals(UserRole.HQ))) {
-				RiseLog.warnLog("OrganizationResource.resendInvite: not an admin");
-				return Response.status(Status.UNAUTHORIZED).build();
-			}
-
-			if (Utils.isNullOrEmpty(sTargetUserId)) {
-				RiseLog.warnLog("OrganizationResource.resendInvite: target user Id null");
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-			
-			// Check if we have an existing user with same user id
-			UserRepository oUserRepository = new UserRepository();
-			User oTargetUser = oUserRepository.getUser(sTargetUserId);
-
-			if (oTargetUser  == null) {
-				RiseLog.warnLog("OrganizationResource.resendInvite: user not found " + sTargetUserId);
-				return Response.status(Status.UNAUTHORIZED).build();
-			}
-			
-			if (!oTargetUser.getOrganizationId().equals(oUser.getOrganizationId())) {
-				RiseLog.warnLog("OrganizationResource.resendInvite: user is invited to another org " + sTargetUserId);
-				return Response.status(Status.UNAUTHORIZED).build();				
-			}
-			
-			if (oTargetUser.getConfirmationDate() != null) {
-				RiseLog.warnLog("OrganizationResource.resendInvite: the user " + sTargetUserId + " is already confirmed");
-				return Response.status(Status.BAD_REQUEST).build();				
-			}
-			
-			double dNow = DateUtils.getNowAsDouble();
-
-			// Initialize the dates as now
-			oTargetUser.setRegistrationDate(dNow);
-
-			// Generate the Confirmation Code
-			String sConfirmationCode = Utils.getRandomName();
-
-			// Save it
-			oTargetUser.setConfirmationDate(null);
-			oTargetUser.setConfirmationCode(sConfirmationCode);
-
-			// Save the invited user
-			oUserRepository.updateUser(oTargetUser);
-			
-			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
-			Organization oOrganization = oOrganizationRepository.getOrganization(oUser.getOrganizationId());
-
-			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_TITLE.name(), Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_MESSAGE.name(), Languages.EN.name());
-
-			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
-			String sLink = RiseConfig.Current.security.inviteConfirmAddress;
-
-			sLink += "?code=" + sConfirmationCode + "&mail=" + oTargetUser.getEmail();
-
-			// We replace the link and org name in the message
-			sMessage = sMessage.replace("%%LINK%%", sLink);
-			sMessage = sMessage.replace("%%ORG%%", oOrganization.getName());
-
-			// And we send an email to the user waiting for him to confirm!
-			MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oTargetUser.getEmail(), sTitle, sMessage, true);
-
-			return Response.ok().build();
-		} 
-		catch (Exception oEx) {
-			RiseLog.errorLog("OrganizationResource.resendInvite: " + oEx);
-			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		}
-	}	
 
 	@PUT
 	public Response updateOrganization(@HeaderParam("x-session-token") String sSessionId,
@@ -452,22 +369,25 @@ public class OrganizationResource {
 			List<UserViewModel> aoUsersToDelete) {
 		try {
 			User oUser = Rise.getUserFromSession(sSessionId);
+			
 			if (oUser == null) {
 				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
+			
 			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
 				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: not an admin");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
+			
 			if (aoUsersToDelete == null || aoUsersToDelete.size() == 0) {
 				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: list is empty");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			
 			for (UserViewModel oUserViewModel : aoUsersToDelete) {
 				if (Utils.isNullOrEmpty(oUserViewModel.userId)) {
-					RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: user id of " + oUserViewModel
-							+ "is  empty");
+					RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: user id of " + oUserViewModel + "is  empty");
 					return Response.status(Status.BAD_REQUEST).build();
 				}
 			}
@@ -475,6 +395,7 @@ public class OrganizationResource {
 			for (UserViewModel oUserViewModel : aoUsersToDelete) {
 				oUserRepository.deleteByUserId(oUserViewModel.userId);
 			}
+			
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("OrganizationResource.removeUsersFromOrganzation: " + oEx);
