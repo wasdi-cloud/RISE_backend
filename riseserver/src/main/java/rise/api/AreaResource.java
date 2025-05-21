@@ -657,8 +657,7 @@ public class AreaResource {
 			}
 
 			if (!oArea.getFieldOperators().contains(oFieldUser.getUserId())) {
-				RiseLog.warnLog(
-						"AreaResource.deleteUser: user " + oUserToDelete.userId + " is already not in the area");
+				RiseLog.warnLog("AreaResource.deleteUser: user " + oUserToDelete.userId + " is already not in the area");
 				return Response.ok().build();
 			}
 
