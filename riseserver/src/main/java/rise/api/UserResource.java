@@ -525,6 +525,7 @@ public class UserResource {
 
 			// We replace the code in the message
 			sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
+			sMessage = sMessage.replace("%%ACTION%%", "Delete User");
 
 			// Send the OTP
 			MailUtils.sendEmail(oUser.getEmail(), sTitle, sMessage);
