@@ -90,5 +90,43 @@ public class WidgetInfoRepository extends MongoRepository {
 		
 		return aoReturnList;
 	}	
+	
+	
+	public List<WidgetInfo> getListByTypeAreaIdForDay(String sWidget, String sAreaId, String sDate) {
+
+		List<WidgetInfo> aoReturnList = new ArrayList<WidgetInfo>();
+		try {
+						
+			DBObject oSort= new BasicDBObject();
+			oSort.put("referenceTime", -1);
+			Document oSortDoc = new Document(oSort.toMap());
+			FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.and(Filters.eq("widget", sWidget), Filters.eq("areaId", sAreaId), Filters.eq("referenceDate", sDate)  )).sort(oSortDoc);
+			fillList(aoReturnList, oWSDocument, WidgetInfo.class);
+
+            return aoReturnList;			
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("WidgetInfoRepository.getListByTypeAreaIdForDay exception: " + oEx.toString());
+		}
+		
+		return aoReturnList;
+	}
+	
+	public List<WidgetInfo> getImpactsForAreaDay(String sAreaId, String sDate) {
+		List<WidgetInfo> aoReturnList = new ArrayList<WidgetInfo>();
+		
+		try {
+			aoReturnList = getListByTypeAreaIdForDay("impacts_baresoil", sAreaId, sDate);
+			List<WidgetInfo> aoTempList = getListByTypeAreaIdForDay("impacts_urban", sAreaId, sDate);
+			aoReturnList.addAll(aoTempList);			
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("WidgetInfoRepository.getImpactsForAreaDay exception: " + oEx.toString());
+		}
+		
+		return aoReturnList;
+		
+	}
+			
 		
 }

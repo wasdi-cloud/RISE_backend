@@ -14,6 +14,7 @@ public class WidgetInfo extends RiseEntity {
 	private String title;
 	private String content;
 	private double referenceTime;
+	private String referenceDate;
 	
 	private HashMap<String, Object> payload = new HashMap<>();
 	
@@ -82,6 +83,12 @@ public class WidgetInfo extends RiseEntity {
 	}
 	public void setAreaId(String areaId) {
 		this.areaId = areaId;
+	}
+	public String getReferenceDate() {
+		return referenceDate;
+	}
+	public void setReferenceDate(String referenceDate) {
+		this.referenceDate = referenceDate;
 	}
 
 }

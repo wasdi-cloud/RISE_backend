@@ -114,7 +114,7 @@ public class WidgetResource {
     		String sOrganizationId = oUser.getOrganizationId();
     		
     		if (Utils.isNullOrEmpty(sOrganizationId)) {
-				RiseLog.warnLog("sOrganizationId.getWidgetByTime: Area id null");
+				RiseLog.warnLog("sOrganizationId.getWidgetByTime: User organization id is null");
 				return Response.status(Status.BAD_REQUEST).build();    			
     		}    		
 			
@@ -191,6 +191,87 @@ public class WidgetResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		} 		
 	}
-	
 
+	@GET
+	@Path("dayimpacts")
+	public Response getImpactsWidgetByDate(@HeaderParam("x-session-token") String sSessionId, @QueryParam("areaId") String sAreaId, @QueryParam("date") String sDate) {
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+			
+    		if (oUser == null) {
+				RiseLog.warnLog("WidgetResource.getImpactsWidgetByDate: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();    			
+    		}
+    		
+//    		String sOrganizationId = oUser.getOrganizationId();
+//    		
+//    		if (Utils.isNullOrEmpty(sOrganizationId)) {
+//				RiseLog.warnLog("sOrganizationId.getImpactsWidgetByDate: User Organization id null");
+//				return Response.status(Status.BAD_REQUEST).build();    			
+//    		}    		
+//			
+//    		// Check if we have this subscription
+//    		OrganizationRepository oOrgRepository = new OrganizationRepository();
+//    		Organization oOrganization = (Organization) oOrgRepository.get(sOrganizationId);
+//			
+//    		if (oOrganization == null) {
+//				RiseLog.warnLog("WidgetResource.getImpactsWidgetByDate: Organization with this id " + sOrganizationId + " not found");
+//				return Response.status(Status.BAD_REQUEST).build();    			
+//    		}
+//    		
+//    		if (!PermissionsUtils.canUserAccessOrganization(oOrganization, oUser)) {
+//				RiseLog.warnLog("WidgetResource.getImpactsWidgetByDate: user cannot access org");
+//				return Response.status(Status.UNAUTHORIZED).build();     			
+//    		}
+    		
+    		if (Utils.isNullOrEmpty(sAreaId)) {
+				RiseLog.warnLog("WidgetResource.getImpactsWidgetByDate: area id null or empty");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		AreaRepository oAreaRepository = new AreaRepository();
+    		Area oArea = (Area) oAreaRepository.get(sAreaId);
+    		
+    		if (oArea == null) {
+				RiseLog.warnLog("WidgetResource.getImpactsWidgetByDate: area null with id " + sAreaId);
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("WidgetResource.getImpactsWidgetByDate: user cannot access org");
+				return Response.status(Status.UNAUTHORIZED).build();    			
+    		}
+    		
+    		if (Utils.isNullOrEmpty(sDate)) {
+				RiseLog.warnLog("WidgetResource.getImpactsWidgetByDate: date is null ");
+				return Response.status(Status.BAD_REQUEST).build();    			
+    		}
+    		
+    		
+    		WidgetInfoRepository oWidgetInfoRepository = new WidgetInfoRepository();
+    		List<WidgetInfo> aoWidgets = oWidgetInfoRepository.getImpactsForAreaDay(sAreaId, sDate);
+    		
+    		RiseLog.debugLog("WidgetResource.getImpactsWidgetByDate: found " + aoWidgets.size() + " Widgets on db");
+    		
+    		List<WidgetInfoViewModel> aoViewModels = new ArrayList<>();
+    		
+    		for (WidgetInfo oWidgetInfo : aoWidgets) {
+    			
+    			WidgetInfoViewModel oWidgetInfoViewModel = (WidgetInfoViewModel) RiseViewModel.getFromEntity(WidgetInfoViewModel.class.getName(), oWidgetInfo);
+    			
+    			oWidgetInfoViewModel.areaName = oArea.getName();
+    			
+    			aoViewModels.add(oWidgetInfoViewModel);
+			}
+    		
+    		RiseLog.debugLog("WidgetResource.getImpactsWidgetByDate: return " + aoViewModels.size() + " Widgets View models");
+    		
+    		return Response.ok(aoViewModels).build();
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("WidgetResource.getImpactsWidgetByDate: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 }

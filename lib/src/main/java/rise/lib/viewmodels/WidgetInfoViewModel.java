@@ -16,6 +16,7 @@ public class WidgetInfoViewModel extends RiseViewModel {
 	public String title;
 	public String content;
 	public double referenceTime;
+	public String referenceDate;
 	
 	public HashMap<String, Object> payload = new HashMap<>();
 }
