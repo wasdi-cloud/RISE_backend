@@ -1,5 +1,5 @@
 {
-	"serverApiAddress": "https://risetest.wasdi.net/rise-api/api/",
+	"serverApiAddress": "{{ aoRiseConfiguration['baseUrl']['url'] }}/rise-api/api/",
 	"logLevel": "INFO",
 	"shellExecLocally": true,
 	"mongoMain": {
@@ -30,10 +30,10 @@
 		"mustContainNumber": true,
 		"mustContainSymbol": true,
 		"maxOTPAgeSeconds": 1800,
-		"inviteConfirmAddress": "https://risetest.wasdi.net/user/confirm",
-		"registerConfirmAddress": "https://risetest.wasdi.net/auth/confirm_adm",
-		"changeEmailConfirm": "https://risetest.wasdi.net/user/confirm-change-email",
-		"forgetPasswordConfirm" : "https://risetest.wasdi.net/user/confirm-forget-password"
+		"inviteConfirmAddress": "{{ aoRiseConfiguration['baseUrl']['url'] }}/user/confirm",
+		"registerConfirmAddress": "{{ aoRiseConfiguration['baseUrl']['url'] }}/auth/confirm_adm",
+		"changeEmailConfirm": "{{ aoRiseConfiguration['baseUrl']['url'] }}/user/confirm-change-email",
+		"forgetPasswordConfirm" : "{{ aoRiseConfiguration['baseUrl']['url'] }}/confirm-forget-password"
 	},
 	"httpConfig": {
 		"logHttpCalls": false,
@@ -61,39 +61,39 @@
         "layersRetentionDays": 90
 	},
 	"stripe": {
-		"apiKey": "sk_test_51Mg8UfKhhULxWbPP4GUh8PwQCkmmgWdBSZljuVceiHta1PVDsehJNCqN8Lfxv9iUsAkTF7wG11YNDmQClfvcU91Y00h0VUntGk",
+		"apiKey": "{{ aoRiseConfiguration['stripe']['apiKey'] }}",
 		"products": [
 			{
 				"id": "SUBTYPE_ONE",
-				"url": "https://buy.stripe.com/test_6oE9AFb4caSqedO2ax"
+				"url": "{{ aoRiseConfiguration['stripe']['subtype_one'] }}"
 			},
 			{
 				"id": "SUBTYPE_THREE",
-				"url": "https://buy.stripe.com/test_6oE28d1tC0dM6Lm02j"
+				"url": "{{ aoRiseConfiguration['stripe']['subtype_three'] }}"
 			},
 			{
 				"id": "SUBTYPE_FIVE",
-				"url": "https://buy.stripe.com/test_00g1496NW6Ca5Hi8yR"
+				"url": "{{ aoRiseConfiguration['stripe']['subtype_five'] }}"
 			},
 			{
 				"id": "SUBTYPE_TEN",
-				"url": "https://buy.stripe.com/test_14kbINdck2lU4DeeXh"
+				"url": "{{ aoRiseConfiguration['stripe']['subtype_ten'] }}"
 			},
 			{
 				"id": "SUBTYPE_ONE_QUARTER",
-				"url": "https://buy.stripe.com/test_3cseUZ2xG6Ca7PqbL0"
+				"url": "{{ aoRiseConfiguration['stripe']['subtype_one_quarter'] }}"
 			},
 			{
 				"id": "SUBTYPE_THREE_QUARTER",
-				"url": "https://buy.stripe.com/test_bIY5kp4FO0dM6Lm3ew"
+				"url": "{{ aoRiseConfiguration['stripe']['subtype_three_quarter'] }}"
 			},
 			{
 				"id": "SUBTYPE_FIVE_QUARTER",
-				"url": "https://buy.stripe.com/test_8wM9AFgow0dM8Tu6qK"
+				"url": "{{ aoRiseConfiguration['stripe']['subtype_five_quarter'] }}"
 			},
 			{
 				"id": "SUBTYPE_TEN_QUARTER",
-				"url": "https://buy.stripe.com/test_dR65kp4FO2lU8Tu7uQ"
+				"url": "{{ aoRiseConfiguration['stripe']['subtype_ten_quarter'] }}"
 			}									
 		]
 	},
