@@ -3,6 +3,7 @@ package rise.api;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
+import rise.lib.business.Organization;
 import rise.lib.business.PaymentType;
 import rise.lib.business.Plugin;
 import rise.lib.business.Subscription;
@@ -26,13 +28,19 @@ import rise.lib.business.SubscriptionType;
 import rise.lib.business.User;
 import rise.lib.config.RiseConfig;
 import rise.lib.config.StripeProductConfig;
+import rise.lib.data.OrganizationRepository;
 import rise.lib.data.PluginRepository;
 import rise.lib.data.SubscriptionRepository;
 import rise.lib.data.SubscriptionTypeRepository;
+import rise.lib.data.UserRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
+import rise.lib.utils.i8n.LangUtils;
+import rise.lib.utils.i8n.Languages;
+import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
+import rise.lib.utils.mail.MailUtils;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.lib.viewmodels.StripePaymentDetail;
 import rise.lib.viewmodels.SubscriptionListViewModel;
@@ -571,19 +579,36 @@ public class SubscriptionResource {
 					oSubscription.setValid(true);
 					oSubscription.setStripeInvoicePdfUrl(oStripePaymentDetail.getInvoicePdfUrl());
 					// Convert epoch to LocalDateTime for calendar-based arithmetic
-					LocalDateTime nowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
-					LocalDateTime expireDateTime;
+					LocalDateTime oNowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
+					LocalDateTime oExpireDateTime;
 
 					if (oSubscription.getPaymentType().equals(PaymentType.MONTH)) {
-						expireDateTime = nowDateTime.plusMonths(1); // Add 1 month
+						oExpireDateTime = oNowDateTime.plusMonths(1); // Add 1 month
 					} else {
-						expireDateTime = nowDateTime.plusYears(1); // Add 1 year
+						oExpireDateTime = oNowDateTime.plusYears(1); // Add 1 year
 					}
 
 					// Convert back to epoch milliseconds
-					double dExpire = expireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+					double dExpire = oExpireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
 					oSubscription.setExpireDate(dExpire);
 					oSubscriptionRepository.update(oSubscription, oSubscription.getId());
+					// send email to the user telling him his sub is successful 
+					String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_BUY_SUB_SUCCESS_TITLE.name(), Languages.EN.name());
+					String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_BUY_SUB_SUCCESS_MESSAGE.name(), Languages.EN.name());
+					// We replace the sub name, org name  and the expiry date in the message
+					OrganizationRepository oOrganizationRepository=new OrganizationRepository();
+					Organization oOrg=(Organization)oOrganizationRepository.get(oSubscription.getOrganizationId());
+					String sOrgName=oOrg.getName();
+					sMessage = sMessage.replace("%%ORG_NAME%%", sOrgName);
+					sMessage = sMessage.replace("%%SUB_NAME%%", oSubscription.getName());
+					sMessage = sMessage.replace("%%EXPIRY_DATE%%", oExpireDateTime.toString());
+					
+					UserRepository oUserRepository=new UserRepository();
+					List<User> aoAdmins=oUserRepository.getAdminsOfOrganization(oOrg.getId());
+					//And we send an email to the org admins !
+					for (User oAdmin : aoAdmins) {
+						MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oAdmin.getEmail(), sTitle, sMessage, true);	
+					}
 				}
 			}
 		} catch (Exception oEx) {

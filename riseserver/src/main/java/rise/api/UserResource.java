@@ -618,6 +618,7 @@ public class UserResource {
 						oOrganizationResource.internalDeleteOrganization(sSessionId, oUser);
 					}
 				}
+				
 			}
 			
 			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
@@ -627,6 +628,14 @@ public class UserResource {
 			
 			// We can now just delete user
 			oUserRepository.deleteByUserId(oUser.getUserId());
+			// send an email to the user  telling him his account is deleted
+			// Get localized title and message
+			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_DELETE_ACCOUNT_TITLE.name(), Languages.EN.name());
+			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_DELETE_ACCOUNT_MESSAGE.name(), Languages.EN.name());
+			
+			// And we send an email to the user waiting for him to confirm!
+			MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oUser.getEmail(), sTitle, sMessage, true);
+
 			return Response.ok().build();
 		} 
 		catch (Exception oEx) {
