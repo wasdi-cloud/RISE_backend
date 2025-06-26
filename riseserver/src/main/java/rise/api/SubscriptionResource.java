@@ -592,21 +592,30 @@ public class SubscriptionResource {
 					double dExpire = oExpireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
 					oSubscription.setExpireDate(dExpire);
 					oSubscriptionRepository.update(oSubscription, oSubscription.getId());
-					// send email to the user telling him his sub is successful 
-					String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_BUY_SUB_SUCCESS_TITLE.name(), Languages.EN.name());
-					String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_BUY_SUB_SUCCESS_MESSAGE.name(), Languages.EN.name());
+					// send email to the user telling him his sub is successful
+
 					// We replace the sub name, org name  and the expiry date in the message
 					OrganizationRepository oOrganizationRepository=new OrganizationRepository();
 					Organization oOrg=(Organization)oOrganizationRepository.get(oSubscription.getOrganizationId());
 					String sOrgName=oOrg.getName();
-					sMessage = sMessage.replace("%%ORG_NAME%%", sOrgName);
-					sMessage = sMessage.replace("%%SUB_NAME%%", oSubscription.getName());
-					sMessage = sMessage.replace("%%EXPIRY_DATE%%", oExpireDateTime.toString());
-					
 					UserRepository oUserRepository=new UserRepository();
 					List<User> aoAdmins=oUserRepository.getAdminsOfOrganization(oOrg.getId());
 					//And we send an email to the org admins !
 					for (User oAdmin : aoAdmins) {
+						String sUserLanguage;
+						String sDefaultLanguageCode = oAdmin.getDefaultLanguage(); // Get the language code once
+
+						try {
+							sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+						} catch (IllegalArgumentException e) {
+							RiseLog.debugLog("SubscriptionResource.confirmSubscriptionBuy: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+							sUserLanguage = Languages.EN.name();
+						}
+						String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_BUY_SUB_SUCCESS_TITLE.name(), sUserLanguage);
+						String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_BUY_SUB_SUCCESS_MESSAGE.name(), sUserLanguage);
+						sMessage = sMessage.replace("%%ORG_NAME%%", sOrgName);
+						sMessage = sMessage.replace("%%SUB_NAME%%", oSubscription.getName());
+						sMessage = sMessage.replace("%%EXPIRY_DATE%%", oExpireDateTime.toString());
 						MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oAdmin.getEmail(), sTitle, sMessage, true);	
 					}
 				}

@@ -219,8 +219,18 @@ public class OrganizationResource {
 			oUserRepository.add(oInvitedUser);
 
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_TITLE.name(), Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_MESSAGE.name(), Languages.EN.name());
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("confirmInvitedUser.login: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+
+			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_TITLE.name(), sUserLanguage);
+			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_INVITE_MAIL_MESSAGE.name(), sUserLanguage);
 
 			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
 			String sLink = RiseConfig.Current.security.inviteConfirmAddress;
@@ -406,7 +416,7 @@ public class OrganizationResource {
 	@DELETE
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("delete-org")
-	public Response deleteOrganzation(@HeaderParam("x-session-token") String sSessionId) {
+	public Response deleteOrganization(@HeaderParam("x-session-token") String sSessionId) {
 		try {
 			User oUser = Rise.getUserFromSession(sSessionId);
 			if (oUser == null) {
@@ -444,8 +454,18 @@ public class OrganizationResource {
 			oOTPViewModel.verifyAPI += "org/verify-delete-org";
 
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), Languages.EN.name());
+
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("OrganizationResource.deleteOrganization: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), sUserLanguage);
+			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), sUserLanguage);
 
 			// We replace the code in the message
 			sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());

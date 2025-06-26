@@ -1,24 +1,10 @@
 package rise.api;
 
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import rise.lib.business.OTP;
-import rise.lib.business.OTPOperations;
-import rise.lib.business.Organization;
-import rise.lib.business.Session;
-import rise.lib.business.User;
-import rise.lib.business.UserRole;
+import rise.lib.business.*;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.OTPRepository;
 import rise.lib.data.OrganizationRepository;
@@ -32,14 +18,12 @@ import rise.lib.utils.i8n.Languages;
 import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.utils.mail.MailUtils;
-import rise.lib.viewmodels.ConfirmInviteViewModel;
-import rise.lib.viewmodels.ErrorViewModel;
-import rise.lib.viewmodels.OTPVerifyViewModel;
-import rise.lib.viewmodels.OTPViewModel;
-import rise.lib.viewmodels.RegisterViewModel;
-import rise.lib.viewmodels.RiseViewModel;
-import rise.lib.viewmodels.SessionTokenViewModel;
-import rise.lib.viewmodels.UserCredentialsViewModel;
+import rise.lib.viewmodels.*;
+
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 /**
  * User's related APIs
  * 
@@ -135,8 +119,19 @@ public class AuthResource {
 	    	oOTPViewModel.verifyAPI += "auth/login_verify";
 	    	
     		// Get localized title and message
-    		String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name() , Languages.EN.name());
-    		String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name() , Languages.EN.name());
+			//todo change the default language type of the user to enum type for cleaner code but right now
+
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("AuthResource.login: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), sUserLanguage);
+			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), sUserLanguage);
     		
     		// We replace the code in the message
     		sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
@@ -495,8 +490,17 @@ public class AuthResource {
     		RiseLog.debugLog("AuthResource.register: added user " + oAdminUser.getEmail() + " with Id " + oAdminUser.getUserId());
     		
     		// Get localized title and message
-    		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_ADMIN_CONFIRM_MAIL_TITLE.name() , Languages.EN.name());
-    		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_ADMIN_CONFIRM_MAIL_MESSAGE.name() , Languages.EN.name());
+			String sUserLanguage;
+			String sDefaultLanguageCode = oAdminUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("AuthResource.register: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+    		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_ADMIN_CONFIRM_MAIL_TITLE.name() , sUserLanguage);
+    		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_ADMIN_CONFIRM_MAIL_MESSAGE.name() , sUserLanguage);
     		
     		
     		// Generate the confirmation Link
@@ -670,8 +674,17 @@ public class AuthResource {
     		oUserRepository.updateUserByEmail(oUserToUpdate);
     		
     		// Get localized title and message
-    		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_TITLE.name() , Languages.EN.name());
-    		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_MESSAGE.name() , Languages.EN.name());
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("AuthResource.confirmInvitedUser: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+    		String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_TITLE.name() , sUserLanguage);
+    		String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_USR_CONFIRMED_MAIL_TOADMIN_MESSAGE.name() , sUserLanguage);
     		
     		// We set the new user registerd mail
     		sMessage = sMessage.replace("%%USER%%", oConfirmVM.email);

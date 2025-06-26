@@ -223,10 +223,18 @@ public class UserResource {
 			oChnageChangeEmailRequestRepository.add(oChangeEmailRequest);
 
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CHANGE_MAIL_TITLE.name(),
-					Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CHANGE_MAIL_MESSAGE.name(),
-					Languages.EN.name());
+
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("UserResource.changeUserEmail: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CHANGE_MAIL_TITLE.name(), sUserLanguage);
+			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CHANGE_MAIL_MESSAGE.name(), sUserLanguage);
 
 			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
 			String sLink = RiseConfig.Current.security.changeEmailConfirm;
@@ -372,8 +380,17 @@ public class UserResource {
 			oOTPViewModel.verifyAPI += "usr/verify_password_change";
 
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), Languages.EN.name());
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("UserResource.changeUserPassword: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), sUserLanguage);
+			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), sUserLanguage);
 
 			// We replace the code in the message
 			sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
@@ -520,11 +537,23 @@ public class UserResource {
 			oOTPViewModel.verifyAPI += "usr/verify_delete_user";
 
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), Languages.EN.name());
+
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("UserResource.deleteUser: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), sUserLanguage);
+			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), sUserLanguage);
 
 			// We replace the code in the message
 			sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
+
+			//todo find a way to replace the value in their correct language
 			sMessage = sMessage.replace("%%ACTION%%", "Delete User");
 
 			// Send the OTP
@@ -630,14 +659,24 @@ public class UserResource {
 			oUserRepository.deleteByUserId(oUser.getUserId());
 			// send an email to the user  telling him his account is deleted
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_DELETE_ACCOUNT_TITLE.name(), Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_DELETE_ACCOUNT_MESSAGE.name(), Languages.EN.name());
-			
+
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("UserResource.verifyDeleteUser: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_DELETE_ACCOUNT_TITLE.name(), sUserLanguage);
+			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_DELETE_ACCOUNT_MESSAGE.name(), sUserLanguage);
+
 			// And we send an email to the user waiting for him to confirm!
 			MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oUser.getEmail(), sTitle, sMessage, true);
 
 			return Response.ok().build();
-		} 
+		}
 		catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.verifyDeleteUser: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -756,10 +795,17 @@ public class UserResource {
 			oForgetPasswordRequestRepository.add(oForgetPasswordRequest);
 
 			// Get localized title and message
-			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_FORGET_PASSWORD_TITLE.name(),
-					Languages.EN.name());
-			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_FORGET_PASSWORD_MESSAGE.name(),
-					Languages.EN.name());
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("UserResource.forgetPassword: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
+			}
+			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_FORGET_PASSWORD_TITLE.name(), sUserLanguage);
+			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_FORGET_PASSWORD_MESSAGE.name(), sUserLanguage);
 
 			// Generate the confirmation Link: NOTE THIS MUST TARGET The CLIENT!!
 			String sLink = RiseConfig.Current.security.forgetPasswordConfirm;
