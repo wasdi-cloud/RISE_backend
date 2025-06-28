@@ -11,6 +11,7 @@ import rise.lib.data.OrganizationRepository;
 import rise.lib.data.SessionRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.utils.PasswordAuthentication;
+import rise.lib.utils.RiseFileUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.i8n.LangUtils;
@@ -125,7 +126,11 @@ public class AuthResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("AuthResource.login: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();
@@ -494,7 +499,11 @@ public class AuthResource {
 			String sDefaultLanguageCode = oAdminUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("AuthResource.register: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();
@@ -678,7 +687,11 @@ public class AuthResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("AuthResource.confirmInvitedUser: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();

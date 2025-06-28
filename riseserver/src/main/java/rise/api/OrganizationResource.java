@@ -223,7 +223,11 @@ public class OrganizationResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("confirmInvitedUser.login: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();
@@ -459,7 +463,11 @@ public class OrganizationResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("OrganizationResource.deleteOrganization: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();

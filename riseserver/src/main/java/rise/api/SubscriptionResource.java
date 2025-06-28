@@ -606,7 +606,11 @@ public class SubscriptionResource {
 						String sDefaultLanguageCode = oAdmin.getDefaultLanguage(); // Get the language code once
 
 						try {
-							sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+							if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+								sUserLanguage = Languages.EN.name();
+							}else{
+								sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+							}
 						} catch (IllegalArgumentException e) {
 							RiseLog.debugLog("SubscriptionResource.confirmSubscriptionBuy: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 							sUserLanguage = Languages.EN.name();

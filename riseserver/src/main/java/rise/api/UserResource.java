@@ -228,7 +228,11 @@ public class UserResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("UserResource.changeUserEmail: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();
@@ -384,7 +388,11 @@ public class UserResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("UserResource.changeUserPassword: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();
@@ -542,7 +550,11 @@ public class UserResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("UserResource.deleteUser: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();
@@ -664,7 +676,11 @@ public class UserResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("UserResource.verifyDeleteUser: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();
@@ -799,7 +815,11 @@ public class UserResource {
 			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
 
 			try {
-				sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
 			} catch (IllegalArgumentException e) {
 				RiseLog.debugLog("UserResource.forgetPassword: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
 				sUserLanguage = Languages.EN.name();
