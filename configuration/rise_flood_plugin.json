@@ -174,7 +174,7 @@
 				"minSideDegrees": 0.3,
 				"minRatio": 0.7,
 				"auto_method": false,
-				"manual_threshold": "0.25",
+				"manual_threshold": "0.35",
 				"minprepostDaysDistance": 0,
 				"specificPrePreDate": "",
 				"specificPreDate": "",
@@ -306,7 +306,7 @@
 				"minSideDegrees": 0.3,
 				"minRatio": 0.7,
 				"auto_method": false,
-				"manual_threshold": "0.25",
+				"manual_threshold": "0.35",
 				"minprepostDaysDistance": 0,
 				"reuse_uf_slc_preproc_id": ""
 			},
