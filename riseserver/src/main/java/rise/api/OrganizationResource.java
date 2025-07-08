@@ -349,8 +349,8 @@ public class OrganizationResource {
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
-				RiseLog.warnLog("OrganizationResource.getOrganizationUsers: not an admin");
+			if (!(oUser.getRole().equals(UserRole.ADMIN) ||oUser.getRole().equals(UserRole.HQ) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
+				RiseLog.warnLog("OrganizationResource.getOrganizationUsers: not an admin or hq");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 			String sOrganizationId = oUser.getOrganizationId();
