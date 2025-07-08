@@ -8,4 +8,7 @@ public class LayerAnalyzerInputViewModel extends RiseViewModel {
 	public String bbox;
 	public String outputPath = "";
 	public String filter;
+	public String areaId;
+	public String mapId;
+	public String pluginId;
 }
