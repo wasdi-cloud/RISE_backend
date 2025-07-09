@@ -257,7 +257,7 @@ public class LayerResource {
         	// Config
         	asArgs.add(RiseConfig.Current.paths.riseConfigPath);
         	
-        	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true,false,true);
+        	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true,true,true);
         	
         	RiseLog.debugLog("LayerResource.layerAnalyzer: got ouput from python script:");
         	
