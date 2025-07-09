@@ -257,7 +257,7 @@ public class LayerResource {
         	// Config
         	asArgs.add(RiseConfig.Current.paths.riseConfigPath);
         	
-        	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true);
+        	ShellExecReturn oReturn = RunTimeUtils.shellExec(asArgs, true, true,false,true);
         	
         	RiseLog.debugLog("LayerResource.layerAnalyzer: got ouput from python script:");
         	
@@ -291,8 +291,8 @@ public class LayerResource {
         		RiseLog.warnLog("LayerResource.layerAnalyzer: impossible to find the output file from the python script");
         	}        	
         	
-        	RiseFileUtils.deleteFile(sInputFullPath);
-        	RiseFileUtils.deleteFile(sOutputFullPath);
+//        	RiseFileUtils.deleteFile(sInputFullPath);
+//        	RiseFileUtils.deleteFile(sOutputFullPath);
         	
         	return Response.ok(oOutput).build();    		
     	}
