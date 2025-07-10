@@ -196,37 +196,37 @@ def main(oConfig, oInput):
             # ======================================================================
             # Part 4: d.iii: Histogram of selected area
             # ======================================================================
-            print("\n=== [d.iii] Histogram Generation ===")
-            # Use only valid data for histogram
-            aiHistogramData = afTargetAreaImageArray[~np.isnan(afTargetAreaImageArray)].flatten()
-
-            plt.figure(figsize=(8, 4))
-            plt.hist(aiHistogramData, bins=50, color='steelblue', edgecolor='black')
-            plt.title("[d.iii] Histogram of Pixel Values in Drawn Area")
-            plt.xlabel("Pixel Value")
-            plt.ylabel("Frequency")
-            plt.grid(True)
-            plt.tight_layout()
-            # plt.show() # Uncomment if you are running this interactively and want to see the plot
-            plt.savefig(sOutputPath + "histogram_output.png")  # Save the plot to file
-            plt.close()  # Close the plot to free memory
-
-            # Convert histogram data to string list for output
-            oOutput["histogram"] = [str(int(val)) for val in aiHistogramData if not np.isnan(val)]
-
-            # Compute histogram data for export (hist, bin_edges)
-            hist, bin_edges = np.histogram(aiHistogramData, bins=50)
-
-            hist_df = pd.DataFrame({
-                "Pixel Value Range Start": bin_edges[:-1],
-                "Pixel Value Range End": bin_edges[1:],
-                "Frequency": hist
-            })
-
-            hist_df.to_csv(sOutputPath + "histogram_output.csv", index=False)
-            print("Histogram saved as 'histogram_output.csv'")
-            hist_df.to_excel(sOutputPath + "histogram_output.xlsx", index=False)
-            print("Histogram also saved as 'histogram_output.xlsx'")
+#             print("\n=== [d.iii] Histogram Generation ===")
+#             # Use only valid data for histogram
+#             aiHistogramData = afTargetAreaImageArray[~np.isnan(afTargetAreaImageArray)].flatten()
+#
+#             plt.figure(figsize=(8, 4))
+#             plt.hist(aiHistogramData, bins=50, color='steelblue', edgecolor='black')
+#             plt.title("[d.iii] Histogram of Pixel Values in Drawn Area")
+#             plt.xlabel("Pixel Value")
+#             plt.ylabel("Frequency")
+#             plt.grid(True)
+#             plt.tight_layout()
+#             # plt.show() # Uncomment if you are running this interactively and want to see the plot
+#             plt.savefig(sOutputPath + "histogram_output.png")  # Save the plot to file
+#             plt.close()  # Close the plot to free memory
+#
+#             # Convert histogram data to string list for output
+#             oOutput["histogram"] = [str(int(val)) for val in aiHistogramData if not np.isnan(val)]
+#
+#             # Compute histogram data for export (hist, bin_edges)
+#             hist, bin_edges = np.histogram(aiHistogramData, bins=50)
+#
+#             hist_df = pd.DataFrame({
+#                 "Pixel Value Range Start": bin_edges[:-1],
+#                 "Pixel Value Range End": bin_edges[1:],
+#                 "Frequency": hist
+#             })
+#
+#             hist_df.to_csv(sOutputPath + "histogram_output.csv", index=False)
+#             print("Histogram saved as 'histogram_output.csv'")
+#             hist_df.to_excel(sOutputPath + "histogram_output.xlsx", index=False)
+#             print("Histogram also saved as 'histogram_output.xlsx'")
 
             # ======================================================================
             # Part 5: d.iv: The estimation of the area both drawn and with pixel affected
@@ -277,25 +277,46 @@ def main(oConfig, oInput):
             # Part 6: d.v: Export and download the area selected
             # ======================================================================
             print("\n=== [d.v] Pixel Export ===")
+            iRows, iCols = afTargetAreaImageArray.shape
             bExportAllPixels = False  # True = export all pixels, False = only affected
 
-            iRows, iCols = afTargetAreaImageArray.shape
-            aoExport_data = []
+            # 1. Get row and column indices for all pixels in the array
+            # Create a meshgrid of column and row indices
+            cols_indices, rows_indices = np.meshgrid(np.arange(iCols), np.arange(iRows))
 
-            for iRow in range(iRows):
-                for iCol in range(iCols):
-                    fVal = afTargetAreaImageArray[iRow, iCol]
+            # Reshape to 1D arrays for vectorized transformation
+            cols_flat = cols_indices.flatten()
+            rows_flat = rows_indices.flatten()
 
-                    # Skip if it's nodata or if not exporting all pixels and value is 0 (or some other irrelevant value)
-                    if np.isnan(fVal) or (not bExportAllPixels and fVal == 0):  # Assuming 0 might mean "not affected"
-                        continue
+            # 2. Get flattened pixel values
+            values_flat = afTargetAreaImageArray.flatten()
 
-                    # Convert row/col to lat/lng using the transform specific to the *read* target area
-                    fLng, fLat = transform_target_area * (iCol + 0.5, iRow + 0.5)  # +0.5 for pixel center
+            # 3. Apply the transform to all (col, row) pairs at once
+            # Note: transform expects (col, row), then returns (x, y) which are (longitude, latitude) for geographic CRS
+            # Add 0.5 to get pixel center
+            xs_flat, ys_flat = transform_target_area * (cols_flat + 0.5, rows_flat + 0.5)
 
-                    aoExport_data.append((fLat, fLng, fVal))
+            # 4. Filter data based on conditions
+            # Start with a mask for non-NaN values
+            valid_mask = ~np.isnan(values_flat)
 
-            oExportedDataFrame = pd.DataFrame(aoExport_data, columns=["Latitude", "Longitude", "Pixel Value"])
+            # If bExportAllPixels is False, add condition to skip 0 values
+            if not bExportAllPixels:
+                valid_mask = valid_mask & (values_flat != 0)  # Assuming 0 is the "irrelevant value"
+
+            # Apply the mask to all flattened arrays
+            filtered_latitudes = ys_flat[valid_mask]
+            filtered_longitudes = xs_flat[valid_mask]
+            filtered_values = values_flat[valid_mask]
+
+            # 5. Create DataFrame from filtered data
+            oExportedDataFrame = pd.DataFrame({
+                "Latitude": filtered_latitudes,
+                "Longitude": filtered_longitudes,
+                "Pixel Value": filtered_values
+            })
+
+            # 6. Export to CSV
             oExportedDataFrame.to_csv(sOutputPath + "selected_area_pixels.csv", index=False)
             print("Exported pixel values and coordinates to 'selected_area_pixels.csv'")
 
