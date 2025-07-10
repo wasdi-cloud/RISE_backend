@@ -276,49 +276,49 @@ def main(oConfig, oInput):
             # ======================================================================
             # Part 6: d.v: Export and download the area selected
             # ======================================================================
-            print("\n=== [d.v] Pixel Export ===")
-            iRows, iCols = afTargetAreaImageArray.shape
-            bExportAllPixels = False  # True = export all pixels, False = only affected
-
-            # 1. Get row and column indices for all pixels in the array
-            # Create a meshgrid of column and row indices
-            cols_indices, rows_indices = np.meshgrid(np.arange(iCols), np.arange(iRows))
-
-            # Reshape to 1D arrays for vectorized transformation
-            cols_flat = cols_indices.flatten()
-            rows_flat = rows_indices.flatten()
-
-            # 2. Get flattened pixel values
-            values_flat = afTargetAreaImageArray.flatten()
-
-            # 3. Apply the transform to all (col, row) pairs at once
-            # Note: transform expects (col, row), then returns (x, y) which are (longitude, latitude) for geographic CRS
-            # Add 0.5 to get pixel center
-            xs_flat, ys_flat = transform_target_area * (cols_flat + 0.5, rows_flat + 0.5)
-
-            # 4. Filter data based on conditions
-            # Start with a mask for non-NaN values
-            valid_mask = ~np.isnan(values_flat)
-
-            # If bExportAllPixels is False, add condition to skip 0 values
-            if not bExportAllPixels:
-                valid_mask = valid_mask & (values_flat != 0)  # Assuming 0 is the "irrelevant value"
-
-            # Apply the mask to all flattened arrays
-            filtered_latitudes = ys_flat[valid_mask]
-            filtered_longitudes = xs_flat[valid_mask]
-            filtered_values = values_flat[valid_mask]
-
-            # 5. Create DataFrame from filtered data
-            oExportedDataFrame = pd.DataFrame({
-                "Latitude": filtered_latitudes,
-                "Longitude": filtered_longitudes,
-                "Pixel Value": filtered_values
-            })
-
-            # 6. Export to CSV
-            oExportedDataFrame.to_csv(sOutputPath + "selected_area_pixels.csv", index=False)
-            print("Exported pixel values and coordinates to 'selected_area_pixels.csv'")
+#             print("\n=== [d.v] Pixel Export ===")
+#             iRows, iCols = afTargetAreaImageArray.shape
+#             bExportAllPixels = False  # True = export all pixels, False = only affected
+#
+#             # 1. Get row and column indices for all pixels in the array
+#             # Create a meshgrid of column and row indices
+#             cols_indices, rows_indices = np.meshgrid(np.arange(iCols), np.arange(iRows))
+#
+#             # Reshape to 1D arrays for vectorized transformation
+#             cols_flat = cols_indices.flatten()
+#             rows_flat = rows_indices.flatten()
+#
+#             # 2. Get flattened pixel values
+#             values_flat = afTargetAreaImageArray.flatten()
+#
+#             # 3. Apply the transform to all (col, row) pairs at once
+#             # Note: transform expects (col, row), then returns (x, y) which are (longitude, latitude) for geographic CRS
+#             # Add 0.5 to get pixel center
+#             xs_flat, ys_flat = transform_target_area * (cols_flat + 0.5, rows_flat + 0.5)
+#
+#             # 4. Filter data based on conditions
+#             # Start with a mask for non-NaN values
+#             valid_mask = ~np.isnan(values_flat)
+#
+#             # If bExportAllPixels is False, add condition to skip 0 values
+#             if not bExportAllPixels:
+#                 valid_mask = valid_mask & (values_flat != 0)  # Assuming 0 is the "irrelevant value"
+#
+#             # Apply the mask to all flattened arrays
+#             filtered_latitudes = ys_flat[valid_mask]
+#             filtered_longitudes = xs_flat[valid_mask]
+#             filtered_values = values_flat[valid_mask]
+#
+#             # 5. Create DataFrame from filtered data
+#             oExportedDataFrame = pd.DataFrame({
+#                 "Latitude": filtered_latitudes,
+#                 "Longitude": filtered_longitudes,
+#                 "Pixel Value": filtered_values
+#             })
+#
+#             # 6. Export to CSV
+#             oExportedDataFrame.to_csv(sOutputPath + "selected_area_pixels.csv", index=False)
+#             print("Exported pixel values and coordinates to 'selected_area_pixels.csv'")
 
             return oOutput  # Return the final output dictionary
 
