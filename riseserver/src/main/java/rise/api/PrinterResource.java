@@ -1,7 +1,6 @@
 package rise.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -57,13 +56,11 @@ public class PrinterResource {
             if (externalApiResponse.statusCode() == 200) {
                 // Parse the UUID from the external API's response body
                 Map<String, String> oResponseMap = oObjectMapper.readValue(externalApiResponse.body(), Map.class);
-                String sUUID = oResponseMap.get("sUUID");
+                String sUUID = oResponseMap.get("uuid");
 
                 if (sUUID != null && !sUUID.trim().isEmpty()) {
                     // Return the UUID to your frontend
-                    return Response.ok()
-                            .entity(Map.of("sUUID", sUUID)) // Return the UUID in the expected JSON format
-                            .build();
+                    return Response.ok(sUUID).build();
                 } else {
                     return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                             .entity(Map.of("error", "External service did not return a valid UUID."))
@@ -87,7 +84,6 @@ public class PrinterResource {
     }
 
     @GET
-    @Path("print")
     @Produces({ "application/pdf", "image/png" })
     public Response print(@QueryParam("uuid") String sUUID) {
         if (sUUID == null || sUUID.trim().isEmpty()) {
@@ -97,29 +93,29 @@ public class PrinterResource {
         }
 
         try {
-            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpClient oHttpClient = HttpClient.newHttpClient();
 
-            String externalUrl = "https://main01.wasdi.net/print/wasdi/print?uuid=" + URLEncoder.encode(sUUID, StandardCharsets.UTF_8);
+            String sExternalUrl = "https://main01.wasdi.net/print/wasdi/print?uuid=" + URLEncoder.encode(sUUID, StandardCharsets.UTF_8);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(externalUrl))
+            HttpRequest oRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(sExternalUrl))
                     .GET()
                     .build();
 
-            HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            HttpResponse<byte[]> oResponse = oHttpClient.send(oRequest, HttpResponse.BodyHandlers.ofByteArray());
 
-            if (response.statusCode() == 200) {
+            if (oResponse.statusCode() == 200) {
                 // Determine content type from headers
-                String contentType = response.headers()
+                String sContentType = oResponse.headers()
                         .firstValue("Content-Type")
                         .orElse("application/octet-stream");
 
-                return Response.ok(response.body(), contentType)
-                        .header("Content-Disposition", "inline; filename=\"map." + (contentType.contains("pdf") ? "pdf" : "png") + "\"")
+                return Response.ok(oResponse.body(), sContentType)
+                        .header("Content-Disposition", "inline; filename=\"map." + (sContentType.contains("pdf") ? "pdf" : "png") + "\"")
                         .build();
             } else {
                 return Response.status(Response.Status.BAD_GATEWAY)
-                        .entity("Failed to fetch map from external service. Status: " + response.statusCode())
+                        .entity("Failed to fetch map from external service. Status: " + oResponse.statusCode())
                         .build();
             }
 
