@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import rise.Rise;
+import rise.lib.config.RiseConfig;
 import rise.lib.viewmodels.PrinterViewModel;
 
 import java.net.URI;
@@ -43,7 +45,7 @@ public class PrinterResource {
             //todo change the url and put in the config file
             // Build the HTTP POST request to the external WASDI API
             HttpRequest oExternalApiRequest = HttpRequest.newBuilder()
-                    .uri(URI.create("https://main01.wasdi.net/print/wasdi/storeMap"))
+                    .uri(URI.create(RiseConfig.Current.wasdiConfig.printServerAddress +"/storeMap"))
                     .header("Content-Type", MediaType.APPLICATION_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(oPrinterBodyJson))
                     .build();
@@ -95,7 +97,7 @@ public class PrinterResource {
         try {
             HttpClient oHttpClient = HttpClient.newHttpClient();
 
-            String sExternalUrl = "https://main01.wasdi.net/print/wasdi/print?uuid=" + URLEncoder.encode(sUUID, StandardCharsets.UTF_8);
+            String sExternalUrl = RiseConfig.Current.wasdiConfig.printServerAddress+ "/print?uuid=" + URLEncoder.encode(sUUID, StandardCharsets.UTF_8);
 
             HttpRequest oRequest = HttpRequest.newBuilder()
                     .uri(URI.create(sExternalUrl))

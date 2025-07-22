@@ -9,7 +9,8 @@ public class WasdiConfig {
 	public String wasdiPassword = "";
 
 	public String wasdiConfigProperties="";
-	
+
+	public String printServerAddress="";
 	
 
 }
