@@ -104,9 +104,9 @@
 			"shortArchiveDaysBack": 30,
 			"startArchiveDate": "2022-12-01",
 			"style": "DDS_FLOODED_AREAS",
-			"resolution": "350m",
+			"resolution": "375m",
 			"dataSource": "NOAA VIIRS",
-			"inputData": "Multi Mission"
+			"inputData": "VIIRS Daily Composited Flood Product (Suomi-NPP, NOAA-20, and NOAA-21 missions)"
 		},
 		{
 			"id": "integrated_archive",
