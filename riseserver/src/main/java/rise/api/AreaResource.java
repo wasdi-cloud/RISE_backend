@@ -294,7 +294,8 @@ public class AreaResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
-	@GET
+	@GET()
+	@Path("check-archive-area")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response canAreaSupportFullArchive(@HeaderParam("x-session-token") String sSessionId) {
 			//this method is made to check if an area can support full archive or no , this depends on the subscription of the org
