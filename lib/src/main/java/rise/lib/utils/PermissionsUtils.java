@@ -129,6 +129,31 @@ public class PermissionsUtils {
 	}
 	
 	/**
+	 * check if one of the subscriptions of the user support full archive
+	 * @param oUser
+	 * @return
+	 */
+	public static boolean canAreaSupportFullArchive(User oUser) {
+		if (oUser == null) return false;
+		if (Utils.isNullOrEmpty(oUser.getUserId())) return false;
+		if (Utils.isNullOrEmpty(oUser.getOrganizationId())) return false;
+		
+		SubscriptionRepository oSubscriptionRepository = new SubscriptionRepository();
+		List<Subscription> aoSubscriptions = oSubscriptionRepository.getSubscriptionsByOrganizationId(oUser.getOrganizationId());
+		if (aoSubscriptions==null) return false;
+		if (aoSubscriptions.size()<=0) return false;
+		
+		for (Subscription oSubscription : aoSubscriptions) {
+			if (oSubscription.isSupportsArchive()) {
+				double dNow = DateUtils.getNowAsDouble();
+				if (oSubscription.getExpireDate()>dNow) return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
 	 * Get a valid subscription for the user
 	 * @param oUser
 	 * @return

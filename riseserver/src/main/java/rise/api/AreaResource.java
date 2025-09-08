@@ -29,6 +29,7 @@ import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.EventsRepository;
 import rise.lib.data.LayerRepository;
+import rise.lib.data.SubscriptionRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.data.UserResourcePermissionRepository;
 import rise.lib.data.WasdiTaskRepository;
@@ -293,6 +294,24 @@ public class AreaResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response canAreaSupportFullArchive(@HeaderParam("x-session-token") String sSessionId) {
+			//this method is made to check if an area can support full archive or no , this depends on the subscription of the org
+			try {
+				// Check the session
+				User oUser = Rise.getUserFromSession(sSessionId);
+
+				if (oUser == null) {
+					RiseLog.warnLog("AreaResource.update: invalid Session");
+					return Response.status(Status.UNAUTHORIZED).build();
+				}
+				return Response.ok(PermissionsUtils.canAreaSupportFullArchive(oUser)).build();
+			}catch(Exception oEx) {
+				RiseLog.errorLog("AreaResource.canAreaSupportFullArchive: " + oEx);
+				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+			}
+	}
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -327,9 +346,15 @@ public class AreaResource {
 			boolean bCanAddAreas = PermissionsUtils.canUserAddArea(oUser);
 			
 			if (!bCanAddAreas) {
-				RiseLog.warnLog("SubscriptionResource.update: the org does not have more free areas");
+				RiseLog.warnLog("AreaResource.add: the org does not have more free areas");
 				ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
 				return Response.status(Status.UNAUTHORIZED).entity(oError).build();				
+			}
+			
+			if(oAreaViewModel.supportArchive && !PermissionsUtils.canAreaSupportFullArchive(oUser)) {
+				RiseLog.warnLog("AreaResource.add: the sub does not support full archive");
+				ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
+				return Response.status(Status.UNAUTHORIZED).entity(oError).build();
 			}
 			
 
