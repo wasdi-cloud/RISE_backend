@@ -11,6 +11,8 @@ import java.util.List;
 public class PrinterViewModel {
 
     private String baseMap;
+    private String title;
+    private String description;
     private int zoomLevel;
     private Center center;
     private String format; // "pdf" or "png"
