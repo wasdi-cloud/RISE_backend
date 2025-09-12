@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import rise.Rise;
 import rise.lib.config.RiseConfig;
 import rise.lib.viewmodels.PrinterViewModel;
 
@@ -22,7 +21,7 @@ public class PrinterResource {
     @POST
     @Path("storemap")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response storemap(PrinterViewModel oPrinterViewModel) {
+    public Response storeMap(PrinterViewModel oPrinterViewModel) {
         if(oPrinterViewModel == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -42,7 +41,6 @@ public class PrinterResource {
             // Serialize the incoming PrintMapRequest object to JSON string
             ObjectMapper oObjectMapper = new ObjectMapper();
             String oPrinterBodyJson =oObjectMapper.writeValueAsString(oPrinterViewModel);
-            //todo change the url and put in the config file
             // Build the HTTP POST request to the external WASDI API
             HttpRequest oExternalApiRequest = HttpRequest.newBuilder()
                     .uri(URI.create(RiseConfig.Current.wasdiConfig.printServerAddress +"/storeMap"))

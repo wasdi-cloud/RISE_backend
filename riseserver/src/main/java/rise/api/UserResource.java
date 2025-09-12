@@ -16,23 +16,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
-import rise.lib.business.ChangeEmailRequest;
-import rise.lib.business.ForgetPasswordRequest;
-import rise.lib.business.OTP;
-import rise.lib.business.OTPOperations;
+import rise.lib.business.*;
 
-import rise.lib.business.PasswordChangeRequest;
-
-import rise.lib.business.User;
-import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
-import rise.lib.data.ChangeEmailRequestRepository;
-import rise.lib.data.ForgetPasswordRequestRepository;
-import rise.lib.data.OTPRepository;
-import rise.lib.data.PasswordChangeRequestRepository;
+import rise.lib.data.*;
 
-import rise.lib.data.UserRepository;
-import rise.lib.data.UserResourcePermissionRepository;
 import rise.lib.utils.PasswordAuthentication;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
@@ -648,7 +636,7 @@ public class UserResource {
 					// If this is the only admin of this org that has more users, we want to delete the org before
 					if (aoAdmins.get(0).getUserId().equals(oUser.getUserId())) {
 						// org has only the current user as admin
-						RiseLog.warnLog("UserResource.deleteUser: the current user is the only last admin for the org that have also other users");
+						RiseLog.warnLog("UserResource.verifyDeleteUser: the current user is the only last admin for the org that have also other users");
 						return Response.status(Status.FORBIDDEN).build();						
 					}
 				}
@@ -669,7 +657,7 @@ public class UserResource {
 			
 			// We can now just delete user
 			oUserRepository.deleteByUserId(oUser.getUserId());
-			// send an email to the user  telling him his account is deleted
+			// email the user  telling him his account is deleted
 			// Get localized title and message
 
 			String sUserLanguage;
@@ -688,7 +676,24 @@ public class UserResource {
 			String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_DELETE_ACCOUNT_TITLE.name(), sUserLanguage);
 			String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_DELETE_ACCOUNT_MESSAGE.name(), sUserLanguage);
 
-			// And we send an email to the user waiting for him to confirm!
+			//get the organization so we can fill the message with organization name
+			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
+			Organization oOrg=oOrganizationRepository.getOrganization(oUser.getOrganizationId());
+			//replace organization name and username in a message
+
+			if(!Utils.isNullOrEmpty(oOrg.getName())){
+				sMessage=sMessage.replace("%%ORG_NAME%%",oOrg.getName());
+			}else{
+				RiseLog.warnLog("UserResource.verifyDeleteUser: the user's organization does not have a name therefore we cant send an email");
+				return Response.status(Status.NOT_FOUND).build();
+			}
+			if(!Utils.isNullOrEmpty(oUser.getName())){
+				sMessage=sMessage.replace("%%USER_NAME%%",oUser.getName());
+			}else{
+				RiseLog.warnLog("UserResource.verifyDeleteUser: the user does not have a name therefore we cant send an email");
+				return Response.status(Status.NOT_FOUND).build();
+			}
+			// And we email the user waiting for him to confirm!
 			MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oUser.getEmail(), sTitle, sMessage, true);
 
 			return Response.ok().build();
