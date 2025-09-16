@@ -25,4 +25,6 @@ public class NotificationsConfig {
 	public String mailJetSendAPI = "https://api.mailjet.com/v3.1/send";
 	
 	public boolean useMailJet = true;
+
+	public String wasdiAdminMail;
 }

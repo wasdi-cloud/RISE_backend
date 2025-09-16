@@ -3,7 +3,6 @@ package rise.api;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -398,23 +397,7 @@ public class SubscriptionResource {
 			oSubscription.setId(Utils.getRandomName());
 			oSubscription.setPaymentMethod(oSubscriptionViewModel.paymentMethod);
 
-			if(oSubscriptionViewModel.paymentMethod.equals("contact")){
-				//todo handle the use case of when user select contatc option as payment method , we send him an email ..ect
-			}
-
-			// Convert epoch to LocalDateTime for calendar-based arithmetic
-//			LocalDateTime nowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
-//			LocalDateTime expireDateTime;
-//
-//			if (oSubscription.getPaymentType().equals(PaymentType.MONTH)) {
-//				expireDateTime = nowDateTime.plusMonths(1); // Add 1 month
-//			} else {
-//				expireDateTime = nowDateTime.plusYears(1); // Add 1 year
-//			}
-//
-//			// Convert back to epoch milliseconds
-//			double dExpire = expireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
-//			oSubscription.setExpireDate(dExpire);
+			
 			oSubscription.setOrganizationId(oUser.getOrganizationId());
 
 			SubscriptionRepository oSubscriptionRepository = new SubscriptionRepository();
@@ -422,7 +405,21 @@ public class SubscriptionResource {
 
 			SubscriptionViewModel oReturnVM = (SubscriptionViewModel) RiseViewModel
 					.getFromEntity(SubscriptionViewModel.class.getName(), oSubscription);
-
+			//Here , we check if the payment method is wire and we send email to wasdi team informing them about this 
+			if(oSubscriptionViewModel.paymentMethod.equals("wire")) {
+				OrganizationRepository oOrganizationRepository=new OrganizationRepository();
+				Organization oOrg=oOrganizationRepository.getOrganization(oUser.getOrganizationId());
+				String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_WIRE_TRANSFER_REQUEST_TITLE.name(), Languages.EN.name());
+				String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_WIRE_TRANSFER_REQUEST_MESSAGE.name(), Languages.EN.name());
+				sMessage = sMessage.replace("%%USER_NAME%%", oUser.getName());
+				sMessage = sMessage.replace("%%ORG_NAME%%", oOrg.getName());
+				sMessage = sMessage.replace("%%SUB_NAME%%", oSubscription.getName());
+				sMessage = sMessage.replace("%%SUB_ID%%", oSubscription.getName());
+				
+				MailUtils.sendEmail(RiseConfig.Current.notifications.wasdiAdminMail,sTitle, sMessage);
+			}else if(oSubscriptionViewModel.paymentMethod.equals("contact")){
+				//todo handle the use case of when user select contact option as payment method , we send him an email ..ect
+			}
 			return Response.ok(oReturnVM).build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("SubscriptionResource.buy: " + oEx);
