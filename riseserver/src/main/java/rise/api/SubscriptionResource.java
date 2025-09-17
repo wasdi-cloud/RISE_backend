@@ -414,7 +414,7 @@ public class SubscriptionResource {
 				sMessage = sMessage.replace("%%USER_NAME%%", oUser.getName());
 				sMessage = sMessage.replace("%%ORG_NAME%%", oOrg.getName());
 				sMessage = sMessage.replace("%%SUB_NAME%%", oSubscription.getName());
-				sMessage = sMessage.replace("%%SUB_ID%%", oSubscription.getName());
+				sMessage = sMessage.replace("%%SUB_ID%%", oSubscription.getId());
 				
 				MailUtils.sendEmail(RiseConfig.Current.notifications.wasdiAdminMail,sTitle, sMessage);
 			}else if(oSubscriptionViewModel.paymentMethod.equals("contact")){
