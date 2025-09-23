@@ -6,8 +6,11 @@ import java.util.List;
 import org.bson.Document;
 
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.Filters;
 
+import rise.lib.business.MapsParameters;
 import rise.lib.business.Plugin;
+import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
 
 public class PluginRepository extends MongoRepository {
@@ -35,4 +38,67 @@ public class PluginRepository extends MongoRepository {
 
         return aoReturnList;			
 	}
+	
+	/**
+	 * Check if a map is part of a plugin
+	 * @param: 
+	 */
+	public boolean hasMap(String sPluginId, String sMapId) {
+		
+		if (Utils.isNullOrEmpty(sPluginId)) {
+			RiseLog.warnLog("PluginRepository.hasMap: plugin id is null or empty");
+			return false;
+		}
+		
+		if (Utils.isNullOrEmpty(sMapId)) {
+			RiseLog.warnLog("PluginRepository.hasMap: map id is null or empty");
+			return false;
+		}
+				
+		try {
+	    	List<Plugin> aoReturnList = new ArrayList<Plugin>();
+			
+			Document oQuery = new Document()
+					.append("id", sPluginId)
+					.append("maps", sMapId);
+			
+			Document oDocument = getCollection(m_sThisCollection).find(oQuery).first();
+			
+			return oDocument != null;
+		
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("PluginRepository.hasMap: error", oEx);
+		}
+		
+		return false;
+		
+	}
+	
+	
+	public Plugin getPluginFromMapId(String sMapId) {
+		
+		if (Utils.isNullOrEmpty(sMapId)) {
+			RiseLog.warnLog("PluginRepository.hasMap: map id is null or empty");
+			return null;
+		}
+				
+		try {			
+			Document oQuery = new Document().append("maps", sMapId);
+			
+			Document oDocument = getCollection(m_sThisCollection).find(oQuery).first();
+			
+	        String sJSON = oDocument.toJson();
+	        
+	        Plugin  oPlugin = (Plugin) s_oMapper.readValue(sJSON, m_oEntityClass);  
+	        
+	        return oPlugin;	
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("PluginRepository.hasMap: error", oEx);
+			return null;
+		}
+		
+	}
+	
 }
