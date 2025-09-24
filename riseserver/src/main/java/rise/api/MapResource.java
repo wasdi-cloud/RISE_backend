@@ -98,4 +98,57 @@ public class MapResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		} 
 	}
+	@GET
+	@Path("by_plugin")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getMapsByPlugin(@HeaderParam("x-session-token") String sSessionId, @QueryParam("area_id") String sPluginId) {
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+    		if (oUser == null) {
+				RiseLog.warnLog("MapResource.getMapsByPlugin: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+    		}
+
+    		if (Utils.isNullOrEmpty(sPluginId)) {
+				RiseLog.warnLog("MapResource.getMapsByPlugin: Plugin id null");
+				return Response.status(Status.BAD_REQUEST).build();
+    		}
+
+    		PluginRepository oPluginRepository = new PluginRepository();
+    		ArrayList<String> asMapIds = new ArrayList<>();
+
+    		for (Plugin oPlugin : oPluginRepository.getAll()) {
+    			for (String sMapId : oPlugin.getMaps()) {
+    				if (Utils.isNullOrEmpty(sMapId)) continue;
+					if (!asMapIds.contains(sMapId)) asMapIds.add(sMapId);
+				}
+			}
+    		ArrayList<MapViewModel> aoMapViewModels = new ArrayList<>();
+    		MapRepository oMapRepository = new MapRepository();
+    		for (String sMapId : asMapIds) {
+				Map oMap = (Map) oMapRepository.get(sMapId);
+
+				if (oMap == null) {
+					RiseLog.warnLog("MapResource.getMapsByPlugin: map not found " + sMapId);
+					continue;
+				}
+
+				if (oMap.isHidden()) {
+					RiseLog.debugLog("MapResource.getMapsByPlugin: map hidden: " + sMapId);
+					continue;
+				}
+
+				MapViewModel oMapViewModel = (MapViewModel) RiseViewModel.getFromEntity(MapViewModel.class.getName(), oMap);
+				aoMapViewModels.add(oMapViewModel);
+			}
+
+    		return Response.ok(aoMapViewModels).build();
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("MapResource.getMapsByPlugin: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
 }
