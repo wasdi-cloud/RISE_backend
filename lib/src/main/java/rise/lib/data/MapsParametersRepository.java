@@ -59,15 +59,17 @@ public class MapsParametersRepository extends MongoRepository {
 		            .sort(Sorts.descending("timestamp"))
 		            .limit(1)
 		            .first();
-		    
-	        String sJSON = oResult.toJson();
-	        MapsParameters oMostRecentParameters = (MapsParameters) s_oMapper.readValue(sJSON, m_oEntityClass);  
-	        return oMostRecentParameters;
-        
+		    if (oResult != null) {
+		        String sJSON = oResult.toJson();
+		        MapsParameters oMostRecentParameters = (MapsParameters) s_oMapper.readValue(sJSON, m_oEntityClass);  
+		        return oMostRecentParameters;
+		    }
 	    } catch (Exception oEx) {
         	RiseLog.errorLog("MapsParametersRepository.getMostRecentParameters: exception " + oEx);
         	return null;
         }
+	    
+	    return null;
 	}
 	
 }

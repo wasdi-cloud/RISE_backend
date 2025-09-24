@@ -7,8 +7,10 @@ public class MapsParameters extends RiseEntity {
 	private String pluginId;
 	private String mapId;
 	private String payload;
-	private String userId;
+	private String creationUserId;
 	private long creationTimestamp;
+	private String lastModifyUserId;
+	private long lastModifyTimestamp;
 	
 	public String getId() {
 		return id;
@@ -50,12 +52,12 @@ public class MapsParameters extends RiseEntity {
 		this.payload = payload;
 	}
 	
-	public String getUserId() {
-		return userId;
+	public String getCreationUserId() {
+		return creationUserId;
 	}
 
-	public void setUserId(String userId) {
-		this.userId = userId;
+	public void setCreationUserId(String creationUserId) {
+		this.creationUserId = creationUserId;
 	}
 	
 	public long getCreationTimestamp() {
@@ -64,5 +66,21 @@ public class MapsParameters extends RiseEntity {
 	
 	public void setCreationTimestamp(long creationTimestamp) {
 		this.creationTimestamp = creationTimestamp;
+	}
+
+	public String getLastModifyUserId() {
+		return lastModifyUserId;
+	}
+
+	public void setLastModifyUserId(String lastModifyUserId) {
+		this.lastModifyUserId = lastModifyUserId;
+	}
+
+	public long getLastModifyTimestamp() {
+		return lastModifyTimestamp;
+	}
+
+	public void setLastModifyTimestamp(long lastModifyTimestamp) {
+		this.lastModifyTimestamp = lastModifyTimestamp;
 	}
 }
