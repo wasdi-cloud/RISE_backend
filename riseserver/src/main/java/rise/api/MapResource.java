@@ -101,7 +101,7 @@ public class MapResource {
 	@GET
 	@Path("by_plugin")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getMapsByPlugin(@HeaderParam("x-session-token") String sSessionId, @QueryParam("area_id") String sPluginId) {
+	public Response getMapsByPlugin(@HeaderParam("x-session-token") String sSessionId, @QueryParam("plugin_id") String sPluginId) {
 		try {
 			// Check the session
 			User oUser = Rise.getUserFromSession(sSessionId);
