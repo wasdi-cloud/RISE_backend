@@ -118,10 +118,10 @@ public class MapResource {
 
     		PluginRepository oPluginRepository = new PluginRepository();
     		ArrayList<String> asMapIds = new ArrayList<>();
-
-    		for (Plugin oPlugin : oPluginRepository.getAll()) {
-    			for (String sMapId : oPlugin.getMaps()) {
-    				if (Utils.isNullOrEmpty(sMapId)) continue;
+			Plugin oPlugin=(Plugin)oPluginRepository.get(sPluginId);
+			if(oPlugin!=null) {
+				for (String sMapId : oPlugin.getMaps()) {
+					if (Utils.isNullOrEmpty(sMapId)) continue;
 					if (!asMapIds.contains(sMapId)) asMapIds.add(sMapId);
 				}
 			}
