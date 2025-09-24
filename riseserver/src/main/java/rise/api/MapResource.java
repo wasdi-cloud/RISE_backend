@@ -2,11 +2,13 @@ package rise.api;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -27,8 +29,11 @@ import rise.lib.data.PluginRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
+import rise.lib.viewmodels.AreaViewModel;
+import rise.lib.viewmodels.MapsParametersViewModel;
 import rise.lib.viewmodels.MapViewModel;
 import rise.lib.viewmodels.RiseViewModel;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -121,23 +126,17 @@ public class MapResource {
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 	
-			if (Utils.isNullOrEmpty(sAreaId)) {
-				RiseLog.warnLog("MapResource.getParameters: Area id null");
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-			
-			if (Utils.isNullOrEmpty(sMapId)) {
-				RiseLog.warnLog("MapResource.getParameters: map id null");
+			if (Utils.isNullOrEmpty(sAreaId) || Utils.isNullOrEmpty(sMapId)) {
+				RiseLog.warnLog("MapResource.getParameters: some parameters are null or empty");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 	
-			// Check if we have this subscription
 			AreaRepository oAreaRepository = new AreaRepository();
 			Area oArea = (Area) oAreaRepository.get(sAreaId);
 	
 			if (oArea == null) {
 				RiseLog.warnLog("MapResource.getParameters: Area with this id " + sAreaId + " not found");
-				return Response.status(Status.BAD_REQUEST).build();
+				return Response.status(Status.NOT_FOUND).build();
 			}
 	
 			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
@@ -184,10 +183,10 @@ public class MapResource {
 			MapsParametersRepository oParametersRepository = new MapsParametersRepository();
 			MapsParameters oMapParameters = oParametersRepository.getMostRecentParameters(sAreaId, sPluginId, sMapId);
 			
-			if (oMapParameters != null && !Utils.isNullOrEmpty(oMapParameters.getPayload())) {
+			if (oMapParameters != null) {
 				RiseLog.debugLog("MapResource.getParameters: map " + sMapId + " has some oveloaded parameter");
-				JsonNode oMapJsonParams = oMapper.readTree(oMapParameters.getPayload());
-				return Response.ok(oMapJsonParams).build();
+				MapsParametersViewModel oMapParameterViewModel = (MapsParametersViewModel) RiseViewModel.getFromEntity(MapsParametersViewModel.class.getName(), oMapParameters);
+				return Response.ok(oMapParameterViewModel).build();
 			}
 			
 			RiseLog.debugLog("MapResource.getParameters: no overloaded parameters found. Will proceed with the default ones");
@@ -244,12 +243,106 @@ public class MapResource {
 				return Response.status(Status.NOT_FOUND).build();
 			}
 			
-			return Response.ok(oMapJsonParams).build();
+			MapsParametersViewModel oMapsParametersVM = new MapsParametersViewModel();
+			oMapsParametersVM.areaId = sAreaId;
+			oMapsParametersVM.mapId = sMapId;
+			oMapsParametersVM.payload = oMapJsonParams.toString();
+			
+			return Response.ok(oMapsParametersVM).build();
 			
 		} catch (Exception oE) {
 			RiseLog.errorLog("MapResource.getParameters. Exception " + oE.getMessage());
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
+	}
+	
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response add(@HeaderParam("x-session-token") String sSessionId, MapsParametersViewModel oMapParametersViewModel) {
+		
+		try {
+			User oUser = Rise.getUserFromSession(sSessionId);
+			
+			if (oUser == null) {
+				RiseLog.warnLog("MapResource.add: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			
+			if (oMapParametersViewModel == null) {
+				RiseLog.warnLog("MapResource.add: map parameter view model is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			
+			if (Utils.isNullOrEmpty(oMapParametersViewModel.areaId) 
+					|| Utils.isNullOrEmpty(oMapParametersViewModel.mapId) 
+					|| Utils.isNullOrEmpty(oMapParametersViewModel.payload)) {
+				RiseLog.warnLog("MapResource.add: some fiels in the view model are null or empty");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			
+			String sAreaId = oMapParametersViewModel.areaId;
+			AreaRepository oAreaRepository = new AreaRepository();
+			Area oArea = (Area) oAreaRepository.get(sAreaId);
+	
+			if (oArea == null) {
+				RiseLog.warnLog("MapResource.add: Area with this id " + sAreaId + " not found");
+				return Response.status(Status.NOT_FOUND).build();
+			}
+	
+			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("MapResource.add: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			
+			// Check if we have this map id
+			String sMapId = oMapParametersViewModel.mapId;
+			MapRepository oMapRepository = new MapRepository();
+			Map oMap = (Map) oMapRepository.get(sMapId);
+			
+			if (oMap == null) {
+				RiseLog.warnLog("MapResource.add: Map with id " + sMapId + " not found");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			
+			
+			//TODO: which other rights does the user need to access an area?
+			// does they need to be HQ or field operators? Do they need valid subscriptions
+			
+			PluginRepository oPluginRepository = new PluginRepository();
+			Plugin oPlugin = oPluginRepository.getPluginFromMapId(sMapId);
+			
+			if (oPlugin == null) {
+				RiseLog.warnLog("MapResource.add: plugin for map " + sMapId + " not found");
+				return Response.status(Status.NOT_FOUND).build();
+			}
+			
+			String sMapParameterId = Utils.getRandomName();
+			MapsParametersRepository oMapsParametersRepo = new MapsParametersRepository();
+			while (oMapsParametersRepo.get(sMapParameterId) != null) {
+				sMapParameterId = Utils.getRandomName();
+			}
+			
+			MapsParameters oMapParameters = new MapsParameters();
+			oMapParameters.setId(sMapParameterId);
+			oMapParameters.setAreaId(sAreaId);
+			oMapParameters.setMapId(sMapId);
+			oMapParameters.setPluginId(oPlugin.getId());
+			oMapParameters.setPayload(oMapParametersViewModel.payload);
+			oMapParameters.setUserId(oUser.getUserId());
+			oMapParameters.setCreationTimestamp(Instant.now().toEpochMilli());
+			
+			if (Utils.isNullOrEmpty(oMapsParametersRepo.add(oMapParameters))) {
+				RiseLog.warnLog("MapResource.add: map parameters where not stored");
+				return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+			}
+		
+			return Response.ok().build();
+		
+		} catch (Exception oE) {
+			RiseLog.errorLog("MapResource.add: exception " + oE.getMessage());
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+				
 	}
 
 }
