@@ -21,6 +21,7 @@ import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
 import rise.lib.business.Event;
+import rise.lib.business.Layer;
 import rise.lib.business.ResourceTypes;
 import rise.lib.business.Subscription;
 import rise.lib.business.User;
@@ -33,6 +34,7 @@ import rise.lib.data.SubscriptionRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.data.UserResourcePermissionRepository;
 import rise.lib.data.WasdiTaskRepository;
+import rise.lib.utils.GeoServerManager;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
@@ -810,10 +812,18 @@ public class AreaResource {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			
-			// TODO: Clean Geoserver before deleting layers
+            LayerRepository oLayerRepository = new LayerRepository();
+            List<Layer> aoAreaLayers = oLayerRepository.getLayerByArea(sAreaId);
+            
+            if (aoAreaLayers != null) {
+            	GeoServerManager oGeoServerManager = new GeoServerManager();
+            	
+            	for (Layer oLayer : aoAreaLayers) {
+            		oGeoServerManager.removeLayer(oLayer.getId());
+				}
+            }
 			
 			// delete the layers
-			LayerRepository oLayerRepository = new LayerRepository();
 			oLayerRepository.deleteByAreaId(sAreaId);
 			
 			// delete the wasdi tasks related to this area

@@ -1,9 +1,13 @@
 package rise.lib.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 
@@ -70,24 +74,25 @@ public class LayerRepository extends MongoRepository {
 	}
 
 	
-	public Layer getLayerByArea(String sAreaId) {
+	public List<Layer> getLayerByArea(String sAreaId) {
 		
 		try {
-			DBObject oSort= new BasicDBObject();
-			oSort.put("referenceDate", -1);
-			Document oSortDoc = new Document(oSort.toMap());
-			Document oDocument = getCollection(m_sThisCollection).find(Filters.eq("areaId", sAreaId)).sort(oSortDoc).first();
-			
-            if(oDocument == null)
-            {
-            	return null;
-            }
-            
-            String sJSON = oDocument.toJson();
 
-            Layer oEntity = (Layer) s_oMapper.readValue(sJSON, m_oEntityClass);
+			List<Layer> aoReturnList = new ArrayList<Layer>();
 
-            return oEntity;			
+			try {
+
+				FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("areaId", sAreaId));
+
+				fillList(aoReturnList, oWSDocument, Layer.class);
+
+				return aoReturnList;
+
+			} catch (Exception oEx) {
+				RiseLog.errorLog("LayerRepository.getLayerByAreaMapTime: error", oEx);
+			}
+
+			return aoReturnList;			
 		}
 		catch (Exception oEx) {
 			RiseLog.errorLog("LayerRepository.getLayerByArea exception: " + oEx.toString());
