@@ -68,7 +68,34 @@ public class LayerRepository extends MongoRepository {
 		
 		return null;
 	}
+
 	
+	public Layer getLayerByArea(String sAreaId) {
+		
+		try {
+			DBObject oSort= new BasicDBObject();
+			oSort.put("referenceDate", -1);
+			Document oSortDoc = new Document(oSort.toMap());
+			Document oDocument = getCollection(m_sThisCollection).find(Filters.eq("areaId", sAreaId)).sort(oSortDoc).first();
+			
+            if(oDocument == null)
+            {
+            	return null;
+            }
+            
+            String sJSON = oDocument.toJson();
+
+            Layer oEntity = (Layer) s_oMapper.readValue(sJSON, m_oEntityClass);
+
+            return oEntity;			
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("LayerRepository.getLayerByArea exception: " + oEx.toString());
+		}
+		
+		return null;
+	}
+
 	public long deleteByAreaId(String sAreaId) {
 		try {
 			DeleteResult oDeleteResult = getCollection(m_sThisCollection).deleteMany(Filters.eq("areaId", sAreaId));
