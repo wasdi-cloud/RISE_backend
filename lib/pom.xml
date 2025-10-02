@@ -136,6 +136,12 @@
             <artifactId>json</artifactId>
             <version>${sVersionJson}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/it.geosolutions/geoserver-manager -->
+        <dependency>
+            <groupId>it.geosolutions</groupId>
+            <artifactId>geoserver-manager</artifactId>
+            <version>1.7.0</version>
+        </dependency>    
 		
   </dependencies>
   
@@ -149,5 +155,9 @@
             <name>WASDI - INTERNAL REPOSITORY - LIBRARIES</name>
             <url>${sWasdiNexusRepositoryLibrariesUrl}</url>
         </repository>
+        <repository>
+            <id>GeoSolutions</id>
+            <url>http://maven.geo-solutions.it/</url>
+        </repository>        
     </repositories>
 </project>
