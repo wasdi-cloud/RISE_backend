@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -815,13 +818,50 @@ public class AreaResource {
             LayerRepository oLayerRepository = new LayerRepository();
             List<Layer> aoAreaLayers = oLayerRepository.getLayerByArea(sAreaId);
             
-            if (aoAreaLayers != null) {
+            
+            if (aoAreaLayers != null && !aoAreaLayers.isEmpty()) {
+                GeoServerManager oGeoServerManager = new GeoServerManager();
+
+                // Create a thread pool with a fixed number of threads.
+                // A common choice is the number of available processors,
+                // or a number based on the expected I/O operations.
+                int numThreads = 10;
+                ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+
+                // Iterate through the layers and submit each deletion as a task.
+                for (Layer oLayer : aoAreaLayers) {
+                    executor.submit(() -> {
+                        try {
+                            oGeoServerManager.removeLayer(oLayer.getId());
+                            RiseLog.infoLog("Successfully deleted GeoServer layer: " + oLayer.getId());
+                        } catch (Exception e) {
+                            RiseLog.errorLog("Error deleting GeoServer layer " + oLayer.getId() + ": " + e.getMessage());
+                        }
+                    });
+                }
+
+                // Shut down the executor and wait for all tasks to complete.
+                // This is a crucial step to ensure all deletions are finished
+                // before the method returns.
+                executor.shutdown();
+                try {
+                    // Wait for up to 30 minutes for all tasks to complete.
+                    if (!executor.awaitTermination(30, TimeUnit.MINUTES)) {
+                        RiseLog.warnLog("GeoServer layer deletion timed out.");
+                        // Handle the timeout case if necessary.
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    RiseLog.errorLog("Thread interrupted while waiting for GeoServer deletions.");
+                }
+            }
+            /*if (aoAreaLayers != null) {
             	GeoServerManager oGeoServerManager = new GeoServerManager();
             	
             	for (Layer oLayer : aoAreaLayers) {
             		oGeoServerManager.removeLayer(oLayer.getId());
 				}
-            }
+            }*/
 			
 			// delete the layers
 			oLayerRepository.deleteByAreaId(sAreaId);
