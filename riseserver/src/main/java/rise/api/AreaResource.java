@@ -825,15 +825,15 @@ public class AreaResource {
                 // Create a thread pool with a fixed number of threads.
                 // A common choice is the number of available processors,
                 // or a number based on the expected I/O operations.
-                int numThreads = 10;
-                ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+                int iNumThreads = 10;
+                ExecutorService oExecutor = Executors.newFixedThreadPool(iNumThreads);
 
                 // Iterate through the layers and submit each deletion as a task.
                 for (Layer oLayer : aoAreaLayers) {
-                    executor.submit(() -> {
+                    oExecutor.submit(() -> {
                         try {
                             oGeoServerManager.removeLayer(oLayer.getId());
-                            RiseLog.infoLog("Successfully deleted GeoServer layer: " + oLayer.getId());
+                            RiseLog.debugLog("Successfully deleted GeoServer layer: " + oLayer.getId());
                         } catch (Exception e) {
                             RiseLog.errorLog("Error deleting GeoServer layer " + oLayer.getId() + ": " + e.getMessage());
                         }
@@ -843,10 +843,10 @@ public class AreaResource {
                 // Shut down the executor and wait for all tasks to complete.
                 // This is a crucial step to ensure all deletions are finished
                 // before the method returns.
-                executor.shutdown();
+                oExecutor.shutdown();
                 try {
                     // Wait for up to 30 minutes for all tasks to complete.
-                    if (!executor.awaitTermination(30, TimeUnit.MINUTES)) {
+                    if (!oExecutor.awaitTermination(30, TimeUnit.MINUTES)) {
                         RiseLog.warnLog("GeoServer layer deletion timed out.");
                         // Handle the timeout case if necessary.
                     }
