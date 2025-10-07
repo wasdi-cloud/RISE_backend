@@ -38,7 +38,7 @@ public class GeoServerManager {
 	/**
 	 * Geoserver Workspace 
 	 */
-	private final String m_sWorkspace = "wasdi";
+	private final String m_sWorkspace = "rise";
 	
 	/**
 	 * URL of the GeoServer API 
@@ -220,7 +220,7 @@ public class GeoServerManager {
     
     /**
      * Checks if a coverage store exists
-     * @param sLayerId layer id to check
+     * @param sCoverageId layer id to check
      * @return true if exists, false if it does not exists
      */
     public boolean coverageStoreExists(String sCoverageId) {
@@ -322,7 +322,7 @@ public class GeoServerManager {
 
     /**
      * Removes a style to geoserver
-     * @param sStyleFile Path of the sld file
+     * @param sStyleName Path of the sld file
      * @return
      */
     public boolean removeStyle(String sStyleName) {
