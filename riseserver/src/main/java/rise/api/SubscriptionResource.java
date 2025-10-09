@@ -418,7 +418,17 @@ public class SubscriptionResource {
 				
 				MailUtils.sendEmail(RiseConfig.Current.notifications.wasdiAdminMail,sTitle, sMessage);
 			}else if(oSubscriptionViewModel.paymentMethod.equals("contact")){
-				//todo handle the use case of when user select contact option as payment method , we send him an email ..ect
+				//email us, saying that user wants to contact us about paying the subscription
+				OrganizationRepository oOrganizationRepository=new OrganizationRepository();
+				Organization oOrg=oOrganizationRepository.getOrganization(oUser.getOrganizationId());
+				String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CONTACT_REQUEST_TITLE.name(), Languages.EN.name());
+				String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CONTACT_REQUEST_MESSAGE.name(), Languages.EN.name());
+				sMessage = sMessage.replace("%%USER_NAME%%", oUser.getName());
+				sMessage = sMessage.replace("%%ORG_NAME%%", oOrg.getName());
+				sMessage = sMessage.replace("%%SUB_NAME%%", oSubscription.getName());
+				sMessage = sMessage.replace("%%SUB_ID%%", oSubscription.getId());
+
+				MailUtils.sendEmail(RiseConfig.Current.notifications.wasdiAdminMail,sTitle, sMessage);
 			}
 			return Response.ok(oReturnVM).build();
 		} catch (Exception oEx) {
