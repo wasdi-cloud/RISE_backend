@@ -366,18 +366,18 @@ public class SubscriptionResource {
 			User oUser = Rise.getUserFromSession(sSessionId);
 
 			if (oUser == null) {
-				RiseLog.warnLog("SubscriptionResource.getPrice: invalid Session");
+				RiseLog.warnLog("SubscriptionResource.createSubscription: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
-				RiseLog.warnLog("SubscriptionResource.getPrice: not an HQ level");
+				RiseLog.warnLog("SubscriptionResource.createSubscription: not an HQ level");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
 			if (oSubscriptionViewModel == null) {
-				RiseLog.warnLog("SubscriptionResource.getPrice: sub view model null");
+				RiseLog.warnLog("SubscriptionResource.createSubscription: sub view model null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			
@@ -405,7 +405,7 @@ public class SubscriptionResource {
 
 			SubscriptionViewModel oReturnVM = (SubscriptionViewModel) RiseViewModel
 					.getFromEntity(SubscriptionViewModel.class.getName(), oSubscription);
-			//Here , we check if the payment method is wire and we send email to wasdi team informing them about this 
+			//Here, we check if the payment method is wire, and we email wasdi team informing them about this
 			if(oSubscriptionViewModel.paymentMethod.equals("wire")) {
 				OrganizationRepository oOrganizationRepository=new OrganizationRepository();
 				Organization oOrg=oOrganizationRepository.getOrganization(oUser.getOrganizationId());
@@ -418,11 +418,21 @@ public class SubscriptionResource {
 				
 				MailUtils.sendEmail(RiseConfig.Current.notifications.wasdiAdminMail,sTitle, sMessage);
 			}else if(oSubscriptionViewModel.paymentMethod.equals("contact")){
-				//todo handle the use case of when user select contact option as payment method , we send him an email ..ect
+				//email us, saying that user wants to contact us about paying the subscription
+				OrganizationRepository oOrganizationRepository=new OrganizationRepository();
+				Organization oOrg=oOrganizationRepository.getOrganization(oUser.getOrganizationId());
+				String sTitle = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CONTACT_REQUEST_TITLE.name(), Languages.EN.name());
+				String sMessage = LangUtils.getLocalizedString(StringCodes.NOTIFICATIONS_CONTACT_REQUEST_MESSAGE.name(), Languages.EN.name());
+				sMessage = sMessage.replace("%%USER_NAME%%", oUser.getName());
+				sMessage = sMessage.replace("%%ORG_NAME%%", oOrg.getName());
+				sMessage = sMessage.replace("%%SUB_NAME%%", oSubscription.getName());
+				sMessage = sMessage.replace("%%SUB_ID%%", oSubscription.getId());
+
+				MailUtils.sendEmail(RiseConfig.Current.notifications.wasdiAdminMail,sTitle, sMessage);
 			}
 			return Response.ok(oReturnVM).build();
 		} catch (Exception oEx) {
-			RiseLog.errorLog("SubscriptionResource.buy: " + oEx);
+			RiseLog.errorLog("SubscriptionResource.createSubscription: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
@@ -578,9 +588,9 @@ public class SubscriptionResource {
 					// Convert epoch to LocalDateTime for calendar-based arithmetic
 					LocalDateTime oNowDateTime = LocalDateTime.ofEpochSecond((long) dNow / 1000, 0, ZoneOffset.UTC);
 					LocalDateTime oExpireDateTime;
-
+					//here the user chooses to pay a year of use or 3 months
 					if (oSubscription.getPaymentType().equals(PaymentType.MONTH)) {
-						oExpireDateTime = oNowDateTime.plusMonths(1); // Add 1 month
+						oExpireDateTime = oNowDateTime.plusMonths(3); // Add 3 months
 					} else {
 						oExpireDateTime = oNowDateTime.plusYears(1); // Add 1 year
 					}
@@ -589,15 +599,15 @@ public class SubscriptionResource {
 					double dExpire = oExpireDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
 					oSubscription.setExpireDate(dExpire);
 					oSubscriptionRepository.update(oSubscription, oSubscription.getId());
-					// send email to the user telling him his sub is successful
+					// email the user telling him his sub is successful
 
-					// We replace the sub name, org name  and the expiry date in the message
+					// We replace the sub name, org name and the expiry date in the message
 					OrganizationRepository oOrganizationRepository=new OrganizationRepository();
 					Organization oOrg=(Organization)oOrganizationRepository.get(oSubscription.getOrganizationId());
 					String sOrgName=oOrg.getName();
 					UserRepository oUserRepository=new UserRepository();
 					List<User> aoAdmins=oUserRepository.getAdminsOfOrganization(oOrg.getId());
-					//And we send an email to the org admins !
+					//And we email the org admins!
 					for (User oAdmin : aoAdmins) {
 						String sUserLanguage;
 						String sDefaultLanguageCode = oAdmin.getDefaultLanguage(); // Get the language code once

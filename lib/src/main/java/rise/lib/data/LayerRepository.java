@@ -1,9 +1,13 @@
 package rise.lib.data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 
@@ -68,7 +72,35 @@ public class LayerRepository extends MongoRepository {
 		
 		return null;
 	}
+
 	
+	public List<Layer> getLayerByArea(String sAreaId) {
+		
+		try {
+
+			List<Layer> aoReturnList = new ArrayList<Layer>();
+
+			try {
+
+				FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("areaId", sAreaId));
+
+				fillList(aoReturnList, oWSDocument, Layer.class);
+
+				return aoReturnList;
+
+			} catch (Exception oEx) {
+				RiseLog.errorLog("LayerRepository.getLayerByAreaMapTime: error", oEx);
+			}
+
+			return aoReturnList;			
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("LayerRepository.getLayerByArea exception: " + oEx.toString());
+		}
+		
+		return null;
+	}
+
 	public long deleteByAreaId(String sAreaId) {
 		try {
 			DeleteResult oDeleteResult = getCollection(m_sThisCollection).deleteMany(Filters.eq("areaId", sAreaId));
