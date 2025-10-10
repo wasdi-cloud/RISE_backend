@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
@@ -38,6 +39,35 @@ public class PluginRepository extends MongoRepository {
 
         return aoReturnList;			
 	}
+	
+	public List<Plugin> listById(List<String> asPluginIds) {
+		
+		List<Plugin> aoRes = null;
+		
+		if (asPluginIds == null || asPluginIds.size() == 0) {
+			RiseLog.warnLog("PluginRepository.listById: list of plugin ids is null or empty");
+			return aoRes;
+		}
+		
+		try {
+			
+			Bson oFilter = Filters.in("id", asPluginIds);
+			
+			FindIterable<Document> aoDocument = getCollection(m_sThisCollection).find(oFilter);
+			
+			aoRes = new ArrayList<Plugin>();
+			
+			fillList(aoRes, aoDocument, Plugin.class);
+	        
+	        return aoRes;	
+			
+		} catch (Exception oE) {
+			RiseLog.errorLog("PluginRepository.listById: exception", oE);
+		}
+		
+		return null;
+	}
+	
 	
 	/**
 	 * Check if a map is part of a plugin
