@@ -803,14 +803,7 @@ public class UserResource {
 			// Generate the Confirmation Code
 			String sConfirmationCode = Utils.getRandomName();
 			// save user confirmation code in Change email request
-			ForgetPasswordRequest oForgetPasswordRequest = new ForgetPasswordRequest();
-			oForgetPasswordRequest.setId(Utils.getRandomName());
-			oForgetPasswordRequest.setConfirmationCode(sConfirmationCode);
-			oForgetPasswordRequest.setUserId(sUserId);
-			oForgetPasswordRequest.setCreatedAt(DateUtils.getNowAsDouble());
-			// Set expiresAt to 24 hours from now
-			double expiresAt = DateUtils.getNowAsDouble() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
-			oForgetPasswordRequest.setExpiresAt(expiresAt);
+			ForgetPasswordRequest oForgetPasswordRequest = getForgetPasswordRequest(sUserId, sConfirmationCode);
 
 			ForgetPasswordRequestRepository oForgetPasswordRequestRepository = new ForgetPasswordRequestRepository();
 			oForgetPasswordRequestRepository.add(oForgetPasswordRequest);
@@ -849,6 +842,18 @@ public class UserResource {
 			RiseLog.errorLog("UserResource.forgetPassword: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
+	}
+
+	private static ForgetPasswordRequest getForgetPasswordRequest(String sUserId, String sConfirmationCode) {
+		ForgetPasswordRequest oForgetPasswordRequest = new ForgetPasswordRequest();
+		oForgetPasswordRequest.setId(Utils.getRandomName());
+		oForgetPasswordRequest.setConfirmationCode(sConfirmationCode);
+		oForgetPasswordRequest.setUserId(sUserId);
+		oForgetPasswordRequest.setCreatedAt(DateUtils.getNowAsDouble());
+		// Set expiresAt to 24 hours from now
+		double expiresAt = DateUtils.getNowAsDouble() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
+		oForgetPasswordRequest.setExpiresAt(expiresAt);
+		return oForgetPasswordRequest;
 	}
 
 	@POST
