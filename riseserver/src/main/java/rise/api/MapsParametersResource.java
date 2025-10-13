@@ -268,9 +268,10 @@ public class MapsParametersResource {
 			oMapParameters.setPluginId(oPlugin.getId());
 			oMapParameters.setPayload(oMapParametersViewModel.payload);
 			oMapParameters.setCreationUserId(oUser.getUserId());
-			oMapParameters.setCreationTimestamp(Instant.now().toEpochMilli());
-			oMapParameters.setLastModifyTimestamp(0L);
-			oMapParameters.setLastModifyUserId(null);
+			long lNow = Instant.now().toEpochMilli();
+			oMapParameters.setCreationTimestamp(lNow);
+			oMapParameters.setLastModifyTimestamp(lNow);
+			oMapParameters.setLastModifyUserId(oUser.getUserId());
 			
 			if (Utils.isNullOrEmpty(oMapsParametersRepo.add(oMapParameters))) {
 				RiseLog.warnLog("MapResource.add: map parameters where not stored");
