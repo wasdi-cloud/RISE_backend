@@ -2,21 +2,26 @@
 	"maps": [
 		{
 			"id": "s3_lst",
-			"params": {
-				"BBOX": {
-				},
-				"XRES": 0.01,
-				"YRES": 0.01,
-				"STARTDATE": "2025-04-28",
-				"ENDDATE": "2025-04-28",
-				"reprojectSubsetWorkflow": "S3_reprojectGEO_subsetLST",
-				"PROVIDER": "AUTO",
-				"DELETE": true,
-				"DELETEDAILYMAPS": false,
-				"FORCE_LAST_MONTH": false,
-				"MOVE_TO_SFTP": false
-			},
-			"processor": "s3_lst_daily_and_max",
+            "params": {
+                "BBOX": {
+                },
+                "XRES": 0.01,
+                "YRES": 0.01,
+                "STARTDATE": "2025-04-28",
+                "ENDDATE": "2025-04-28",
+                "reprojectSubsetWorkflow": "S3_reprojectGEO_subsetLST",
+                "PROVIDER": "AUTO",
+                "DELETE": true,
+                "DELETEDAILYMAPS": false,
+                "FORCE_LAST_MONTH": false,
+                "MOVE_TO_SFTP": false,
+                "BASENAME": "Iraq_",
+                "TRIGGER_ANOMALIES": false,
+                "COMPOSITE": false,
+                "OutputInCelsius": false,
+                "TYPE_OF_DAILY_MAPS": "EVENING"
+            },
+			"processor": "s3_lst_daily_and_avg",
 			"shortArchiveDaysBack": 15,
 			"startArchiveDate": "2023-01-01",
 			"style": "temperature_k",
