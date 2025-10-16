@@ -36,4 +36,9 @@ public class MongoConfig {
 	 * Replica Name
 	 */
 	public String replicaName;
+	
+	/**
+	 * Flag for local mongo debug. Set it true to debug locally a mongo cluster with an ssh tunnel
+	 */
+	public boolean directConnection = false;
 }
