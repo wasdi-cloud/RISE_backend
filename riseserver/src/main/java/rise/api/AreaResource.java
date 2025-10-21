@@ -812,8 +812,21 @@ public class AreaResource {
             EventResource oEventResource = new EventResource();
 
             // We can delete all the events
+            RiseLog.infoLog("AreaResource.deleteArea: Deleting Events for  " + oArea.getName() + " with the Id : " + sAreaId + " from user " + oUser.getUserId());
             for (Event oEvent : aoAreaEvents) {
                 oEventResource.deleteEvent(sSessionId, oEvent.getId());
+            }
+            RiseLog.infoLog("AreaResource.deleteArea: Deleting Widgets for  " + oArea.getName() + " with the Id : " + sAreaId + " from user " + oUser.getUserId());
+
+            //delete area's widgets
+
+            WidgetInfoRepository oWidgetInfoRepository = new WidgetInfoRepository();
+            List<WidgetInfo> aoWidgetList=oWidgetInfoRepository.getWidgetListByAreaId(sAreaId);
+            for (WidgetInfo oWidgetInfo : aoWidgetList) {
+                if(Utils.isNullOrEmpty(oWidgetInfo.getId())){
+                   continue;
+                }
+                oWidgetInfoRepository.delete(oWidgetInfo.getId());
             }
 
             UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();

@@ -39,6 +39,23 @@ public class WidgetInfoRepository extends MongoRepository {
 
         return aoReturnList;			
 	}
+	public List<WidgetInfo> getWidgetListByAreaId(String sAreaId) {
+    	List<WidgetInfo> aoReturnList = new ArrayList<WidgetInfo>();
+
+        try {
+
+        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("areaId", sAreaId));
+
+        	fillList(aoReturnList, oWSDocument, WidgetInfo.class);
+
+        	return aoReturnList;
+
+        } catch (Exception oEx) {
+        	RiseLog.errorLog("WidgetInfoRepository.getWidgetListByAreaId: error", oEx);
+        }
+
+        return aoReturnList;
+	}
 	
 	public WidgetInfo getByWidgetOrganizationIdTime(String sWidget, String sOrganizationId, double dTime) {
 		
