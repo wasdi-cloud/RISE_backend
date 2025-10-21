@@ -8,4 +8,5 @@ public class MJMessage {
 	public String Subject;
 	public String TextPart;
 	public String HTMLPart;
+	public ArrayList<MJRecipient> Cc=new ArrayList<>();
 }

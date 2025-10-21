@@ -1,6 +1,7 @@
 package rise.lib.utils.mail;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import it.fadeout.mercurius.business.Message;
 import it.fadeout.mercurius.client.MercuriusAPI;
@@ -48,15 +49,34 @@ public class MailUtils {
 	public static boolean sendEmail(String sSender, String sRecipient, String sTitle, String sMessage, boolean bAddAdminToRecipient) {
 		
 		if (RiseConfig.Current.notifications.useMailJet) {
-			return sendEmailMailJet(sSender, sRecipient, sTitle, sMessage, bAddAdminToRecipient);
+			return sendEmailMailJet(sSender, sRecipient, sTitle, sMessage,null, bAddAdminToRecipient);
 		}
 		else {
-			return sendEmailMercurius(sSender, sRecipient, sTitle, sMessage, bAddAdminToRecipient);
+			return sendEmailMercurius(sSender, sRecipient, sTitle, sMessage,null, bAddAdminToRecipient);
 		}
 	}
-	
-	protected static boolean sendEmailMercurius(String sSender, String sRecipient, String sTitle, String sMessage, boolean bAddAdminToRecipient) {
-		
+	/**
+	 * Send an email from sender to recipient with title and message
+	 * @param sSender Sender of the mail
+	 * @param sRecipient Recipient
+	 * @param sTitle Title
+	 * @param sMessage Message
+	 * @param asCc list of emails to put in CC
+	 * @param bAddAdminToRecipient Set true to add by default the WADSI admin to the recipient
+	 * @return true if sent false otherwise
+	 */
+	public static boolean sendEmail(String sSender, String sRecipient, String sTitle, String sMessage,List<String> asCc, boolean bAddAdminToRecipient) {
+
+		if (RiseConfig.Current.notifications.useMailJet) {
+			return sendEmailMailJet(sSender, sRecipient, sTitle, sMessage,asCc, bAddAdminToRecipient);
+		}
+		else {
+			return sendEmailMercurius(sSender, sRecipient, sTitle, sMessage,asCc, bAddAdminToRecipient);
+		}
+	}
+
+	protected static boolean sendEmailMercurius(String sSender, String sRecipient, String sTitle, String sMessage, List<String> asCc, boolean bAddAdminToRecipient) {
+
 		try {
 			String sMercuriusAPIAddress = RiseConfig.Current.notifications.mercuriusAPIAddress;
 
@@ -66,51 +86,74 @@ public class MailUtils {
 			} else {
 				RiseLog.debugLog("MailUtils.sendEmailMercurius: send notification");
 
-				MercuriusAPI oAPI = new MercuriusAPI(sMercuriusAPIAddress);			
+				MercuriusAPI oAPI = new MercuriusAPI(sMercuriusAPIAddress);
 				Message oMessage = new Message();
 
 				oMessage.setTilte(sTitle);
-				
+
 				if (Utils.isNullOrEmpty(sSender)) {
 					sSender = RiseConfig.Current.notifications.riseAdminMail;
 					if (Utils.isNullOrEmpty(sSender)) {
 						sSender = "info@wasdi.net";
 					}
-				}				
-				
+				}
+
 				oMessage.setSender(sSender);
 
 				oMessage.setMessage(sMessage);
 
+				// NOTE: The Message object has no dedicated CC field. We must inject CC emails into the 'To' string.
+				// The commented code block for setting CC is no longer needed/possible here.
+
 				Integer iPositiveSucceded = 0;
-				
+
+				// Start with the primary recipient(s)
 				String sWasdiAdminMail = sRecipient;
 
+				// 1. Add WADSI admin to a recipient list if requested
 				if (!Utils.isNullOrEmpty(RiseConfig.Current.notifications.riseAdminMail) && bAddAdminToRecipient) {
-					sWasdiAdminMail += ";" + RiseConfig.Current.notifications.riseAdminMail;
+					// Only append a semicolon if the string isn't empty
+					if (!Utils.isNullOrEmpty(sWasdiAdminMail)) {
+						sWasdiAdminMail += ";";
+					}
+					sWasdiAdminMail += RiseConfig.Current.notifications.riseAdminMail;
 				}
 
+				// 2. NEW LOGIC: Append CC recipients to the main recipient string
+				if (asCc != null && !asCc.isEmpty()) {
+					for (String sCcEmail : asCc) {
+						if (!Utils.isNullOrEmpty(sCcEmail)) {
+							// Append a semicolon separator
+							if (!Utils.isNullOrEmpty(sWasdiAdminMail)) {
+								sWasdiAdminMail += ";";
+							}
+							sWasdiAdminMail += sCcEmail.trim(); // Add and trim the CC email
+						}
+					}
+				}
+
+				// The sWasdiAdminMail string now contains all TO and CC addresses for the API call.
 				iPositiveSucceded = oAPI.sendMailDirect(sWasdiAdminMail, oMessage);
-				
+
 
 				if(iPositiveSucceded > 0 ) {
 					RiseLog.debugLog("MailUtils.sendEmailMercurius: notification sent with result " + iPositiveSucceded);
 					return true;
-				}				
+				}
 				else {
 					RiseLog.debugLog("MailUtils.sendEmailMercurius: notification NOT sent with result " + iPositiveSucceded);
 					return false;
-				}				
+				}
 			}
 		} catch (Exception oEx) {
 			RiseLog.errorLog("MailUtils.sendEmailMercurius: notification exception " + oEx.toString());
 		}
-		
+
 		return false;
-			
+
 	}
 	
-	protected static boolean sendEmailMailJet(String sSender, String sRecipient, String sTitle, String sMessage, boolean bAddAdminToRecipient) {
+	protected static boolean sendEmailMailJet(String sSender, String sRecipient, String sTitle, String sMessage,List<String> asCc, boolean bAddAdminToRecipient) {
 		try {
 			
 			// Create the payload for Mail Jet
@@ -146,6 +189,23 @@ public class MailUtils {
 				oRecipient.Name = sMail;
 				// add to the message
 				oMessage.To.add(oRecipient);
+			}
+
+			if (asCc!=null && !asCc.isEmpty()) {
+
+
+				if (oMessage.Cc == null) {
+					oMessage.Cc = new ArrayList<>();
+				}
+
+				for (String sMail : asCc) {
+					// Create the CC recipient
+					MJRecipient oCCRecipient = new MJRecipient();
+					oCCRecipient.Email = sMail;
+					oCCRecipient.Name = sMail;
+					// Add to the message's CC list
+					oMessage.Cc.add(oCCRecipient);
+				}
 			}
 			
 			// Set title and body

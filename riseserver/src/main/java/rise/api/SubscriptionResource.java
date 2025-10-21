@@ -427,8 +427,10 @@ public class SubscriptionResource {
 				sMessage = sMessage.replace("%%ORG_NAME%%", oOrg.getName());
 				sMessage = sMessage.replace("%%SUB_NAME%%", oSubscription.getName());
 				sMessage = sMessage.replace("%%SUB_ID%%", oSubscription.getId());
-
-				MailUtils.sendEmail(RiseConfig.Current.notifications.wasdiAdminMail,sTitle, sMessage);
+				String sUserEmail=oUser.getEmail();
+				List<String> asCc=new ArrayList<>();
+				asCc.add(sUserEmail);
+				MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail,RiseConfig.Current.notifications.wasdiAdminMail,sTitle, sMessage,asCc,false);
 			}
 			return Response.ok(oReturnVM).build();
 		} catch (Exception oEx) {

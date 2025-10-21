@@ -1,0 +1,31 @@
+{
+	"maps":
+	[
+			{
+			"id": "active_fire_map",
+			"params": {
+				"BBOX":{},
+				"BASENAME": "",
+				"STARTDATE": "2025-09-19",
+				"ENDDATE": "2025-09-19",
+				"XRES": 0.04,
+				"YRES": 0.04,
+				"Pollutants": "CH4",
+				"PROVIDER": "AUTO",
+				"DELETE": true,
+				"DELETEDAILYMAPS": false,
+				"FORCE_LAST_MONTH": false,
+				"MOVE_TO_SFTP": false,
+				"TRIGGER_ANOMALIES": false,
+				"COMPOSITE": true
+					},
+			"processor": "s5_daily_and_avg",
+			"style": "",
+			"shortArchiveDaysBack": 7,
+			"startArchiveDate": "2025-01-01",
+			"resolution": "1km",
+			"dataSource": "Sentinel-5",
+			"inputData": ""
+			}
+	]
+}
