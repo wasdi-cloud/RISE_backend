@@ -2,7 +2,7 @@
 	"maps":
 	[
 			{
-			"id": "active_fire_map",
+			"id": "pollutant_map",
 			"params": {
 				"BBOX":{},
 				"BASENAME": "",
