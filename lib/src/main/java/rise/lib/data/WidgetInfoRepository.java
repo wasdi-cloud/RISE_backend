@@ -12,6 +12,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 
 import rise.lib.business.WidgetInfo;
+import rise.lib.config.RiseConfig;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
 
@@ -63,7 +64,12 @@ public class WidgetInfoRepository extends MongoRepository {
 			DBObject oSort= new BasicDBObject();
 			oSort.put("referenceTime", -1);
 			Document oSortDoc = new Document(oSort.toMap());
-			Document oDocument = getCollection(m_sThisCollection).find(Filters.and(Filters.eq("widget", sWidget), Filters.eq("organizationId", sOrganizationId), Filters.lte("referenceTime", dTime))).sort(oSortDoc).first();
+			
+			dTime /= 1000.0;
+			double dStartTime = dTime - ((double)RiseConfig.Current.maxWidgetsDaysAge) * 24.0 * 60.0 * 60.0;			
+			
+			Document oDocument = getCollection(m_sThisCollection).find(Filters.and(Filters.eq("widget", sWidget), Filters.eq("organizationId", sOrganizationId), Filters.gt("referenceTime", dStartTime), Filters.lte("referenceTime", dTime))).sort(oSortDoc).first();
+			//Document oDocument = getCollection(m_sThisCollection).find(Filters.and(Filters.eq("widget", sWidget), Filters.eq("organizationId", sOrganizationId), Filters.lte("referenceTime", dTime))).sort(oSortDoc).first();
 			
             if(oDocument == null)
             {

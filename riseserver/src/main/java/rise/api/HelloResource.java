@@ -28,7 +28,7 @@ public class HelloResource {
     		sReturn += "Hello " + sName + "\n";
     	}
     	    	
-        return sReturn + "Welcome to RISE 0.1!";
+        return sReturn + "Welcome to RISE 1.0!";
     }
     
     @GET

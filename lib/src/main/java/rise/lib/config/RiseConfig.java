@@ -113,6 +113,11 @@ public class RiseConfig {
 	 */
 	public static RiseConfig Current;
 	
+	/**
+	 * Max number of days a widget can get old before being filtered and so shown or not in the dashboard
+	 */
+	public int maxWidgetsDaysAge = 7;
+	
 	
 	
 	protected boolean loadLanguageMessages(LanguageConfig oLangConfig) {
