@@ -1,7 +1,7 @@
 {
 	"maps":
 	[
-			{
+		{
 			"id": "pollutant_map",
 			"params": {
 				"BBOX":{},
@@ -18,7 +18,7 @@
 				"MOVE_TO_SFTP": false,
 				"TRIGGER_ANOMALIES": false,
 				"COMPOSITE": true
-					},
+			},
 			"processor": "s5_daily_and_avg",
 			"style": "",
 			"shortArchiveDaysBack": 7,
@@ -26,6 +26,164 @@
 			"resolution": "1km",
 			"dataSource": "Sentinel-5",
 			"inputData": ""
-			}
+		},
+		{
+			"id": "CH4",
+			"params": {
+				"BBOX":{},
+				"BASENAME": "",
+				"STARTDATE": "2025-09-19",
+				"ENDDATE": "2025-09-19",
+				"XRES": 0.04,
+				"YRES": 0.04,
+				"Pollutants": "CH4",
+				"PROVIDER": "AUTO",
+				"DELETE": true,
+				"DELETEDAILYMAPS": false,
+				"FORCE_LAST_MONTH": false,
+				"MOVE_TO_SFTP": false,
+				"TRIGGER_ANOMALIES": false,
+				"COMPOSITE": true
+			},
+			"processor": "s5_daily_and_avg",
+			"style": "s5p_ch4",
+			"shortArchiveDaysBack": 7,
+			"startArchiveDate": "2025-01-01",
+			"resolution": "1km",
+			"dataSource": "Sentinel-5",
+			"inputData": ""
+		},
+		{
+			"id": "NO2",
+			"params": {
+				"BBOX":{},
+				"BASENAME": "",
+				"STARTDATE": "2025-09-19",
+				"ENDDATE": "2025-09-19",
+				"XRES": 0.04,
+				"YRES": 0.04,
+				"Pollutants": "NO2",
+				"PROVIDER": "AUTO",
+				"DELETE": true,
+				"DELETEDAILYMAPS": false,
+				"FORCE_LAST_MONTH": false,
+				"MOVE_TO_SFTP": false,
+				"TRIGGER_ANOMALIES": false,
+				"COMPOSITE": true
+			},
+			"processor": "s5_daily_and_avg",
+			"style": "s5p_no2",
+			"shortArchiveDaysBack": 7,
+			"startArchiveDate": "2025-01-01",
+			"resolution": "1km",
+			"dataSource": "Sentinel-5",
+			"inputData": ""
+		}
+		
+		,
+		{
+			"id": "HCHO",
+			"params": {
+				"BBOX":{},
+				"BASENAME": "",
+				"STARTDATE": "2025-09-19",
+				"ENDDATE": "2025-09-19",
+				"XRES": 0.04,
+				"YRES": 0.04,
+				"Pollutants": "HCHO",
+				"PROVIDER": "AUTO",
+				"DELETE": true,
+				"DELETEDAILYMAPS": false,
+				"FORCE_LAST_MONTH": false,
+				"MOVE_TO_SFTP": false,
+				"TRIGGER_ANOMALIES": false,
+				"COMPOSITE": true
+			},
+			"processor": "s5_daily_and_avg",
+			"style": "s5p_hcho",
+			"shortArchiveDaysBack": 7,
+			"startArchiveDate": "2025-01-01",
+			"resolution": "1km",
+			"dataSource": "Sentinel-5",
+			"inputData": ""
+		},
+		{
+			"id": "CO",
+			"params": {
+				"BBOX":{},
+				"BASENAME": "",
+				"STARTDATE": "2025-09-19",
+				"ENDDATE": "2025-09-19",
+				"XRES": 0.04,
+				"YRES": 0.04,
+				"Pollutants": "CO",
+				"PROVIDER": "AUTO",
+				"DELETE": true,
+				"DELETEDAILYMAPS": false,
+				"FORCE_LAST_MONTH": false,
+				"MOVE_TO_SFTP": false,
+				"TRIGGER_ANOMALIES": false,
+				"COMPOSITE": true
+			},
+			"processor": "s5_daily_and_avg",
+			"style": "s5p_co",
+			"shortArchiveDaysBack": 7,
+			"startArchiveDate": "2025-01-01",
+			"resolution": "1km",
+			"dataSource": "Sentinel-5",
+			"inputData": ""
+		},
+		{
+			"id": "O3",
+			"params": {
+				"BBOX":{},
+				"BASENAME": "",
+				"STARTDATE": "2025-09-19",
+				"ENDDATE": "2025-09-19",
+				"XRES": 0.04,
+				"YRES": 0.04,
+				"Pollutants": "O3",
+				"PROVIDER": "AUTO",
+				"DELETE": true,
+				"DELETEDAILYMAPS": false,
+				"FORCE_LAST_MONTH": false,
+				"MOVE_TO_SFTP": false,
+				"TRIGGER_ANOMALIES": false,
+				"COMPOSITE": true
+			},
+			"processor": "s5_daily_and_avg",
+			"style": "s5p_o3",
+			"shortArchiveDaysBack": 7,
+			"startArchiveDate": "2025-01-01",
+			"resolution": "1km",
+			"dataSource": "Sentinel-5",
+			"inputData": ""
+		},
+		{
+			"id": "SO2",
+			"params": {
+				"BBOX":{},
+				"BASENAME": "",
+				"STARTDATE": "2025-09-19",
+				"ENDDATE": "2025-09-19",
+				"XRES": 0.04,
+				"YRES": 0.04,
+				"Pollutants": "SO2",
+				"PROVIDER": "AUTO",
+				"DELETE": true,
+				"DELETEDAILYMAPS": false,
+				"FORCE_LAST_MONTH": false,
+				"MOVE_TO_SFTP": false,
+				"TRIGGER_ANOMALIES": false,
+				"COMPOSITE": true
+			},
+			"processor": "s5_daily_and_avg",
+			"style": "s5p_so2",
+			"shortArchiveDaysBack": 7,
+			"startArchiveDate": "2025-01-01",
+			"resolution": "1km",
+			"dataSource": "Sentinel-5",
+			"inputData": ""
+		}	
 	]
 }

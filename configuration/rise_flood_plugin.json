@@ -187,7 +187,8 @@
 				"REUSE_EVENT_FINDER": "",
 				"SUFFIX": "baresoil-flood.tif",
 				"SAVE_PAYLOAD_TO_JSON": true,
-				"PLATFORM_FILTER": ""
+				"PLATFORM_FILTER": "",
+				"MERGE_FLOOD_MAPS": true
 			},
 			"processor": "integrated_sar_flood_archive",
 			"shortArchiveDaysBack": 35,
