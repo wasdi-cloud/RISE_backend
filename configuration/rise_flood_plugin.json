@@ -371,6 +371,30 @@
 			"resolution": "10m",
 			"dataSource": "Sentinel-1",
 			"inputData": "S1 GRD"
+		},
+		{
+			"id": "flood_frequency_map_data",
+			"params": {
+			},
+			"processor": "floodfrequencylauncher",
+			"shortArchiveDaysBack": 35,
+			"startArchiveDate": "2022-12-01",
+			"style": "raster",
+			"resolution": "10m",
+			"dataSource": "Sentinel-1",
+			"inputData": "S1 GRD"
+		},
+		{
+			"id": "flood_frequency_map_perc",
+			"params": {
+			},
+			"processor": "floodfrequencylauncher",
+			"shortArchiveDaysBack": 35,
+			"startArchiveDate": "2022-12-01",
+			"style": "frequency_0_100percent",
+			"resolution": "10m",
+			"dataSource": "Sentinel-1",
+			"inputData": "S1 GRD"
 		}, 
 		{
 			"id": "flood_depth_map",
