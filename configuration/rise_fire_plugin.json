@@ -1,7 +1,7 @@
 {
 	"maps": 
 	[
-			{
+		{
 			"id": "active_fire_map",
 			"params": {
 				"STARTDATE": "2025-09-19",
@@ -19,16 +19,16 @@
 				"nightFireWorkflow_in": "S3_Night_FireDetection_in",
 				"dayFireWorkflow_fn": "S3_Day_FireDetection_fn",
 				"nightFireWorkflow_fn": "S3_Night_FireDetection_fn",
-				"COMPOSITE": false
-					},
+				"COMPOSITE": false,
+				"world_cover_map": "WorldCover_Map.tif"
+			},
 			"processor": "activefire_s3_automatic",
 			"style": "active_fire",
-
 			"shortArchiveDaysBack": 7,
 			"startArchiveDate": "2025-01-01",
 			"resolution": "1km",
 			"dataSource": "Sentinel-3",
 			"inputData": ""
-			}	
+		}	
 	]		
 }
