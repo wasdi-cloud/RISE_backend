@@ -133,6 +133,108 @@ public class LayerResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	
+	@POST
+	@Path("find")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getLayerPOST(@HeaderParam("x-session-token") String sSessionId, String sMapIds,
+			@QueryParam("area_id") String sAreaId, @QueryParam("date") Long oDate) {
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (Utils.isNullOrEmpty(sAreaId)) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: Area id null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			// Check if we have this subscription
+			AreaRepository oAreaRepository = new AreaRepository();
+			Area oArea = (Area) oAreaRepository.get(sAreaId);
+
+			if (oArea == null) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: Area with this id " + sAreaId + " not found");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (Utils.isNullOrEmpty(sMapIds)) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: Map ids null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			
+			String [] asMapIds = sMapIds.split(",");
+			
+			if (asMapIds == null) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: Map id null after split");
+				return Response.status(Status.BAD_REQUEST).build();				
+			}
+			
+			MapRepository oMapRepository = new MapRepository();
+
+			if (oDate == null)
+				oDate = 0L;
+
+			double dDate = (double) oDate;
+
+			if (dDate <= 0.0)
+				dDate = DateUtils.getNowAsDouble();
+
+			LayerRepository oLayerRepository = new LayerRepository();
+			Layer oLayer = null;
+			ArrayList<LayerViewModel> aoLayerViewModels = new ArrayList<>();
+
+			
+			for (String sMapId : asMapIds) {
+				
+				Map oMap = (Map) oMapRepository.get(sMapId);
+
+				if (oMap == null) {
+					RiseLog.warnLog("LayerResource.getLayerPOST: Map with this id " + sMapId + " not found");
+					continue;
+				}
+
+				if (oMap.isDateFiltered()) {
+					oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate/1000.0);
+				}
+				else {
+					oLayer = oLayerRepository.getLayerByAreaMap(sAreaId, sMapId);
+				}
+
+				if (oLayer != null) {
+
+					if (oMap.getMaxAgeDays()>=0 && oMap.isDateFiltered()) {
+						long lReference = Double.valueOf(dDate).longValue();
+						long lDistance = Math.abs(lReference - oLayer.getReferenceDate().longValue()*1000l);
+						long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l*1000l;
+
+						if (lDistance>lMaxAge) {
+							RiseLog.debugLog("LayerResource.getLayerPOST: found a layer but is too old, discard it");
+							oLayer = null;
+						}
+					}
+
+					LayerViewModel oLayerViewModel = (LayerViewModel) RiseViewModel.getFromEntity(LayerViewModel.class.getName(), oLayer);
+					aoLayerViewModels.add(oLayerViewModel);
+				} 
+			}
+			
+			return Response.ok(aoLayerViewModels).build();
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("LayerResource.getLayerPOST: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}	
 
 	@GET
 	@Path("download_layer")
@@ -169,7 +271,6 @@ public class LayerResource {
 				RiseLog.warnLog("LayerResource.downloadLayer: layer null");
 				return Response.status(Status.NOT_FOUND).build();
 			}
-			
 			
 			WasdiLib oWasdiLib = new WasdiLib();
 			
