@@ -240,6 +240,9 @@ public class SubscriptionResource {
 		SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
 		SubscriptionType oSubscriptionType = oSubscriptionTypeRepository.getByType(oSubscription.getType());
 		if (oSubscriptionType == null) return -1.0;
+		
+		OrganizationRepository oOrganizationRepo = new OrganizationRepository();
+		Organization oOrganization = oOrganizationRepo.getOrganization(oSubscription.getOrganizationId());
 
 		double dPrice = oSubscriptionType.getPrice();
 
@@ -257,6 +260,13 @@ public class SubscriptionResource {
 				dPrice += oPlugin.getArchivePrice();
 			} else {
 				dPrice += oPlugin.getEmergencyPrice();
+			}
+		}
+		
+		if (oOrganization != null) {
+			if (oOrganization.getType().contains("Humanitarian NGO")) {
+				dPrice /= 2.0;
+				RiseLog.warnLog("SubscriptionResource.getSubscriptionPrice: this is an Humanitarian NGO, apply 50% discount");
 			}
 		}
 
