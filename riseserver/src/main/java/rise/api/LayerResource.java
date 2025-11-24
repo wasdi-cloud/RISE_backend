@@ -220,6 +220,7 @@ public class LayerResource {
 						if (lDistance>lMaxAge) {
 							RiseLog.debugLog("LayerResource.getLayerPOST: found a layer but is too old, discard it");
 							oLayer = null;
+							continue;
 						}
 					}
 
