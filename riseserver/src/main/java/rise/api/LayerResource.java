@@ -171,8 +171,8 @@ public class LayerResource {
 				RiseLog.warnLog("LayerResource.getLayerPOST: Map ids null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-			
-			String [] asMapIds = sMapIds.split(",");
+			String sCleanMapIds = sMapIds.replaceAll("[\\n\\r\\t]", "");
+			String [] asMapIds = sCleanMapIds.split(",");
 			
 			if (asMapIds == null) {
 				RiseLog.warnLog("LayerResource.getLayerPOST: Map id null after split");
