@@ -24,11 +24,13 @@ import rise.Rise;
 import rise.lib.business.Area;
 import rise.lib.business.Layer;
 import rise.lib.business.Map;
+import rise.lib.business.Plugin;
 import rise.lib.business.User;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.MapRepository;
+import rise.lib.data.PluginRepository;
 import rise.lib.utils.JsonUtils;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.RiseFileUtils;
@@ -39,6 +41,7 @@ import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.viewmodels.LayerAnalyzerInputViewModel;
 import rise.lib.viewmodels.LayerAnalyzerOutputViewModel;
+import rise.lib.viewmodels.LayerMapViewModel;
 import rise.lib.viewmodels.LayerViewModel;
 import rise.lib.viewmodels.RiseViewModel;
 import rise.stream.FileStreamingOutput;
@@ -138,7 +141,7 @@ public class LayerResource {
 	}
 	
 	@POST
-	@Path("find")
+	@Path("find_old")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getLayerPOST(@HeaderParam("x-session-token") String sSessionId, String sMapIds,
 	        @QueryParam("area_id") String sAreaId, @QueryParam("date") Long oDate) {
@@ -247,6 +250,149 @@ public class LayerResource {
 	        return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 	    }
 	}
+	
+	@POST
+	@Path("find")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getLayerPOST2(@HeaderParam("x-session-token") String sSessionId, String sMapIds, @QueryParam("area_id") String sAreaId, @QueryParam("date") Long oDate, @QueryParam("plugin_id") String sPluginId) {
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (Utils.isNullOrEmpty(sAreaId)) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: Area id null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			// Check if we have this subscription
+			AreaRepository oAreaRepository = new AreaRepository();
+			Area oArea = (Area) oAreaRepository.get(sAreaId);
+
+			if (oArea == null) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: Area with this id " + sAreaId + " not found");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (Utils.isNullOrEmpty(sMapIds) && Utils.isNullOrEmpty(sPluginId)) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: Map ids null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			
+			// Final list of Map Id to check			
+			ArrayList<String> asMapIdsAsList = new ArrayList<String>();
+			
+			if (!Utils.isNullOrEmpty(sMapIds)) {
+				// Get the Map Ids from the input string
+				String [] asMapIds = sMapIds.split(",");	
+				asMapIdsAsList = new ArrayList<String>(Arrays.asList(asMapIds));
+			}
+			else {
+				// Get the Map Id from the plugin
+	    		PluginRepository oPluginRepository = new PluginRepository();
+	    		
+				Plugin oPlugin= (Plugin) oPluginRepository.get(sPluginId);
+				
+				if(oPlugin!=null) {
+					asMapIdsAsList.addAll(oPlugin.getMaps());
+				}				
+			}
+			
+			// We need some maps...
+			if (asMapIdsAsList.size()==0) {
+				RiseLog.warnLog("LayerResource.getLayerPOST: impossible to get map Ids");
+				return Response.status(Status.BAD_REQUEST).build();				
+			}
+						
+			
+			// Prepare the Repo
+			MapRepository oMapRepository = new MapRepository();
+			LayerRepository oLayerRepository = new LayerRepository();
+
+			// Prepare the requested date
+			if (oDate == null)
+				oDate = 0L;
+
+			double dDate = (double) oDate;
+
+			if (dDate <= 0.0) {
+				dDate = DateUtils.getNowAsDouble();	
+			}
+			
+			Layer oLayer = null;
+			ArrayList<LayerMapViewModel> aoLayerViewModels = new ArrayList<>();
+			
+			// Get all the map objects requested
+			java.util.Map<String, Map> aoMapsDictionary = oMapRepository.getMapsByIds(asMapIdsAsList);
+			
+			// For each
+			for (String sMapId : asMapIdsAsList) {
+				
+				Map oMap = (Map) aoMapsDictionary.get(sMapId);
+
+				if (oMap == null) {
+					RiseLog.warnLog("LayerResource.getLayerPOST: Map with this id " + sMapId + " not found");
+					continue;
+				}
+				
+				if (oMap.isDateFiltered()) {
+					// Get the layer filtered by time
+					oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate/1000.0);
+				}
+				else {
+					// Or as it is
+					oLayer = oLayerRepository.getLayerByAreaMap(sAreaId, sMapId);
+				}
+
+				if (oLayer != null) {
+					// Check if it is in the valid range
+					if (oMap.getMaxAgeDays()>=0 && oMap.isDateFiltered()) {
+						long lReference = Double.valueOf(dDate).longValue();
+						long lDistance = Math.abs(lReference - oLayer.getReferenceDate().longValue()*1000l);
+						long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l*1000l;
+
+						if (lDistance>lMaxAge) {
+							RiseLog.debugLog("LayerResource.getLayerPOST: found a layer but is too old, discard it");
+							oLayer = null;
+							continue;
+						}
+					}
+					
+					// Get the view model
+					LayerMapViewModel oLayerViewModel = (LayerMapViewModel) RiseViewModel.getFromEntity(LayerMapViewModel.class.getName(), oLayer);
+					oLayerViewModel.name = oMap.getName();
+					oLayerViewModel.icon = oMap.getIcon();
+					oLayerViewModel.disabled = false;
+					oLayerViewModel.description = oMap.getDescription();
+					
+					aoLayerViewModels.add(oLayerViewModel);
+				} 
+				else {
+					LayerMapViewModel oLayerViewModel = new LayerMapViewModel();
+					oLayerViewModel.name = oMap.getName();
+					oLayerViewModel.icon = oMap.getIcon();
+					oLayerViewModel.disabled = true;
+					oLayerViewModel.description = oMap.getDescription();
+					aoLayerViewModels.add(oLayerViewModel);					
+				}
+			}
+			
+			return Response.ok(aoLayerViewModels).build();
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("LayerResource.getLayerPOST: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}		
 
 	@GET
 	@Path("download_layer")

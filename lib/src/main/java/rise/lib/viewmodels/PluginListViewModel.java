@@ -9,4 +9,5 @@ public class PluginListViewModel extends RiseViewModel {
 	public String name;	
 	public String shortDescription;
 	public String stringCode;
+	public String icon;
 }

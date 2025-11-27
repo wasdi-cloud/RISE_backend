@@ -23,6 +23,8 @@ public class Plugin extends RiseEntity {
 	private String id;
 	
 	private String className;
+	
+	private String icon;
 
 	public String getId() {
 		return id;
@@ -102,5 +104,13 @@ public class Plugin extends RiseEntity {
 
 	public void setClassName(String className) {
 		this.className = className;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
 	}
 }
