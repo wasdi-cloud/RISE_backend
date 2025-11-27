@@ -62,8 +62,15 @@ public class AuthResource {
 	    	
 	    	// Check if we have a user
 	    	UserRepository oUserRepository =  new UserRepository();
+	    	
 	    	User oUser = oUserRepository.getUser(oUserCredentialsVM.userId);
 	    	
+	    	// if the userid was not found, we check if the user tried to login using the email
+	    	if (oUser == null && oUserCredentialsVM.userId.contains("@")) {
+	    		oUser = oUserRepository.getUserByEmail(oUserCredentialsVM.userId);
+	    	}
+	    	
+	    	// if the user is still null, then the access is unauthorized
 	    	if (oUser == null) {
 	    		RiseLog.warnLog("AuthResource.login: user not found");
 	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
@@ -71,7 +78,6 @@ public class AuthResource {
 	    	
 	    	RiseLog.debugLog("AuthResource.login");
 	    		    	
-	    	
 	    	// Check if is confirmed
 	    	if (oUser.getConfirmationDate() == null) {
 	    		RiseLog.warnLog("AuthResource.login: user not confirmed yet");
