@@ -25,6 +25,45 @@ import java.util.StringTokenizer;
 @Path("area")
 public class AreaResource {
 
+	
+    /**
+     * Get the list of Area of an organisation, if the user has the access to it
+     *
+     * @param sSessionId
+     * @return
+     */
+    @GET
+    @Path("count")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCount(@HeaderParam("x-session-token") String sSessionId) {
+
+        try {
+            // Check the session
+            User oUser = Rise.getUserFromSession(sSessionId);
+
+            if (oUser == null) {
+                RiseLog.warnLog("AreaResource.getCount: invalid Session");
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+
+            // We need an admin here!
+            if (!PermissionsUtils.hasHQRights(oUser)) {
+                RiseLog.warnLog("AreaResource.getCount: cannot handle area");
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+
+            AreaRepository oAreaRepository = new AreaRepository();
+            
+            int iCount = (int) oAreaRepository.getCountByOrganization(oUser.getOrganizationId());
+
+            // return the list to the client
+            return Response.ok(iCount).build();
+        } catch (Exception oEx) {
+            RiseLog.errorLog("AreaResource.getCount: " + oEx);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     /**
      * Get the list of Area of an organisation, if the user has the access to it
      *
