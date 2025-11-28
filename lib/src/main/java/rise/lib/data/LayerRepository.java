@@ -69,6 +69,47 @@ public class LayerRepository extends MongoRepository {
 	    return result;
 	}
 	
+	// Returns: Map<MapID, ReferenceDate (seconds)>
+	public java.util.Map<String, Layer> getLatestLayerDates2(String sAreaId, List<String> asMapIds, double dReferenceTimeSec) {
+	    java.util.Map<String, Layer> aoResults = new HashMap<>();
+
+	    try {
+	        // 1. MATCH: Filter documents first (Area, Maps, Time)
+	        Bson match = Aggregates.match(Filters.and(
+	                Filters.eq("areaId", sAreaId),
+	                Filters.in("mapId", asMapIds),
+	                Filters.lte("referenceDate", dReferenceTimeSec)
+	        ));
+
+	        // 2. SORT: Order by referenceDate DESC so the newest is first
+	        Bson sort = Aggregates.sort(Sorts.descending("referenceDate"));
+
+	        // 3. GROUP: Group by MapId, taking the first (newest) date found
+	        Bson group = Aggregates.group("$mapId", Accumulators.first("latestDate", "$referenceDate"));
+
+	        // 4. Run the pipeline
+	        List<Bson> pipeline = Arrays.asList(match, sort, group);
+
+	        // Execute Aggregation
+	        // This is FAST because we don't map to Java Objects (Layer class)
+	        for (Document oDoc : getCollection(m_sThisCollection).aggregate(pipeline)) {
+	            String sMapMongoId = oDoc.getString("_id"); // _id is the groupBy key (mapId)
+	            Double oLatestDate = oDoc.getDouble("latestDate");
+	            
+	            if (sMapMongoId != null && oLatestDate != null) {
+		            String sJSON = oDoc.toJson();
+		            Layer oEntity = (Layer) s_oMapper.readValue(sJSON, m_oEntityClass);
+		            aoResults.put(sMapMongoId, oEntity);
+	            }
+	        }
+	    } catch (Exception oEx) {
+	        RiseLog.errorLog("LayerRepository.getLatestLayerDates2 error: " + oEx);
+	    }
+	    
+	    return aoResults;
+	}
+		
+	
 	public Layer getLayerByAreaMapTime(String sAreaId, String sMapId, double dTime) {
 		
 		try {

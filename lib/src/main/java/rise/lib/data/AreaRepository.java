@@ -37,6 +37,19 @@ public class AreaRepository extends MongoRepository {
         return aoReturnList;			
 	}
 	
+	public long getCountByOrganization(String sOrganizationId) {
+
+        try {
+        	long lCount = getCollection(m_sThisCollection).countDocuments(Filters.eq("organizationId", sOrganizationId));        	
+        	return lCount;
+        } 
+        catch (Exception oEx) {
+        	RiseLog.errorLog("AreaRepository.getCountByOrganization: error", oEx);
+        }
+
+        return 0L;			
+	}	
+	
 	public List<Area> getPublicAreas() {
     	List<Area> aoReturnList = new ArrayList<Area>();
 
