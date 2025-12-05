@@ -11,7 +11,6 @@ import org.bson.conversions.Bson;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
@@ -27,9 +26,6 @@ public class LayerRepository extends MongoRepository {
 		m_sThisCollection = "layers";
 		m_oEntityClass = Layer.class;
 	}
-	
-	
-	
 
 	// Returns: Map<MapID, ReferenceDate (seconds)>
 	public java.util.Map<String, Double> getLatestLayerDates(String sAreaId, List<String> asMapIds, double dReferenceTimeSec) {

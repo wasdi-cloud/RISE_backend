@@ -770,13 +770,22 @@ public class UserResource {
 			}
 			UserRepository oUserRepository = new UserRepository();
 			User oUser = oUserRepository.getUser(oRequestVM.userId);
+			
+	    	
+	    	// if the userid was not found, we check if the user tried to login using the email
+	    	if (oUser == null && oRequestVM.userId.contains("@")) {
+	    		oUser = oUserRepository.getUserByEmail(oRequestVM.userId);
+	    	}			
+			
 			if (oUser == null) {
 				RiseLog.warnLog("UserResource.changeExpiredPassword: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
+			
 			oUser.setPassword(oPasswordAuthentication.hash(oRequestVM.password.toCharArray()));
 			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
 			oUserRepository.updateUser(oUser);
+			
 			return Response.ok().build();
 
 		} catch (Exception oEx) {

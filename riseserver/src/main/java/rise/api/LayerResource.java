@@ -296,15 +296,21 @@ public class LayerResource {
 				String [] asMapIds = sMapIds.split(",");	
 				asMapIdsAsList = new ArrayList<String>(Arrays.asList(asMapIds));
 			}
-			else {
+			
+			if (!Utils.isNullOrEmpty(sPluginId))
+			{
 				// Get the Map Id from the plugin
 	    		PluginRepository oPluginRepository = new PluginRepository();
 	    		
 				Plugin oPlugin= (Plugin) oPluginRepository.get(sPluginId);
 				
 				if(oPlugin!=null) {
-					asMapIdsAsList.addAll(oPlugin.getMaps());
-				}				
+					for (String sMapId : oPlugin.getMaps()) {
+						if (!asMapIdsAsList.contains(sMapId)) {
+							asMapIdsAsList.add(sMapId);
+						}
+					}
+				}
 			}
 			
 			// We need some maps...
@@ -344,6 +350,8 @@ public class LayerResource {
 					continue;
 				}
 				
+				if (oMap.isHidden()) continue;
+				
 				if (oMap.isDateFiltered()) {
 					// Get the layer filtered by time
 					oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, (double) dDate/1000.0);
@@ -363,10 +371,11 @@ public class LayerResource {
 						if (lDistance>lMaxAge) {
 							RiseLog.debugLog("LayerResource.getLayerPOST: found a layer but is too old, discard it");
 							oLayer = null;
-							continue;
 						}
 					}
-					
+				}
+				
+				if (oLayer!=null) {
 					// Get the view model
 					LayerMapViewModel oLayerViewModel = (LayerMapViewModel) RiseViewModel.getFromEntity(LayerMapViewModel.class.getName(), oLayer);
 					oLayerViewModel.name = oMap.getName();
@@ -380,6 +389,7 @@ public class LayerResource {
 					LayerMapViewModel oLayerViewModel = new LayerMapViewModel();
 					oLayerViewModel.name = oMap.getName();
 					oLayerViewModel.icon = oMap.getIcon();
+					oLayerViewModel.mapId = sMapId;
 					oLayerViewModel.disabled = true;
 					oLayerViewModel.description = oMap.getDescription();
 					aoLayerViewModels.add(oLayerViewModel);					

@@ -14,6 +14,7 @@ import rise.lib.config.RiseConfig;
 import rise.lib.data.LayerRepository;
 import rise.lib.data.MongoRepository;
 import rise.lib.utils.GeoServerManager;
+import rise.lib.utils.PasswordAuthentication;
 import rise.lib.utils.log.RiseLog;
 
 public class mainUtils {
@@ -59,6 +60,41 @@ public class mainUtils {
         } catch (Exception oEx) {
             System.out.println("Areas Exception: " + oEx);
         }
+		
+	}
+	
+	public static void users() {
+		
+        try {
+
+            System.out.println("Ok, what we do with users?");
+
+            System.out.println("\t1 - Test Crypt Password");
+            System.out.println("\tx - back");
+            System.out.println("");
+
+            String sInputString = s_oScanner.nextLine();
+
+            if (sInputString.equals("x")) {
+                return;
+            }
+
+            if (sInputString.equals("1")) {
+            	
+            	System.out.println("\tInsert the password:");
+                String sAreaId = s_oScanner.nextLine();
+                
+                PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
+                String sHash = oPasswordAuthentication.hash(sAreaId.toCharArray());
+                System.out.println("Generated:");
+                System.out.println(sHash);
+                System.out.println("--------------");
+                
+            }
+
+        } catch (Exception oEx) {
+            System.out.println("Users Exception: " + oEx);
+        }		
 		
 	}
 
@@ -126,6 +162,7 @@ public class mainUtils {
                 System.out.println("Welcome, how can I help you?");
 
                 System.out.println("\t1 - Area");
+                System.out.println("\t2 - Users");
                 System.out.println("\tx - Exit");
                 System.out.println("");
 
@@ -135,6 +172,9 @@ public class mainUtils {
                 if (sInputString.equals("1")) {
                     areas();
                 } 
+                if (sInputString.equals("2")) {
+                    users();
+                }                 
                 else if (sInputString.toLowerCase().equals("x")) {
                     bExit = true;
                 } else {
