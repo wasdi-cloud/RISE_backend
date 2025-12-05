@@ -4,6 +4,7 @@ public class PasswordChangeRequest extends RiseEntity {
 	private String otpId;
 	private String userId;
 	private String password;
+	private String passwordChangeType;
 	/**
 	 * @return the otpId
 	 */
@@ -39,6 +40,14 @@ public class PasswordChangeRequest extends RiseEntity {
 	 */
 	public void setPassword(String password) {
 		this.password = password;
+	}
+	
+	public String getPasswordChangeType() {
+		return passwordChangeType;
+	}
+	
+	public void setPasswordChangeType(String passwordChangeType) {
+		this.passwordChangeType = passwordChangeType;
 	}
 	
 	

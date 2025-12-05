@@ -358,7 +358,8 @@ public class UserResource {
 			PasswordChangeRequestRepository oPasswordChangeRequestRepository = new PasswordChangeRequestRepository();
 			// saving new password with the otp id to later retrieve it
 			oPasswordChangeRequest.setOtpId(oOTP.getId());
-			oPasswordChangeRequest.setPassword(oRequestVM.newPassword);
+			oPasswordChangeRequest.setPasswordChangeType(OTPOperations.CHANGE_PASSWORD.name());
+			oPasswordChangeRequest.setPassword(oPasswordAuthentication.hash(oRequestVM.newPassword.toCharArray()));
 			oPasswordChangeRequest.setUserId(oOTP.getUserId());
 			oPasswordChangeRequestRepository.add(oPasswordChangeRequest);
 
@@ -403,6 +404,7 @@ public class UserResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	
 
 	@POST
 	@Path("change_password_verify")
@@ -757,6 +759,15 @@ public class UserResource {
 				RiseLog.warnLog("UserResource.changeExpiredPassword: user id is null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(oRequestVM.userId);
+			
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.changeExpiredPassword: user does not exists in the database");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			
 			if (Utils.isNullOrEmpty(oRequestVM.password)) {
 				RiseLog.warnLog("UserResource.changeExpiredPassword: user password is null");
 				return Response.status(Status.BAD_REQUEST).build();
@@ -768,19 +779,149 @@ public class UserResource {
 				RiseLog.warnLog("UserResource.changeExpiredPassword: password invalid");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-			UserRepository oUserRepository = new UserRepository();
-			User oUser = oUserRepository.getUser(oRequestVM.userId);
-			if (oUser == null) {
-				RiseLog.warnLog("UserResource.changeExpiredPassword: invalid Session");
-				return Response.status(Status.UNAUTHORIZED).build();
+			
+			// Create the OTP Entity
+			OTP oOTP = new OTP();
+			oOTP.setId(Utils.getRandomName());
+			oOTP.setSecretCode(Utils.getOTPPassword());
+			oOTP.setUserId(oRequestVM.userId);
+			oOTP.setValidated(false);
+			oOTP.setOperation(OTPOperations.CHANGE_EXPIRED_PASSWORD.name());
+			oOTP.setTimestamp(DateUtils.getNowAsDouble());
+
+			// Add it to the Db
+			OTPRepository oOTPRepository = new OTPRepository();
+			oOTPRepository.add(oOTP);
+
+			RiseLog.debugLog("UserResource.changeExpiredPassword: created OTP " + oOTP.getId());
+
+			PasswordChangeRequest oPasswordChangeRequest = new PasswordChangeRequest();
+			PasswordChangeRequestRepository oPasswordChangeRequestRepository = new PasswordChangeRequestRepository();
+			
+			// saving new password with the otp id to later retrieve it
+			oPasswordChangeRequest.setOtpId(oOTP.getId());
+			oPasswordChangeRequest.setPasswordChangeType(OTPOperations.CHANGE_EXPIRED_PASSWORD.name());
+			oPasswordChangeRequest.setPassword(oPasswordAuthentication.hash(oRequestVM.password.toCharArray()));	
+			oPasswordChangeRequest.setUserId(oOTP.getUserId());
+			oPasswordChangeRequestRepository.add(oPasswordChangeRequest);
+
+			// Create the view model
+			OTPViewModel oOTPViewModel = (OTPViewModel) RiseViewModel.getFromEntity(OTPViewModel.class.getName(), oOTP);
+
+			// Create the verify API address
+			oOTPViewModel.verifyAPI = RiseConfig.Current.serverApiAddress;
+			if (!oOTPViewModel.verifyAPI.endsWith("/"))
+				oOTPViewModel.verifyAPI += "/";
+			oOTPViewModel.verifyAPI += "usr/verify_expired_password_change";
+
+			// Get localized title and message
+			String sUserLanguage;
+			String sDefaultLanguageCode = oUser.getDefaultLanguage(); // Get the language code once
+
+			try {
+				if(Utils.isNullOrEmpty(sDefaultLanguageCode)){
+					sUserLanguage = Languages.EN.name();
+				}else{
+					sUserLanguage = Languages.valueOf(sDefaultLanguageCode.toUpperCase()).name();
+				}
+			} catch (IllegalArgumentException e) {
+				RiseLog.debugLog("UserResource.changeExpiredPassword: Invalid language code '" + sDefaultLanguageCode + "' found. Defaulting to English.");
+				sUserLanguage = Languages.EN.name();
 			}
-			oUser.setPassword(oPasswordAuthentication.hash(oRequestVM.password.toCharArray()));
-			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
-			oUserRepository.updateUser(oUser);
-			return Response.ok().build();
+			String sTitle = LangUtils.getLocalizedString(StringCodes.OTP_TITLE.name(), sUserLanguage);	// TODO: do we need to change these codes
+			String sMessage = LangUtils.getLocalizedString(StringCodes.OTP_MESSAGE.name(), sUserLanguage); // TODO: do we need to change these codes
+
+			// We replace the code in the message
+			sMessage = sMessage.replace("%%CODE%%", oOTP.getSecretCode());
+			// We replace the action in the message
+    		sMessage = sMessage.replace("%%ACTION%%", "password reset");
+
+			// Send the OTP
+			MailUtils.sendEmail(oUser.getEmail(), sTitle, sMessage);
+
+			// Return the OTP View Mode
+			return Response.ok(oOTPViewModel).build();
 
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.changeExpiredPassword: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+	
+	
+	@POST
+	@Path("change_expired_password_verify")
+	public Response verifyExpiredPasswordChange(OTPVerifyViewModel oOTPVerifyVM) {
+
+		try {
+
+			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(),
+					Status.UNAUTHORIZED.getStatusCode());
+			
+			// Validate inputs
+			if (oOTPVerifyVM == null) {
+				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: OTP info null, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if (Utils.isNullOrEmpty(oOTPVerifyVM.id)) {
+				RiseLog.warnLog(
+						"UserResource.verifyExpiredPasswordChange: operation id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			if (Utils.isNullOrEmpty(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: user Id null or empty, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			OTPRepository oOTPRepository = new OTPRepository();
+
+			OTP oDbOTP = oOTPRepository.getOTP(oOTPVerifyVM.id);
+
+			if (oDbOTP == null) {
+				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: otp not found, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
+				RiseLog.warnLog(
+						"UserResource.verifyExpiredPasswordChange: otp user id does not match, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.isValidated()) {
+				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: otp not validated, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			if (!oDbOTP.getOperation().equals(OTPOperations.CHANGE_EXPIRED_PASSWORD.name())) {
+				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: otp action not correct, user not authenticated");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+
+			// Check if we have a user
+			UserRepository oUserRepository = new UserRepository();
+			User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: user not found");
+				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+			}
+			
+			PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
+			
+			PasswordChangeRequestRepository oPasswordChangeRequestRepository = new PasswordChangeRequestRepository();
+			PasswordChangeRequest oChangeRequest = oPasswordChangeRequestRepository
+					.getPasswordChangeRequestByOTPId(oOTPVerifyVM.id);
+			
+			oUser.setPassword(oChangeRequest.getPassword());
+			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
+			oOTPRepository.delete(oOTPVerifyVM.id);
+			oUserRepository.updateUser(oUser);
+			RiseLog.debugLog("UserResource.verifyPasswordChange");
+			return Response.ok().build();
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("UserResource.verifyPasswordChange: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
