@@ -22,7 +22,7 @@ public class AttachmentResourceUtils {
 	/**
 	 * List of extensions enabled to upload a user attachment
 	 */
-	public static String[] ENABLED_EXTENSIONS = {"jpg", "png", "svg", "doc", "pdf", "txt", "json", "xls"};
+	public static String[] ENABLED_EXTENSIONS = {"jpg", "png", "svg", "doc", "pdf", "txt", "json", "xls", "mp4"};
 	
 	/**
 	 * Width of Thumbail images
