@@ -206,7 +206,7 @@ public class AttachmentResource {
 				RiseLog.debugLog("AttachResource.upload: lat lng coordinates available, save in associated json");
 				
 				// We try to save a json file associate to the attachment
-				File oJsonFile = new File(sPath.replace(RiseFileUtils.getFileNameExtension(sPath), ".json"));
+				File oJsonFile = new File(sPath.replace(RiseFileUtils.getFileNameExtension(sPath), "json"));
 				if (oJsonFile.createNewFile()) {
 					String sJson = "{\n\t\"lat\": " + ofLat.toString() + ",\n\t\"lng\": " + ofLng.toString() + " }";
 					RiseFileUtils.writeFile(sJson, oJsonFile);
@@ -360,7 +360,7 @@ public class AttachmentResource {
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();				
 			}
 			
-			String sJsonFile = sFilePath.replace(RiseFileUtils.getFileNameExtension(sFilePath), ".json");
+			String sJsonFile = sFilePath.replace(RiseFileUtils.getFileNameExtension(sFilePath), "json");
 			File oJsonFile = new File(sJsonFile);
 			
 			if (oJsonFile.exists()) {
@@ -504,7 +504,7 @@ public class AttachmentResource {
 				oAttachmentList.files.add(oFile.getName());
 				
 				String sFileFullPath = oFile.getPath();
-				String sJsonFullPath = sFileFullPath.replace(RiseFileUtils.getFileNameExtension(sFileFullPath), ".json");
+				String sJsonFullPath = sFileFullPath.replace(RiseFileUtils.getFileNameExtension(sFileFullPath), "json");
 				
 				RiseLog.debugLog("AttachResource.list: check json file " + sJsonFullPath);
 				
