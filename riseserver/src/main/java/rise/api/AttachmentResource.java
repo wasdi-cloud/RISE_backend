@@ -506,22 +506,32 @@ public class AttachmentResource {
 				String sFileFullPath = oFile.getPath();
 				String sJsonFullPath = sFileFullPath.replace(RiseFileUtils.getFileNameExtension(sFileFullPath), ".json");
 				
+				RiseLog.debugLog("AttachResource.list: check json file " + sJsonFullPath);
+				
 				try {
 					File oJsonFile = new File(sJsonFullPath);
 					if (oJsonFile.exists()) {
+						
+						RiseLog.debugLog("AttachResource.list: json exists try to read it");
+						
 						JSONObject oCoordinates = JsonUtils.loadJsonFromFile(sJsonFullPath);
 						if (oCoordinates != null) {
 							float fLat = oCoordinates.getFloat("lat");
 							float fLng = oCoordinates.getFloat("lng");
 							
 							oAttachmentList.lats.add(fLat);
-							oAttachmentList.lngs.add(fLng);							
+							oAttachmentList.lngs.add(fLng);
+							
+							RiseLog.debugLog("AttachResource.list: found coordinates " + fLat + " ; " + fLng);
+							
+							continue;
 						}
 					}
-					else {
-						oAttachmentList.lats.add(-9999.0f);
-						oAttachmentList.lngs.add(-9999.0f);
-					}
+					
+					RiseLog.debugLog("AttachResource.list: not good, adding default coordinates");
+					oAttachmentList.lats.add(-9999.0f);
+					oAttachmentList.lngs.add(-9999.0f);
+					
 				}
 				catch (Exception oEx) {
 					RiseLog.warnLog("Exception trying to read the attached json file of "+ oFile.getName() + " We try to recover " + oEx.toString());
