@@ -904,8 +904,8 @@ public class UserResource {
 			
 	    	
 	    	// if the userid was not found, we check if the user tried to login using the email
-	    	if (oUser == null && oRequestVM.userId.contains("@")) {
-	    		oUser = oUserRepository.getUserByEmail(oRequestVM.userId);
+	    	if (oUser == null && oOTPVerifyVM.userId.contains("@")) {
+	    		oUser = oUserRepository.getUserByEmail(oOTPVerifyVM.userId);
 	    	}			
 			
 			if (oUser == null) {
