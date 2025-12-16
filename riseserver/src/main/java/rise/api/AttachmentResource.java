@@ -501,6 +501,9 @@ public class AttachmentResource {
 			oAttachmentList.folder=sFolder;
 			
 			for (File oFile : asFiles) {
+				
+				if (oFile.getName().endsWith(".json")) continue;
+				
 				oAttachmentList.files.add(oFile.getName());
 				
 				String sFileFullPath = oFile.getPath();
