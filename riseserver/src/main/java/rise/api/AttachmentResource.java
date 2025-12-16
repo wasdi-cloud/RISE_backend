@@ -8,6 +8,7 @@ import java.io.InputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONObject;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -21,6 +22,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.User;
+import rise.lib.utils.JsonUtils;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.RiseFileUtils;
 import rise.lib.utils.Utils;
@@ -58,6 +60,8 @@ public class AttachmentResource {
 	 * @param sAttachmentName Name of the file to add
 	 * @param obResize Optional flag to resize the file if it is an image
 	 * @param obThumbnail Optional flag to create a thumbnail if it is an the image
+	 * @param ofLat Optional Lat Coordinate to associate to the attachment
+	 * @param ofLng Optional Lng Coordinate to associate to the attachment
 	 * @return Http standard response
 	 */
 	@POST
@@ -65,7 +69,7 @@ public class AttachmentResource {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response upload(@FormDataParam("file") InputStream oInputFileStream, @FormDataParam("file") FormDataContentDisposition oFileMetaData,
 										@HeaderParam("x-session-token") String sSessionId, @QueryParam("collection") String sCollection, @QueryParam("folder") String sFolder, @QueryParam("name") String sAttachmentName,
-										@QueryParam("notsamename") Boolean obNotSameName) {
+										@QueryParam("notsamename") Boolean obNotSameName, @QueryParam("lat") Float ofLat, @QueryParam("lng") Float ofLng) {
 		
 		try {
 			RiseLog.debugLog("AttachResource.upload( collection: " + sCollection + " sAttachmentName: " + sAttachmentName +")");
@@ -195,6 +199,21 @@ public class AttachmentResource {
 			}
 			else {
 				RiseLog.debugLog("AttachResource.upload: Dimension is ok proceed");
+			}
+			
+			// If coordinates are provided
+			if (ofLat != null && ofLng != null) {
+				RiseLog.debugLog("AttachResource.upload: lat lng coordinates available, save in associated json");
+				
+				// We try to save a json file associate to the attachment
+				File oJsonFile = new File(sPath.replace(RiseFileUtils.getFileNameExtension(sPath), ".json"));
+				if (oJsonFile.createNewFile()) {
+					String sJson = "{\n\t\"lat\": " + ofLat.toString() + ",\n\t\"lng\": " + ofLng.toString() + " }";
+					RiseFileUtils.writeFile(sJson, oJsonFile);
+				}
+				else {
+					RiseLog.errorLog("AttachResource.upload: error creating json file associated to the " + sFileName + " attachment");
+				}
 			}
 		    
 		    RiseLog.debugLog("AttachResource.upload: ok, all done!");
@@ -340,6 +359,18 @@ public class AttachmentResource {
 				RiseLog.warnLog("AttachResource.delete: error deleting file ");
 				return Response.status(Status.INTERNAL_SERVER_ERROR).build();				
 			}
+			
+			String sJsonFile = sFilePath.replace(RiseFileUtils.getFileNameExtension(sFilePath), ".json");
+			File oJsonFile = new File(sJsonFile);
+			
+			if (oJsonFile.exists()) {
+				RiseLog.debugLog("AttachResource.delete: deleting associated json file");
+				
+				if (!oJsonFile.delete()) {
+					RiseLog.warnLog("AttachResource.delete: error deleting the json associated file ");
+				}
+			}
+			
 		} catch (Exception oE) {
 			RiseLog.errorLog("AttachResource.delete: exception " + oE );
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -455,8 +486,6 @@ public class AttachmentResource {
 					
 			String sPathAttachmentFolder = AttachmentResourceUtils.getAttachmentSubPath(sCollection, sFolder);
 			
-			
-			
 			AttachmentFile oFolder = new AttachmentFile(sPathAttachmentFolder);
 			
 			//Check the attachment and extension
@@ -473,6 +502,33 @@ public class AttachmentResource {
 			
 			for (File oFile : asFiles) {
 				oAttachmentList.files.add(oFile.getName());
+				
+				String sFileFullPath = oFile.getPath();
+				String sJsonFullPath = sFileFullPath.replace(RiseFileUtils.getFileNameExtension(sFileFullPath), ".json");
+				
+				try {
+					File oJsonFile = new File(sJsonFullPath);
+					if (oJsonFile.exists()) {
+						JSONObject oCoordinates = JsonUtils.loadJsonFromFile(sJsonFullPath);
+						if (oCoordinates != null) {
+							float fLat = oCoordinates.getFloat("lat");
+							float fLng = oCoordinates.getFloat("lng");
+							
+							oAttachmentList.lats.add(fLat);
+							oAttachmentList.lngs.add(fLng);							
+						}
+					}
+					else {
+						oAttachmentList.lats.add(-9999.0f);
+						oAttachmentList.lngs.add(-9999.0f);
+					}
+				}
+				catch (Exception oEx) {
+					RiseLog.warnLog("Exception trying to read the attached json file of "+ oFile.getName() + " We try to recover " + oEx.toString());
+					if (oAttachmentList.files.size()>oAttachmentList.lats.size()) oAttachmentList.lats.add(-9999.0f);
+					if (oAttachmentList.files.size()>oAttachmentList.lngs.size()) oAttachmentList.lngs.add(-9999.0f);
+				}
+				
 			}
 						
 		    return Response.ok(oAttachmentList).build();			
