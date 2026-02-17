@@ -71,7 +71,12 @@ public class PermissionsResource {
 		User oTargetUser = oUserRepository.getUser(sDestinationUserId);
 		
 		if (oTargetUser == null) {
-			return Response.status(Status.BAD_REQUEST).build();
+			//Maybe its email
+			oTargetUser = oUserRepository.getUserByEmail(sDestinationUserId);
+			if (oTargetUser == null) {
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
 		}
 		
 		// Use Read By default

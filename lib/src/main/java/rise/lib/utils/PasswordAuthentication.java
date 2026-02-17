@@ -169,6 +169,10 @@ public final class PasswordAuthentication {
 		if (sUserId.trim().matches(".*\\s+.*"))
 			return false;
 
+		// Must NOT include @ (to prevent confusing User IDs with Email addresses)
+		if (sUserId.contains("@"))
+			return false;
+
 		return true;
 	}
 
