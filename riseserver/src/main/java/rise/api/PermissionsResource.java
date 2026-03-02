@@ -74,6 +74,7 @@ public class PermissionsResource {
 			//Maybe its email
 			oTargetUser = oUserRepository.getUserByEmail(sDestinationUserId);
 			if (oTargetUser == null) {
+				RiseLog.debugLog("PermissionsResource.addResourcePermission: User not found nor by email or by user id");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 
@@ -94,19 +95,23 @@ public class PermissionsResource {
 			Area oArea = (Area) oAreaRepository.get(sResourceId);
 			
 			if (oArea == null) {
+				RiseLog.debugLog("PermissionsResource.addResourcePermission: area is null");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			
 			if (!oArea.getOrganizationId().equals(oRequesterUser.getOrganizationId())) {
+				RiseLog.debugLog("PermissionsResource.addResourcePermission: Unauthorized, organizations ids are different");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 			
 			if (!PermissionsUtils.canUserWriteArea(oArea, oRequesterUser)) {
+				RiseLog.debugLog("PermissionsResource.addResourcePermission: Unauthorized, user can't write area");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 			
 			// If the user is in the same org, can be invited as field user not shared area!!
 			if (oArea.getOrganizationId().equals(oTargetUser.getOrganizationId())) {
+				RiseLog.debugLog("PermissionsResource.addResourcePermission: the user is in the same org, can be invited as field user not shared area!!");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			
