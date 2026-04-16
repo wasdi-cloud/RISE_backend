@@ -501,6 +501,20 @@ public class SubscriptionResource {
 						"SubscriptionResource.getStripePaymentUrl: the subscription does not have a valid type, aborting");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			//We need to know if the org is NGO or no
+			String sOrgId=oSubscription.getOrganizationId();
+
+			OrganizationRepository oOrganizationRepository=new OrganizationRepository();
+			Organization oOrganization=oOrganizationRepository.getOrganization(sOrgId);
+			if(oOrganization==null) {
+				RiseLog.debugLog(
+						"SubscriptionResource.getStripePaymentUrl: the organization is null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+			if (oOrganization.getType().contains("Humanitarian NGO")) {
+				RiseLog.warnLog("SubscriptionResource.getSubscriptionPrice: this is an Humanitarian NGO, apply 50% discount");
+				sSubscriptionType = sSubscriptionType + "_NGO";
+			}
 
 			List<StripeProductConfig> aoProductConfigList = RiseConfig.Current.stripe.products;
 
