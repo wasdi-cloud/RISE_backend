@@ -21,7 +21,7 @@
 				"roads_file_name": "roads.shp",
 				"roads_file_style": "rasor_impacts_roads_types",
 				"compute_population": true,
-				"pop_layer": "GHS_POP_P2030_GLOBE_R2022A_WGS84_100_V1_0",
+				"pop_layer": "GHS_POP_E2020_GLOBE_R2023A_4326_3ss_V1_0_COG",
 				"affected_pop_style": "pop_affected",
 				"user_pop_layer": "",
 				"lulc_map_name": "lulc_map.tif",
