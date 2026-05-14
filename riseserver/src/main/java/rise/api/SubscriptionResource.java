@@ -171,12 +171,12 @@ public class SubscriptionResource {
 			ArrayList<SubscriptionListViewModel> aoSubscriptionsVM = new ArrayList<>();
 			
 			AreaRepository oAreaRepository = new AreaRepository();
+			double dNow = DateUtils.getNowAsDouble();
 
 			// Convert the entities
 			for (Subscription oSubscription : aoSubscriptions) {
-
-				// Valid = false => we get all. Valid = true => only valid ones
-				if (oSubscription.isValid()) {
+				
+				if (oSubscription.isValid() && oSubscription.isBuySuccess() && oSubscription.getExpireDate()>dNow) {
 					
 					List<Area> aoAssociatedAreas = oAreaRepository.getBySubscription(oSubscription.getId());
 					SubscriptionType oType = aoTypesMap.get(oSubscription.getType());
