@@ -80,11 +80,6 @@ public class DockersConfig {
 	public String internalDockerAPIAddress = "http://127.0.0.1:2375/";
 	
 	/**
-	 * Path of file with logs of the dockers build 
-	 */
-	public String dockersDeployLogFilePath = "/var/log/wasdi/dockers.log";
-	
-	/**
 	 * Set to true to enable the log of the payload for the calls made to the Docker Engine API
 	 */
 	public boolean logDockerAPICallsPayload = false;

@@ -16,3 +16,4 @@ riseserver/scripts/.vscode/launch.json
 configuration/riseLocalTESTConfig.json
 configuration/rise_drought_plugin.json
 configuration/riseLocalPRODConfig.json
+.vscode/settings.json
