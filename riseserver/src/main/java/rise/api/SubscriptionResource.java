@@ -99,18 +99,28 @@ public class SubscriptionResource {
 
 			// Create VM list
 			ArrayList<SubscriptionListViewModel> aoSubscriptionsVM = new ArrayList<>();
+			
+			AreaRepository oAreaRepository = new AreaRepository();
 
 			// Convert the entities
 			for (Subscription oSubscription : aoSubscriptions) {
 
 				// Valid = false => we get all. Valid = true => only valid ones
 				if (!bValid || oSubscription.isValid()) {
+					
+					List<Area> aoAssociatedAreas = oAreaRepository.getBySubscription(oSubscription.getId());
+					
 					SubscriptionListViewModel oListItem = (SubscriptionListViewModel) RiseViewModel.getFromEntity(SubscriptionListViewModel.class.getName(), oSubscription);
 					
 					SubscriptionType oType = aoTypesMap.get(oSubscription.getType());
 					
 					if (oType != null) oListItem.areaCount = oType.getAllowedAreas();
 					else oListItem.areaCount = 0;
+					
+					oListItem.areaUsed = 0;
+					if (aoAssociatedAreas != null) {
+						oListItem.areaUsed = aoAssociatedAreas.size();
+					}
 					
 					aoSubscriptionsVM.add(oListItem);
 				}
@@ -123,6 +133,76 @@ public class SubscriptionResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	
+	@GET
+	@Path("available")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAvailable(@HeaderParam("x-session-token") String sSessionId) {
+
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("SubscriptionResource.getAvailable: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			// We need an admin here!
+			if (!PermissionsUtils.hasHQRights(oUser)) {
+				RiseLog.warnLog("SubscriptionResource.getAvailable: cannot handle subscriptions");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			
+			SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
+			
+			List<SubscriptionType> aoTypes = oSubscriptionTypeRepository.getAll();
+			Map<String, SubscriptionType> aoTypesMap = new HashMap<>();
+			
+			for (SubscriptionType oType : aoTypes) {
+				aoTypesMap.put(oType.getStringCode(), oType);
+			}
+
+			// Get the subscriptions of this org
+			SubscriptionRepository oSubscriptionRepository = new SubscriptionRepository();
+			List<Subscription> aoSubscriptions = oSubscriptionRepository.getSubscriptionsByOrganizationId(oUser.getOrganizationId());
+
+			// Create VM list
+			ArrayList<SubscriptionListViewModel> aoSubscriptionsVM = new ArrayList<>();
+			
+			AreaRepository oAreaRepository = new AreaRepository();
+
+			// Convert the entities
+			for (Subscription oSubscription : aoSubscriptions) {
+
+				// Valid = false => we get all. Valid = true => only valid ones
+				if (oSubscription.isValid()) {
+					
+					List<Area> aoAssociatedAreas = oAreaRepository.getBySubscription(oSubscription.getId());
+					SubscriptionType oType = aoTypesMap.get(oSubscription.getType());
+					
+					int iAllowed = 0;
+					if (oType != null) iAllowed = oType.getAllowedAreas();
+					int iUsed = aoAssociatedAreas.size();
+					
+					if (iUsed>=iAllowed) continue;
+					
+					SubscriptionListViewModel oListItem = (SubscriptionListViewModel) RiseViewModel.getFromEntity(SubscriptionListViewModel.class.getName(), oSubscription);
+					
+					oListItem.areaCount = iAllowed;					
+					oListItem.areaUsed = iUsed;
+					
+					aoSubscriptionsVM.add(oListItem);
+				}
+			}
+
+			// return the list to the client
+			return Response.ok(aoSubscriptionsVM).build();
+		} catch (Exception oEx) {
+			RiseLog.errorLog("SubscriptionResource.getAvailable: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}	
 
 	/**
 	 * Get a Subscription by id
