@@ -64,22 +64,22 @@ public class HelloResource {
     		
     		String sMailSubject = "Message from RISE Web Site - " + oMessage.name + " " + oMessage.surname;
     		
-    		String sMailText = "From: " + oMessage.name + " " + oMessage.surname + "\n";
-    		sMailText += "Address: " + oMessage.email + "\n";
+    		String sMailText = "From: " + oMessage.name + " " + oMessage.surname + "<br>\n";
+    		sMailText += "Address: " + oMessage.email + "<br>\n";
     		
     		if (Utils.isNullOrEmpty(oMessage.company)) oMessage.company = "NULL";
-    		sMailText += "Company: " + oMessage.company + "\n";
+    		sMailText += "Company: " + oMessage.company + "<br>\n";
     		
     		if (Utils.isNullOrEmpty(oMessage.role)) oMessage.role = "NULL";
-    		sMailText += "Role: " + oMessage.role + "\n";
+    		sMailText += "Role: " + oMessage.role + "<br>\n";
     		
     		if (Utils.isNullOrEmpty(oMessage.heardAbout)) oMessage.heardAbout = "NULL";
-    		sMailText += "Heard About us: " + oMessage.heardAbout + "\n";
+    		sMailText += "Heard About us: " + oMessage.heardAbout + "<br>\n";
 
     		if (Utils.isNullOrEmpty(oMessage.subject)) oMessage.subject = "NULL";
-    		sMailText += "Subject: " + oMessage.subject + "\n";
+    		sMailText += "Subject: " + oMessage.subject + "<br>\n";
     		
-    		sMailText += "\n-------------------------------------------------------\n\n";
+    		sMailText += "<br>\n-------------------------------------------------------<br>\n\n";
     		sMailText += oMessage.message;
     		
     		if (MailUtils.sendEmail(RiseConfig.Current.notifications.wasdiAdminMail, sMailSubject, sMailText)) {
