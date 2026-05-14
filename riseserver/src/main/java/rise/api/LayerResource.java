@@ -141,117 +141,6 @@ public class LayerResource {
 	}
 	
 	@POST
-	@Path("find_old")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getLayerPOST(@HeaderParam("x-session-token") String sSessionId, String sMapIds,
-	        @QueryParam("area_id") String sAreaId, @QueryParam("date") Long oDate) {
-	    try {
-	        User oUser = Rise.getUserFromSession(sSessionId);
-	        if (oUser == null) {
-	            RiseLog.warnLog("LayerResource.getLayerPOST: invalid Session");
-	            return Response.status(Status.UNAUTHORIZED).build();
-	        }
-	        if (Utils.isNullOrEmpty(sAreaId)) {
-	            RiseLog.warnLog("LayerResource.getLayerPOST: Area id null");
-	            return Response.status(Status.BAD_REQUEST).build();
-	        }
-	        AreaRepository oAreaRepository = new AreaRepository();
-	        Area oArea = (Area) oAreaRepository.get(sAreaId);
-	        if (oArea == null || !PermissionsUtils.canUserAccessArea(oArea, oUser)) {
-	            RiseLog.warnLog("LayerResource.getLayerPOST: Area not found or user cannot access");
-	            return Response.status(Status.UNAUTHORIZED).build();
-	        }
-	        if (Utils.isNullOrEmpty(sMapIds)) {
-	            RiseLog.warnLog("LayerResource.getLayerPOST: Map ids null");
-	            return Response.status(Status.BAD_REQUEST).build();
-	        }
-	        
-	        // --- 2. INPUT CLEANING AND PROCESSING (Improved) ---
-	        String sCleanMapIds = sMapIds.replaceAll("[\\n\\r\\t]", "");
-	        List<String> asMapIds = Arrays.stream(sCleanMapIds.split(","))
-	                .map(String::trim)
-	                .filter(id -> !id.isEmpty())
-	                .collect(Collectors.toList());
-
-	        if (asMapIds.isEmpty()) {
-	            RiseLog.warnLog("LayerResource.getLayerPOST: Map id list is empty");
-	            return Response.status(Status.BAD_REQUEST).build();				
-	        }
-	        
-	        // --- 3. DATE SETUP ---
-	        if (oDate == null) oDate = 0L;
-	        double dDate = (double) oDate;
-	        if (dDate <= 0.0) dDate = DateUtils.getNowAsDouble();
-	        
-	        // Convert to seconds for repository use (matching original method signature)
-	        final double dReferenceTimeSec = dDate / 1000.0;
-
-	        // --- 4. OPTIMIZED BULK DATABASE ACCESS (Fast Operations) ---
-	        
-	     // --- 4. PARALLEL DATABASE ACCESS ---
-	     // Start both tasks immediately. They run at the same time.
-
-	     // Task A: Fetch Maps Config
-	     CompletableFuture<java.util.Map<String, Map>> aoFutureMaps = CompletableFuture.supplyAsync(() -> {
-	         MapRepository repo = new MapRepository();
-	         return repo.getMapsByIds(asMapIds);
-	     });
-
-	     // Task B: Fetch Layer Dates
-	     CompletableFuture<java.util.Map<String, Double>> aoFutureLayers = CompletableFuture.supplyAsync(() -> {
-	         LayerRepository repo = new LayerRepository();
-	         // Note: passing variables inside the lambda requires them to be 'effectively final'
-	         return repo.getLatestLayerDates(sAreaId, asMapIds, dReferenceTimeSec);
-	     });
-
-	     // Wait for BOTH to finish (this takes only as long as the slowest one)
-	     CompletableFuture.allOf(aoFutureMaps, aoFutureLayers).join();
-
-	     // Get the results
-	     java.util.Map<String, Map> aoMapsById = aoFutureMaps.get();
-	     java.util.Map<String, Double> aoMapLatestDates = aoFutureLayers.get();
-
-         // --- 5. LOGIC PROCESSING ---
-            ArrayList<String> asAvailableMapsIds = new ArrayList<>();
-
-            // We iterate over the maps returned by the DB (these are already the latest ones)
-            for (java.util.Map.Entry<String, Double> oEntry : aoMapLatestDates.entrySet()) {
-                String sFoundMapId = oEntry.getKey();
-                Double dFoundDateSec = oEntry.getValue();
-                
-                // Get config
-                Map oMap = aoMapsById.get(sFoundMapId);
-                if (oMap == null) continue; // Should not happen
-
-                // --- Max Age Check ---
-                boolean bPassesMaxAgeCheck = true;
-                if (oMap.getMaxAgeDays() >= 0 && oMap.isDateFiltered()) {
-                    long lReferenceTimeMs = Double.valueOf(dDate).longValue();
-                    long lLayerTimeMs = (long)(dFoundDateSec * 1000.0);
-                    
-                    long lDistance = Math.abs(lReferenceTimeMs - lLayerTimeMs);
-                    long lMaxAgeMs = oMap.getMaxAgeDays() * 24L * 60L * 60L * 1000L;
-
-                    if (lDistance > lMaxAgeMs) {
-                         // Layer exists but is too old
-                    	bPassesMaxAgeCheck = false;
-                    }
-                }
-
-                if (bPassesMaxAgeCheck) {
-                    asAvailableMapsIds.add(sFoundMapId);
-                }
-            }
-
-            return Response.ok(asAvailableMapsIds).build();
-
-	    } catch (Exception oEx) {
-	        RiseLog.errorLog("LayerResource.getLayerPOST: " + oEx);
-	        return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-	    }
-	}
-	
-	@POST
 	@Path("find")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getLayerPOST2(@HeaderParam("x-session-token") String sSessionId, String sMapIds, @QueryParam("area_id") String sAreaId, @QueryParam("date") Long oDate, @QueryParam("plugin_id") String sPluginId) {
@@ -482,6 +371,50 @@ public class LayerResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	
+	@GET
+	@Path("available")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response areaHasLayers(@HeaderParam("x-session-token") String sSessionId, @QueryParam("area_id") String sAreaId) {
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("LayerResource.areaHasLayers: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (Utils.isNullOrEmpty(sAreaId)) {
+				RiseLog.warnLog("LayerResource.areaHasLayers: Area id null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			// Check if we have this subscription
+			AreaRepository oAreaRepository = new AreaRepository();
+			Area oArea = (Area) oAreaRepository.get(sAreaId);
+
+			if (oArea == null) {
+				RiseLog.warnLog("LayerResource.areaHasLayers: Area with this id " + sAreaId + " not found");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("LayerResource.areaHasLayers: user cannot access area");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			LayerRepository oLayerRepository = new LayerRepository();
+			
+			long lTotal = oLayerRepository.countLayerByArea(sAreaId);
+			
+			return Response.ok(lTotal).build();
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("LayerResource.areaHasLayers: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}			
 	
 
     @POST

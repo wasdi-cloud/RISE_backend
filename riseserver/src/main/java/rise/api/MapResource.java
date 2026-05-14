@@ -98,6 +98,7 @@ public class MapResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		} 
 	}
+	
 	@GET
 	@Path("by_plugin")
 	@Produces(MediaType.APPLICATION_JSON)

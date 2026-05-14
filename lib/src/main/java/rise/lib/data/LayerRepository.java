@@ -157,7 +157,6 @@ public class LayerRepository extends MongoRepository {
 		
 		return null;
 	}
-
 	
 	public List<Layer> getLayerByArea(String sAreaId) {
 		
@@ -185,6 +184,27 @@ public class LayerRepository extends MongoRepository {
 		
 		return null;
 	}
+	
+	public long countLayerByArea(String sAreaId) {
+		
+		try {
+			try {
+
+				long lTotal = getCollection(m_sThisCollection).countDocuments(Filters.eq("areaId", sAreaId));
+				return lTotal;
+
+			} catch (Exception oEx) {
+				RiseLog.errorLog("LayerRepository.countLayerByArea: error", oEx);
+			}
+
+			return 0L;			
+		}
+		catch (Exception oEx) {
+			RiseLog.errorLog("LayerRepository.countLayerByArea exception: " + oEx.toString());
+		}
+		
+		return 0L;
+	}	
 
 	public long deleteByAreaId(String sAreaId) {
 		try {
