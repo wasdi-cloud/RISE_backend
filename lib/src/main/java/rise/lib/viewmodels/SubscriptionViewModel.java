@@ -40,4 +40,6 @@ public class SubscriptionViewModel extends RiseViewModel  {
 	public String paymentMethod;
 	
 	public int areaCount;
+	
+	public String associatedAreaId;
 }

@@ -37,6 +37,8 @@ public class Subscription extends RiseEntity  {
 	private String paymentMethod;
 	
 	private String stripeInvoicePdfUrl;
+	
+	private String associatedAreaId;
 
 	public String getId() {
 		return id;
@@ -191,6 +193,14 @@ public class Subscription extends RiseEntity  {
 	 */
 	public void setStripeInvoicePdfUrl(String stripeInvoicePdfUrl) {
 		this.stripeInvoicePdfUrl = stripeInvoicePdfUrl;
+	}
+
+	public String getAssociatedAreaId() {
+		return associatedAreaId;
+	}
+
+	public void setAssociatedAreaId(String associatedAreaId) {
+		this.associatedAreaId = associatedAreaId;
 	}
 	
 	
