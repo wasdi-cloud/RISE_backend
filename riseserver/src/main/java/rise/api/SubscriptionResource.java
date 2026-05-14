@@ -93,8 +93,7 @@ public class SubscriptionResource {
 
 			// Get the subscriptions of this org
 			SubscriptionRepository oSubscriptionRepository = new SubscriptionRepository();
-			List<Subscription> aoSubscriptions = oSubscriptionRepository
-					.getSubscriptionsByOrganizationId(oUser.getOrganizationId());
+			List<Subscription> aoSubscriptions = oSubscriptionRepository.getSubscriptionsByOrganizationId(oUser.getOrganizationId());
 
 			// Create VM list
 			ArrayList<SubscriptionListViewModel> aoSubscriptionsVM = new ArrayList<>();
@@ -104,8 +103,7 @@ public class SubscriptionResource {
 
 				// Valid = false => we get all. Valid = true => only valid ones
 				if (!bValid || oSubscription.isValid()) {
-					SubscriptionListViewModel oListItem = (SubscriptionListViewModel) RiseViewModel
-							.getFromEntity(SubscriptionListViewModel.class.getName(), oSubscription);
+					SubscriptionListViewModel oListItem = (SubscriptionListViewModel) RiseViewModel.getFromEntity(SubscriptionListViewModel.class.getName(), oSubscription);
 					
 					SubscriptionType oType = aoTypesMap.get(oSubscription.getType());
 					

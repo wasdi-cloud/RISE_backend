@@ -401,6 +401,43 @@ public class AreaResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("canadd")
+    public Response canAdd(@HeaderParam("x-session-token") String sSessionId) {
+        try {
+            // Check the session
+            User oUser = Rise.getUserFromSession(sSessionId);
+
+            if (oUser == null) {
+                RiseLog.warnLog("AreaResource.canAdd: invalid Session");
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+
+            if (!PermissionsUtils.hasHQRights(oUser)) {
+                RiseLog.warnLog("AreaResource.canAdd: not an HQ level");
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+
+            boolean bCanAddAreas = PermissionsUtils.canUserAddArea(oUser);
+
+            if (!bCanAddAreas) {
+                RiseLog.warnLog("AreaResource.canAdd: the org does not have more free areas");
+                ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
+                return Response.status(Status.UNAUTHORIZED).entity(oError).build();
+            }
+            
+            CanAddViewModel oCanAdd = new CanAddViewModel();
+            oCanAdd.canAdd = true;
+            oCanAdd.archiveSupported = PermissionsUtils.canAreaSupportFullArchive(oUser);
+            
+            return Response.ok(oCanAdd).build();
+        } catch (Exception oEx) {
+            RiseLog.errorLog("AreaResource.canAdd: " + oEx);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }    
 
     @GET
     @Path("users")
