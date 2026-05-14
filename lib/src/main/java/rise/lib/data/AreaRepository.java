@@ -37,6 +37,25 @@ public class AreaRepository extends MongoRepository {
         return aoReturnList;			
 	}
 	
+	public List<Area> getBySubscription(String sSubscriptionId) {
+    	List<Area> aoReturnList = new ArrayList<Area>();
+
+        try {
+
+        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("subscriptionId", sSubscriptionId));        	
+        	
+        	fillList(aoReturnList, oWSDocument, Area.class);
+        	
+        	return aoReturnList;
+        	
+        } 
+        catch (Exception oEx) {
+        	RiseLog.errorLog("AreaRepository.getBySubscription: error", oEx);
+        }
+
+        return aoReturnList;			
+	}	
+	
 	public long getCountByOrganization(String sOrganizationId) {
 
         try {
