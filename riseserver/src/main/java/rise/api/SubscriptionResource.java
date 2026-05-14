@@ -658,6 +658,7 @@ public class SubscriptionResource {
 						
 						if (oArea != null) {
 							oArea.setActive(true);
+							oArea.setSubscriptionId(oSubscription.getId());
 							oAreaRepository.update(oArea, oArea.getId());
 						}
 						else {
