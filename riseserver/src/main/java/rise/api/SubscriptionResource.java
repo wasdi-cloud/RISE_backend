@@ -3,6 +3,7 @@ package rise.api;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -80,6 +81,15 @@ public class SubscriptionResource {
 			// valid true by default
 			if (bValid == null)
 				bValid = true;
+			
+			SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
+			
+			List<SubscriptionType> aoTypes = oSubscriptionTypeRepository.getAll();
+			Map<String, SubscriptionType> aoTypesMap = new HashMap<>();
+			
+			for (SubscriptionType oType : aoTypes) {
+				aoTypesMap.put(oType.getStringCode(), oType);
+			}
 
 			// Get the subscriptions of this org
 			SubscriptionRepository oSubscriptionRepository = new SubscriptionRepository();
@@ -96,6 +106,12 @@ public class SubscriptionResource {
 				if (!bValid || oSubscription.isValid()) {
 					SubscriptionListViewModel oListItem = (SubscriptionListViewModel) RiseViewModel
 							.getFromEntity(SubscriptionListViewModel.class.getName(), oSubscription);
+					
+					SubscriptionType oType = aoTypesMap.get(oSubscription.getType());
+					
+					if (oType != null) oListItem.areaCount = oType.getAllowedAreas();
+					else oListItem.areaCount = 0;
+					
 					aoSubscriptionsVM.add(oListItem);
 				}
 			}
@@ -150,6 +166,16 @@ public class SubscriptionResource {
 
 			SubscriptionViewModel oSubscriptionViewModel = (SubscriptionViewModel) RiseViewModel
 					.getFromEntity(SubscriptionViewModel.class.getName(), oSubscription);
+			
+			SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
+			SubscriptionType oType = oSubscriptionTypeRepository.getByType(oSubscription.getType());
+			if (oType != null) {
+				oSubscriptionViewModel.areaCount = oType.getAllowedAreas();
+			}
+			else {
+				oSubscriptionViewModel.areaCount = 0;
+			}
+			
 
 			// return the list to the client
 			return Response.ok(oSubscriptionViewModel).build();
@@ -168,8 +194,7 @@ public class SubscriptionResource {
 	 */
 	@PUT
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response update(@HeaderParam("x-session-token") String sSessionId,
-			SubscriptionViewModel oSubscriptionViewModel) {
+	public Response update(@HeaderParam("x-session-token") String sSessionId, SubscriptionViewModel oSubscriptionViewModel) {
 		try {
 			// Check the session
 			User oUser = Rise.getUserFromSession(sSessionId);
@@ -368,8 +393,7 @@ public class SubscriptionResource {
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response createSubscription(@HeaderParam("x-session-token") String sSessionId,
-			SubscriptionViewModel oSubscriptionViewModel) {
+	public Response createSubscription(@HeaderParam("x-session-token") String sSessionId, SubscriptionViewModel oSubscriptionViewModel) {
 		try {
 
 			// Check the session

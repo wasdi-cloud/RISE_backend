@@ -38,4 +38,6 @@ public class SubscriptionViewModel extends RiseViewModel  {
 	public ArrayList<String> plugins;
 	
 	public String paymentMethod;
+	
+	public int areaCount;
 }

@@ -13,5 +13,5 @@ public class SubscriptionListViewModel extends RiseViewModel {
 	public Double price;
 	public boolean buySuccess;
 	public String paymentMethod;
-
+	public int areaCount;
 }
