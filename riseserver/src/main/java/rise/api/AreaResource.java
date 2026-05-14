@@ -347,40 +347,49 @@ public class AreaResource {
                 RiseLog.warnLog("AreaResource.add: Area null");
                 return Response.status(Status.BAD_REQUEST).build();
             }
-
+            
+            // Create the updated entity
+            Area oArea = (Area) RiseViewModel.copyToEntity(Area.class.getName(), oAreaViewModel);
             Subscription oValidSubscription = PermissionsUtils.getValidSubscription(oUser);
+            
+            if (oAreaViewModel.active) {
+                
+                if (oValidSubscription == null) {
+                    RiseLog.warnLog("AreaResource.add: user " + oUser.getUserId() + " does not have a valid subscription");
+                    ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
+                    return Response.status(Status.FORBIDDEN).entity(oError).build();
+                }
 
-            if (oValidSubscription == null) {
-                RiseLog.warnLog("AreaResource.add: user " + oUser.getUserId() + " does not have a valid subscription");
-                ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
-                return Response.status(Status.FORBIDDEN).entity(oError).build();
+                boolean bCanAddAreas = PermissionsUtils.canUserAddArea(oUser);
+
+                if (!bCanAddAreas) {
+                    RiseLog.warnLog("AreaResource.add: the org does not have more free areas");
+                    ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
+                    return Response.status(Status.UNAUTHORIZED).entity(oError).build();
+                }
+
+                if (oAreaViewModel.supportArchive && !PermissionsUtils.canAreaSupportFullArchive(oUser)) {
+                    RiseLog.warnLog("AreaResource.add: the sub does not support full archive");
+                    ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
+                    return Response.status(Status.UNAUTHORIZED).entity(oError).build();
+                }            	
             }
-
-            boolean bCanAddAreas = PermissionsUtils.canUserAddArea(oUser);
-
-            if (!bCanAddAreas) {
-                RiseLog.warnLog("AreaResource.add: the org does not have more free areas");
-                ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
-                return Response.status(Status.UNAUTHORIZED).entity(oError).build();
-            }
-
-            if (oAreaViewModel.supportArchive && !PermissionsUtils.canAreaSupportFullArchive(oUser)) {
-                RiseLog.warnLog("AreaResource.add: the sub does not support full archive");
-                ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
-                return Response.status(Status.UNAUTHORIZED).entity(oError).build();
-            }
-
 
             // Check if we have this subscription
             AreaRepository oAreaRepository = new AreaRepository();
 
-            // Create the updated entity
-            Area oArea = (Area) RiseViewModel.copyToEntity(Area.class.getName(), oAreaViewModel);
 
             Double dNow = DateUtils.getNowAsDouble();
             oArea.setCreationDate(dNow);
             oArea.setId(Utils.getRandomName());
-            oArea.setSubscriptionId(oValidSubscription.getId());
+            if (oValidSubscription != null) {
+            	oArea.setSubscriptionId(oValidSubscription.getId());
+            	oArea.setActive(true);
+            }
+            else {
+            	oArea.setActive(false);
+            }
+            
             oArea.setOrganizationId(oUser.getOrganizationId());
             oArea.setArchiveStartDate(-1.0);
             oArea.setArchiveEndDate(-1.0);
@@ -388,7 +397,7 @@ public class AreaResource {
             oArea.setAllShortArchivesReady(false);
             oArea.setFirstFullArchivesReady(false);
             oArea.setFirstShortArchivesReady(false);
-            oArea.setActive(true);
+            
 
             // Create it
             oAreaRepository.add(oArea);
