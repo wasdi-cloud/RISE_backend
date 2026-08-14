@@ -21,6 +21,8 @@ public class UserViewModel extends RiseViewModel {
 	
 	public boolean acceptedPrivacy;
 	
+	public String defaultBaseMap;
+	
 	public Double lastLoginDate;
 	
 	public boolean notifyNewsletter;

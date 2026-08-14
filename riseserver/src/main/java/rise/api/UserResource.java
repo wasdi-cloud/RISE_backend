@@ -95,6 +95,11 @@ public class UserResource {
 			if (!Utils.isNullOrEmpty(oUserViewModel.internationalPrefix)) {
 				oUser.setInternationalPrefix(oUserViewModel.internationalPrefix);
 			}
+            
+			// NEW: Save the user's default base map preference
+			if (!Utils.isNullOrEmpty(oUserViewModel.defaultBaseMap)) {
+				oUser.setDefaultBaseMap(oUserViewModel.defaultBaseMap);
+			}
 			
 			UserRepository oUserRepository = new UserRepository();
 			oUserRepository.updateUserByEmail(oUser);

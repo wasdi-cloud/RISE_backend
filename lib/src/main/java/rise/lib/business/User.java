@@ -16,6 +16,10 @@ public class User extends RiseEntity {
 	
 	private UserRole role;
 	
+	
+	private String defaultBaseMap;
+	
+	
 	private Double registrationDate;
 	
 	private Double confirmationDate;
@@ -230,6 +234,14 @@ public class User extends RiseEntity {
 
 	public void setInternationalPrefix(String internationalPrefix) {
 		this.internationalPrefix = internationalPrefix;
+	}
+
+	public String getDefaultBaseMap() {
+		return defaultBaseMap;
+	}
+
+	public void setDefaultBaseMap(String defaultBaseMap) {
+		this.defaultBaseMap = defaultBaseMap;
 	}
 
 }
