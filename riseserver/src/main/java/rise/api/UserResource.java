@@ -30,17 +30,7 @@ import rise.lib.utils.i8n.Languages;
 import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.utils.mail.MailUtils;
-import rise.lib.viewmodels.ChangeEmailViewModel;
-import rise.lib.viewmodels.ChangeExpiredPasswordRequestViewModel;
-import rise.lib.viewmodels.ChangePasswordRequestViewModel;
-import rise.lib.viewmodels.ConfirmEmailChangeViewModel;
-import rise.lib.viewmodels.ConfirmForgetPasswordViewModel;
-import rise.lib.viewmodels.ErrorViewModel;
-import rise.lib.viewmodels.OTPVerifyViewModel;
-import rise.lib.viewmodels.OTPViewModel;
-import rise.lib.viewmodels.RiseViewModel;
-
-import rise.lib.viewmodels.UserViewModel;
+import rise.lib.viewmodels.*;
 
 @Path("usr")
 public class UserResource {
@@ -56,8 +46,20 @@ public class UserResource {
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			UserViewModel oUserViewModel = (UserViewModel) RiseViewModel.getFromEntity(UserViewModel.class.getName(),
-					oUser);
+			// FIX: Enforce Password Expiration for existing active sessions!
+			double dLastPwChange = oUser.getLastPasswordUpdateDate();
+			double dNow = DateUtils.getNowAsDouble();
+			double dTimePassed = (dNow - dLastPwChange) / 1000.0;
+
+			if (dTimePassed > RiseConfig.Current.security.maxPasswordAgeSeconds) {
+				RiseLog.warnLog("UserResource.getUser: password expired for user " + oUser.getUserId());
+
+				// Returning this specific code forces the Angular App to drop the session and redirect.
+				ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.WARNING_API_PASSWORD_EXPIRED.name(), Status.TEMPORARY_REDIRECT.getStatusCode());
+				return Response.status(Status.TEMPORARY_REDIRECT).entity(oErrorViewModel).build();
+			}
+
+			UserViewModel oUserViewModel = (UserViewModel) RiseViewModel.getFromEntity(UserViewModel.class.getName(), oUser);
 
 			return Response.ok(oUserViewModel).build();
 		} catch (Exception oEx) {
@@ -923,13 +925,26 @@ public class UserResource {
 			PasswordChangeRequestRepository oPasswordChangeRequestRepository = new PasswordChangeRequestRepository();
 			PasswordChangeRequest oChangeRequest = oPasswordChangeRequestRepository
 					.getPasswordChangeRequestByOTPId(oOTPVerifyVM.id);
-			
+
 			oUser.setPassword(oChangeRequest.getPassword());
 			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
 			oOTPRepository.delete(oOTPVerifyVM.id);
 			oUserRepository.updateUser(oUser);
-			RiseLog.debugLog("UserResource.verifyPasswordChange");
-			return Response.ok().build();
+
+			// FIX: Automatically generate a new session so the user doesn't have to log in again!
+			Session oSession = new Session();
+			oSession.setLoginDate(DateUtils.getNowAsDouble());
+			oSession.setLastTouch(DateUtils.getNowAsDouble());
+			oSession.setToken(Utils.getRandomName());
+			oSession.setUserId(oUser.getUserId());
+
+			SessionRepository oSessionRepository = new SessionRepository();
+			oSessionRepository.add(oSession);
+
+			SessionTokenViewModel oSessionTokenViewModel = (SessionTokenViewModel) RiseViewModel.getFromEntity(SessionTokenViewModel.class.getName(), oSession);
+
+			RiseLog.debugLog("UserResource.verifyExpiredPasswordChange: success, generating auto-login token.");
+			return Response.ok(oSessionTokenViewModel).build();
 
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.verifyPasswordChange: " + oEx);
