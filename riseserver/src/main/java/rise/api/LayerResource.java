@@ -136,7 +136,7 @@ public class LayerResource {
 			}
 		} catch (Exception oEx) {
 			RiseLog.errorLog("LayerResource.getLayer: " + oEx);
-			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 	}
 	
@@ -423,6 +423,11 @@ public class LayerResource {
     public Response layerAnalyzer(@HeaderParam("x-session-token") String sSessionId, LayerAnalyzerInputViewModel oInput) {
     	
     	try {
+            if (oInput == null || oInput.layerIds == null || oInput.layerIds.isEmpty()) {
+                RiseLog.warnLog("LayerResource.layerAnalyzer: no layer selected");
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+
     		LayerAnalyzerOutputViewModel oOutput = new LayerAnalyzerOutputViewModel();
     		
         	List<String> asArgs = new ArrayList<String>();
@@ -464,6 +469,8 @@ public class LayerResource {
         	RiseLog.debugLog("LayerResource.layerAnalyzer: got ouput from python script:");
         	
         	RiseLog.debugLog(oReturn.getOperationLogs());
+            RiseLog.debugLog("LayerResource.layerAnalyzer: operation ok=" + oReturn.isOperationOk()
+                    + ", return code=" + oReturn.getOperationReturn());
         	
         	File oOutputFile = new File(sOutputFullPath);
         	
@@ -476,6 +483,10 @@ public class LayerResource {
         		oOutput.percentAreaAffectedPixels = oJsonOutput.optString("percentAreaAffectedPixels");
         		oOutput.percentTotAreaAffectedPixels = oJsonOutput.optString("percentTotAreaAffectedPixels");
         		oOutput.totAreaPixels = oJsonOutput.optString("totAreaPixels");
+                oOutput.estimatedAffectedArea = oJsonOutput.optString("estimatedAffectedArea");
+                oOutput.histogramCsv = oJsonOutput.optString("histogramCsv");
+                oOutput.histogramExcel = oJsonOutput.optString("histogramExcel");
+                oOutput.selectedPixelsCsv = oJsonOutput.optString("selectedPixelsCsv");
         		JSONArray oHistogram = oJsonOutput.optJSONArray("histogram");
         		
         		if (oHistogram != null) {
@@ -491,6 +502,7 @@ public class LayerResource {
         	else {
         		// Problems reading the output
         		RiseLog.warnLog("LayerResource.layerAnalyzer: impossible to find the output file from the python script");
+		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         	}        	
         	
 //        	RiseFileUtils.deleteFile(sInputFullPath);

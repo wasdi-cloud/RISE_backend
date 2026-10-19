@@ -13,5 +13,8 @@ public class LayerAnalyzerOutputViewModel extends RiseViewModel {
 	
 	public String estimatedArea;
 	public String estimatedAffectedArea;
+	public String histogramCsv;
+	public String histogramExcel;
+	public String selectedPixelsCsv;
 	public List<String> histogram = new ArrayList<>();
 }
