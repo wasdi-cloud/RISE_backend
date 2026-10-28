@@ -27,4 +27,9 @@ public class SecurityConfig {
 	public String forgetPasswordConfirm="https://risetest.wasdi.net/user/confirm-forget-password";
 
 	public String registerConfirmAddress = "rise.wasdi.net/user/confirm";
+	
+	/**
+	 * Max inactivity time of a session (sliding expiration on lastTouch): 2 days
+	 */
+	public double maxSessionAgeSeconds = 2*24*60*60;
 }

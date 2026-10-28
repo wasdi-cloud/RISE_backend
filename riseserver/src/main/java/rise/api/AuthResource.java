@@ -310,13 +310,7 @@ public class AuthResource {
 	    		RiseLog.warnLog("AuthResource.login_verify: Error updating users' last login");
 	    	}
 	    	
-	    	double dLastPwChange = oUser.getLastPasswordUpdateDate();
-	    	double dNow = DateUtils.getNowAsDouble();
-	    	
-	    	double dTimePassed = dNow-dLastPwChange;
-	    	dTimePassed /= 1000.0;
-	    	
-	    	if (dTimePassed>RiseConfig.Current.security.maxPasswordAgeSeconds) {
+	    	if (PasswordAuthentication.isPasswordExpired(oUser)) {
 	    		RiseLog.warnLog("AuthResource.login_verify: password expired for user " + oOTPVerifyVM.userId);
 	    		
 	    		oErrorViewModel = new ErrorViewModel(StringCodes.WARNING_API_PASSWORD_EXPIRED.name(), Status.TEMPORARY_REDIRECT.getStatusCode());

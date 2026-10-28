@@ -15,6 +15,7 @@ import rise.lib.config.RiseConfig;
 import rise.lib.data.MongoRepository;
 import rise.lib.data.SessionRepository;
 import rise.lib.data.UserRepository;
+import rise.lib.utils.PasswordAuthentication;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
 import rise.providers.JerseyMapperProvider;
@@ -75,14 +76,24 @@ public class Rise extends ResourceConfig {
 	
 	
 	/**
-	 * Get the User object from the session Id
-	 * It checks first in Key Cloak and later on the local session mechanism.
-	 * @param sSessionId
-	 * @return
+	 * Get the User object from the session Id.
+	 * The session must exist and not be expired, and the password of the user must not be expired.
+	 * @param sSessionId Session token
+	 * @return the User or null if the session is not valid
 	 */
 	public static User getUserFromSession(String sSessionId) {
+		return getUserFromSession(sSessionId, true);
+	}
+	
+	/**
+	 * Get the User object from the session Id
+	 * @param sSessionId Session token
+	 * @param bCheckPasswordExpiry if true, returns null when the password of the user is expired
+	 * @return the User or null if the session is not valid
+	 */
+	public static User getUserFromSession(String sSessionId, boolean bCheckPasswordExpiry) {
 		
-		if (Utils.isNullOrEmpty(sSessionId));
+		if (Utils.isNullOrEmpty(sSessionId)) return null;
 		
 		User oUser = null;
 		String sUserId = "";
@@ -90,7 +101,7 @@ public class Rise extends ResourceConfig {
 		try {
 			
 			SessionRepository oSessionRepository = new SessionRepository();
-			Session oUserSession = oSessionRepository.getSession(sSessionId);
+			Session oUserSession = oSessionRepository.getValidSession(sSessionId);
 			
 			if(null==oUserSession) {
 				return null;
@@ -105,10 +116,16 @@ public class Rise extends ResourceConfig {
 			} 
 			else {
 				return null;
-			}			
+			}
+			
+			if (oUser != null && bCheckPasswordExpiry && PasswordAuthentication.isPasswordExpired(oUser)) {
+				RiseLog.warnLog("Rise.getUserFromSession: password expired for user " + oUser.getUserId());
+				return null;
+			}
 
 		} catch (Exception oE) {
 			RiseLog.errorLog("Rise.getUserFromSession: something bad happened: " + oE);
+			return null;
 		}
 
 		return oUser;

@@ -71,35 +71,35 @@ RUN {{ sWasdiSystemUserHome }}/venv/bin/pip3 install --no-cache-dir --no-compile
 
 # RUN specific to install JRE 17
 RUN mkdir --parents \
-        /opt/rise/jre17 \
-        /opt/rise/jre17/17.0.10_7 && \
+        /opt/rise/jre21 \
+        /opt/rise/jre21/21.0.9_10 && \
     chown appwasdi:appwasdi \
-        /opt/rise/jre17 \
-        /opt/rise/jre17/17.0.10_7 && \
+        /opt/rise/jre21 \
+        /opt/rise/jre21/21.0.9_10 && \
     chmod 0750 \
-        /opt/rise/jre17 \
-        /opt/rise/jre17/17.0.10_7 && \
+        /opt/rise/jre21 \
+        /opt/rise/jre21/21.0.9_10 && \
     wget \
         --no-verbose \
-        --output-document /tmp/OpenJDK17U-jre_x64_linux_hotspot_17.0.10_7.tar.gz \
+        --output-document /tmp/OpenJDK21U-jdk_x64_linux_hotspot_21.0.9_10.tar.gz \
         --progress=bar:force:noscroll \
         --show-progress \
-        https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.10%2B7/OpenJDK17U-jre_x64_linux_hotspot_17.0.10_7.tar.gz && \
+        https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.9%2B10/OpenJDK21U-jdk_x64_linux_hotspot_21.0.9_10.tar.gz && \
     tar \
-        --directory /opt/rise/jre17/17.0.10_7 \
+        --directory /opt/rise/jre21/21.0.9_10 \
         --extract \
-        --file /tmp/OpenJDK17U-jre_x64_linux_hotspot_17.0.10_7.tar.gz \
+        --file /tmp/OpenJDK21U-jdk_x64_linux_hotspot_21.0.9_10.tar.gz \
         --strip-components=1 && \
     ln \
         --symbolic \
-        /opt/rise/jre17/17.0.10_7 \
-        /opt/rise/jre17/latest && \
+        /opt/rise/jre21/21.0.9_10 \
+        /opt/rise/jre21/latest && \
     chown --no-dereference appwasdi:appwasdi \
-        /opt/rise/jre17/latest && \
+        /opt/rise/jre21/latest && \
     rm --force \
-        /tmp/OpenJDK17U-jre_x64_linux_hotspot_17.0.10_7.tar.gz
+        /tmp/OpenJDK21U-jdk_x64_linux_hotspot_21.0.9_10.tar.gz
 
-ENV JAVA_HOME="/opt/rise/jre17/17.0.10_7" PATH="/opt/rise/jre17/17.0.10_7/bin:${PATH}"
+ENV JAVA_HOME="/opt/rise/jre21/21.0.9_10" PATH="/opt/rise/jre21/21.0.9_10/bin:${PATH}"
 
 # From now, all commands executed are executed with the user 'root'
 USER root

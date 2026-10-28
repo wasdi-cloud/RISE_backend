@@ -39,19 +39,15 @@ public class UserResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getUser(@HeaderParam("x-session-token") String sSessionId) {
 		try {
-			User oUser = Rise.getUserFromSession(sSessionId);
+			// Do not check the password expiration here: we need to distinguish an expired password from an invalid session
+			User oUser = Rise.getUserFromSession(sSessionId, false);
 
 			if (oUser == null) {
 				RiseLog.warnLog("UserResource.getUser: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
 
-			// FIX: Enforce Password Expiration for existing active sessions!
-			double dLastPwChange = oUser.getLastPasswordUpdateDate();
-			double dNow = DateUtils.getNowAsDouble();
-			double dTimePassed = (dNow - dLastPwChange) / 1000.0;
-
-			if (dTimePassed > RiseConfig.Current.security.maxPasswordAgeSeconds) {
+			if (PasswordAuthentication.isPasswordExpired(oUser)) {
 				RiseLog.warnLog("UserResource.getUser: password expired for user " + oUser.getUserId());
 
 				// Returning this specific code forces the Angular App to drop the session and redirect.
@@ -477,6 +473,11 @@ public class UserResource {
 			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
 			oOTPRepository.delete(oOTPVerifyVM.id);
 			oUserRepository.updateUser(oUser);
+			
+			// Invalidate all the existing sessions of the user
+			SessionRepository oSessionRepository = new SessionRepository();
+			oSessionRepository.deleteSessionsByUserId(oUser.getUserId());
+			
 			RiseLog.debugLog("UserResource.verifyPasswordChange");
 			return Response.ok().build();
 
@@ -931,6 +932,10 @@ public class UserResource {
 			oOTPRepository.delete(oOTPVerifyVM.id);
 			oUserRepository.updateUser(oUser);
 
+			// Invalidate all the existing sessions of the user before creating the new one
+			SessionRepository oSessionRepository = new SessionRepository();
+			oSessionRepository.deleteSessionsByUserId(oUser.getUserId());
+
 			// FIX: Automatically generate a new session so the user doesn't have to log in again!
 			Session oSession = new Session();
 			oSession.setLoginDate(DateUtils.getNowAsDouble());
@@ -938,7 +943,6 @@ public class UserResource {
 			oSession.setToken(Utils.getRandomName());
 			oSession.setUserId(oUser.getUserId());
 
-			SessionRepository oSessionRepository = new SessionRepository();
 			oSessionRepository.add(oSession);
 
 			SessionTokenViewModel oSessionTokenViewModel = (SessionTokenViewModel) RiseViewModel.getFromEntity(SessionTokenViewModel.class.getName(), oSession);
@@ -1082,6 +1086,11 @@ public class UserResource {
 			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
 			oUserRepository.updateUser(oUser);
 			oForgetPasswordRequestRepository.delete(oForgetPasswordRequest.getId());
+			
+			// Invalidate all the existing sessions of the user
+			SessionRepository oSessionRepository = new SessionRepository();
+			oSessionRepository.deleteSessionsByUserId(oUser.getUserId());
+			
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.confirmForgetPassword: " + oEx);

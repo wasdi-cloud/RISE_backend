@@ -12,7 +12,9 @@ import java.util.regex.Pattern;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+import rise.lib.business.User;
 import rise.lib.config.RiseConfig;
+import rise.lib.utils.date.DateUtils;
 
 /**
  * Hash passwords for storage, and test passwords against password tokens.
@@ -148,6 +150,27 @@ public final class PasswordAuthentication {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check if the password of the user is expired, according to security.maxPasswordAgeSeconds
+	 * 
+	 * @param oUser User to check
+	 * @return true if the password is expired (or the last update date is unknown), false otherwise
+	 */
+	public static boolean isPasswordExpired(User oUser) {
+		if (oUser == null)
+			return true;
+
+		Double oLastPasswordUpdate = oUser.getLastPasswordUpdateDate();
+
+		// Legacy users without a password update date must change it
+		if (oLastPasswordUpdate == null)
+			return true;
+
+		double dSecondsPassed = (DateUtils.getNowAsDouble() - oLastPasswordUpdate) / 1000.0;
+
+		return dSecondsPassed > RiseConfig.Current.security.maxPasswordAgeSeconds;
 	}
 
 	/**
