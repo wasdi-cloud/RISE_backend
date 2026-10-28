@@ -1,7 +1,11 @@
 package rise.lib.utils.mail;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonGenerator;
 
 import it.fadeout.mercurius.business.Message;
 import it.fadeout.mercurius.client.MercuriusAPI;
@@ -216,15 +220,20 @@ public class MailUtils {
 			oPayload.Messages.add(oMessage);
 			
 			// Serialize
-			String sJSON = MongoRepository.s_oMapper.writeValueAsString(oPayload);
+			String sJSON = MongoRepository.s_oMapper.copy()
+					.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true)
+					.writeValueAsString(oPayload);
 			
 			RiseLog.debugLog("MailUtils.sendEmailMailJet: JSON for MailJet " + sJSON);
 			
 			// Basic Auth
 			String sAuth = RiseConfig.Current.notifications.mailJetUser + ":" + RiseConfig.Current.notifications.mailJetPassword;
 			
+			Map<String, String> asHeaders = new HashMap<>();
+			asHeaders.put("Content-Type", "application/json; charset=UTF-8");
+
 			// Call the service	
-			HttpCallResponse oHttpResponse = HttpUtils.httpPost(RiseConfig.Current.notifications.mailJetSendAPI, sJSON, null, sAuth);
+			HttpCallResponse oHttpResponse = HttpUtils.httpPost(RiseConfig.Current.notifications.mailJetSendAPI, sJSON, asHeaders, sAuth);
 			
 			if (oHttpResponse.getResponseCode()>=200 && oHttpResponse.getResponseCode()<=299) {
 				RiseLog.infoLog("MailUtils.sendEmailMailJet: mail sent");

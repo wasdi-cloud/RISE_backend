@@ -221,7 +221,7 @@ public final class HttpUtils {
 	 * @return HttpCallResponse object that contains the Response Body and the Response Code
 	 */
 	public static HttpCallResponse httpPost(String sUrl, String sPayload, Map<String, String> asHeaders, String sAuth, Map<String, List<String>> aoOutputHeaders) {
-		return httpPost(sUrl, sPayload.getBytes(), asHeaders, sAuth, aoOutputHeaders);
+		return httpPost(sUrl, sPayload.getBytes(StandardCharsets.UTF_8), asHeaders, sAuth, aoOutputHeaders);
 	}
 	
 	public static HttpCallResponse httpPost(String sUrl, byte []ayBytes, Map<String, String> asHeaders) {
