@@ -23,7 +23,7 @@ public class AreaRepository extends MongoRepository {
 
         try {
 
-        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.eq("organizationId", sOrganizationId));        	
+        	FindIterable<Document> oWSDocument = getCollection(m_sThisCollection).find(Filters.and(Filters.eq("organizationId", sOrganizationId), Filters.ne("subscriptionId", "")));        	
         	
         	fillList(aoReturnList, oWSDocument, Area.class);
         	
