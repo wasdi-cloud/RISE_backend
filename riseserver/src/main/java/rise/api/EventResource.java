@@ -98,8 +98,7 @@ public class EventResource {
 			Subscription oValidSubscription = PermissionsUtils.getValidSubscription(oUser);
 
 			if (oValidSubscription == null) {
-				RiseLog.warnLog(
-						"EventResource.addEvent: user " + oUser.getUserId() + " does not have a valid subscription");
+				RiseLog.warnLog("EventResource.addEvent: user " + oUser.getUserId() + " does not have a valid subscription");
 				ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
 				return Response.status(Status.FORBIDDEN).entity(oError).build();
 			}
@@ -210,7 +209,7 @@ public class EventResource {
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("EventResource.deleteEvent: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (Utils.isNullOrEmpty(sEventId)) {

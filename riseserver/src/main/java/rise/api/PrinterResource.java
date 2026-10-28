@@ -26,16 +26,13 @@ public class PrinterResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         if (oPrinterViewModel.getBaseMap() == null || oPrinterViewModel.getBaseMap().trim().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         if (oPrinterViewModel.getCenter() == null || oPrinterViewModel.getCenter().getLat() == 0.0 && oPrinterViewModel.getCenter().getLng() == 0.0) { // Basic check for center
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         if (oPrinterViewModel.getFormat() == null || (!oPrinterViewModel.getFormat().equalsIgnoreCase("pdf") && !oPrinterViewModel.getFormat().equalsIgnoreCase("png"))) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
             // Serialize the incoming PrintMapRequest object to JSON string
@@ -93,10 +90,9 @@ public class PrinterResource {
     @GET
     @Produces({ "application/pdf", "image/png" })
     public Response print(@QueryParam("uuid") String sUUID) {
+    	
         if (sUUID == null || sUUID.trim().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Missing UUID parameter")
-                    .build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Missing UUID parameter").build();
         }
 
         try {
@@ -104,10 +100,7 @@ public class PrinterResource {
 
             String sExternalUrl = RiseConfig.Current.wasdiConfig.printServerAddress+ "/print?uuid=" + URLEncoder.encode(sUUID, StandardCharsets.UTF_8);
 
-            HttpRequest oRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(sExternalUrl))
-                    .GET()
-                    .build();
+            HttpRequest oRequest = HttpRequest.newBuilder().uri(URI.create(sExternalUrl)).GET().build();
 
             HttpResponse<byte[]> oResponse = oHttpClient.send(oRequest, HttpResponse.BodyHandlers.ofByteArray());
 

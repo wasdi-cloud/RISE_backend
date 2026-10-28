@@ -64,12 +64,12 @@ public class MapsParametersResource {
 	
 			if (oArea == null) {
 				RiseLog.warnLog("MapResource.getParameters: Area with this id " + sAreaId + " not found");
-				return Response.status(Status.NOT_FOUND).build();
+				return Response.status(Status.BAD_REQUEST).build();
 			}
 	
 			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
 				RiseLog.warnLog("MapResource.getParameters: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			
@@ -221,12 +221,12 @@ public class MapsParametersResource {
 	
 			if (!PermissionsUtils.canUserWriteArea(oArea, oUser)) {
 				RiseLog.warnLog("MapResource.add: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("MapResource.add: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			// Check if we have this map id
@@ -304,8 +304,7 @@ public class MapsParametersResource {
 				return Response.status(Status.BAD_REQUEST).build();
 			}
 			
-			if (Utils.isNullOrEmpty(oMapParametersViewModel.id)
-					|| Utils.isNullOrEmpty(oMapParametersViewModel.payload)) {
+			if (Utils.isNullOrEmpty(oMapParametersViewModel.id) || Utils.isNullOrEmpty(oMapParametersViewModel.payload)) {
 				RiseLog.warnLog("MapResource.update: some fiels in the view model are null or empty");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
@@ -329,12 +328,12 @@ public class MapsParametersResource {
 			
 			if (!PermissionsUtils.canUserWriteArea(oArea, oUser)) {
 				RiseLog.warnLog("MapResource.update: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("MapResource.update: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			oMapsParametersFromDb.setPayload(oMapParametersViewModel.payload);
@@ -392,12 +391,12 @@ public class MapsParametersResource {
 			
 			if (!PermissionsUtils.canUserWriteArea(oArea, oUser)) {
 				RiseLog.warnLog("MapResource.update: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("MapResource.update: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			

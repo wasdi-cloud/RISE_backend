@@ -60,7 +60,7 @@ public class WidgetResource {
     		
     		if (!PermissionsUtils.canUserAccessOrganization(oOrganization, oUser)) {
 				RiseLog.warnLog("WidgetResource.getWidgetByTime: user cannot access org");
-				return Response.status(Status.UNAUTHORIZED).build();     			
+				return Response.status(Status.FORBIDDEN).build();     			
     		}
     		
 			if (lDate == null)
@@ -129,7 +129,7 @@ public class WidgetResource {
     		
     		if (!PermissionsUtils.canUserAccessOrganization(oOrganization, oUser)) {
 				RiseLog.warnLog("WidgetResource.getWidgetByTime: user cannot access org");
-				return Response.status(Status.UNAUTHORIZED).build();     			
+				return Response.status(Status.FORBIDDEN).build();     			
     		}
     		
 			if (lDate == null)
@@ -240,7 +240,7 @@ public class WidgetResource {
     		
     		if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
 				RiseLog.warnLog("WidgetResource.getImpactsWidgetByDate: user cannot access org");
-				return Response.status(Status.UNAUTHORIZED).build();    			
+				return Response.status(Status.FORBIDDEN).build();    			
     		}
     		
     		if (Utils.isNullOrEmpty(sDate)) {

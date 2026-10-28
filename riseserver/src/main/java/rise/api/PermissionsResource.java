@@ -100,13 +100,13 @@ public class PermissionsResource {
 			}
 			
 			if (!oArea.getOrganizationId().equals(oRequesterUser.getOrganizationId())) {
-				RiseLog.debugLog("PermissionsResource.addResourcePermission: Unauthorized, organizations ids are different");
-				return Response.status(Status.UNAUTHORIZED).build();
+				RiseLog.debugLog("PermissionsResource.addResourcePermission: FORBIDDEN, organizations ids are different");
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			if (!PermissionsUtils.canUserWriteArea(oArea, oRequesterUser)) {
-				RiseLog.debugLog("PermissionsResource.addResourcePermission: Unauthorized, user can't write area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				RiseLog.debugLog("PermissionsResource.addResourcePermission: FORBIDDEN, user can't write area");
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			// If the user is in the same org, can be invited as field user not shared area!!
@@ -208,7 +208,7 @@ public class PermissionsResource {
 				return Response.ok().build();
 			}
 			else {
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 		}  
 		else {

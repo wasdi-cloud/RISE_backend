@@ -59,7 +59,7 @@ public class OrganizationResource {
 
 			if (Utils.isNullOrEmpty(oUser.getOrganizationId())) {
 				RiseLog.warnLog("OrganizationResource.getByUser: not valid org for the user");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
@@ -94,20 +94,18 @@ public class OrganizationResource {
 
 			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
 			Organization oOrganization = oOrganizationRepository.getOrganization(sId);
+			
+			if (oOrganization == null) {
+				RiseLog.warnLog("OrganizationResource.get: the org " + oUser.getOrganizationId() + " of user " + oUser.getUserId() + " does not exists in the db");
+				return Response.status(Status.BAD_REQUEST).build();
+			}			
 
 			if (!PermissionsUtils.canUserAccessOrganization(oOrganization, oUser)) {
 				RiseLog.warnLog("OrganizationResource.get: user cannot access org");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
-			if (oOrganization == null) {
-				RiseLog.warnLog("OrganizationResource.getByUser: the org " + oUser.getOrganizationId() + " of user "
-						+ oUser.getUserId() + " does not exists in the db");
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-
-			OrganizationViewModel oOrganizationViewModel = (OrganizationViewModel) RiseViewModel
-					.getFromEntity(OrganizationViewModel.class.getName(), oOrganization);
+			OrganizationViewModel oOrganizationViewModel = (OrganizationViewModel) RiseViewModel.getFromEntity(OrganizationViewModel.class.getName(), oOrganization);
 
 			return Response.ok(oOrganizationViewModel).build();
 		} 
@@ -133,7 +131,7 @@ public class OrganizationResource {
 
 			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN) || oUser.getRole().equals(UserRole.HQ))) {
 				RiseLog.warnLog("OrganizationResource.invite: not an admin");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (oInviteVM == null) {
@@ -143,12 +141,12 @@ public class OrganizationResource {
 
 			if (Utils.isNullOrEmpty(oInviteVM.organizationId)) {
 				RiseLog.warnLog("OrganizationResource.invite: no org received");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.BAD_REQUEST).build();
 			}
 
 			if (!oUser.getOrganizationId().equals(oInviteVM.organizationId)) {
 				RiseLog.warnLog("OrganizationResource.invite: not your org");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (Utils.isNullOrEmpty(oInviteVM.email)) {
@@ -163,7 +161,7 @@ public class OrganizationResource {
 
 			if (oOrganization == null) {
 				RiseLog.errorLog("OrganizationResource.invite: org not found, impossible to proceed");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			// Check if we have an existing user with same user id
@@ -270,7 +268,7 @@ public class OrganizationResource {
 
 			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
 				RiseLog.warnLog("OrganizationResource.updateOrganization: not an admin");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (oOrganizationViewModel == null) {
@@ -279,7 +277,7 @@ public class OrganizationResource {
 			}
 			if (!oUser.getOrganizationId().equals(oOrganizationViewModel.id)) {
 				RiseLog.warnLog("OrganizationResource.updateOrganization: invalid permission");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			OrganizationRepository oOrganizationRepository = new OrganizationRepository();
@@ -351,7 +349,7 @@ public class OrganizationResource {
 
 			if (!(oUser.getRole().equals(UserRole.ADMIN) ||oUser.getRole().equals(UserRole.HQ) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
 				RiseLog.warnLog("OrganizationResource.getOrganizationUsers: not an admin or hq");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			String sOrganizationId = oUser.getOrganizationId();
 			UserRepository oUserRepository = new UserRepository();
@@ -379,8 +377,7 @@ public class OrganizationResource {
 
 	@DELETE
 	@Path("remove-user")
-	public Response removeUsersFromOrganzation(@HeaderParam("x-session-token") String sSessionId,
-			List<UserViewModel> aoUsersToDelete) {
+	public Response removeUsersFromOrganzation(@HeaderParam("x-session-token") String sSessionId, List<UserViewModel> aoUsersToDelete) {
 		try {
 			User oUser = Rise.getUserFromSession(sSessionId);
 			
@@ -391,7 +388,7 @@ public class OrganizationResource {
 			
 			if (!(oUser.getRole().equals(UserRole.ADMIN) || oUser.getRole().equals(UserRole.RISE_ADMIN))) {
 				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: not an admin");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			if (aoUsersToDelete == null || aoUsersToDelete.size() == 0) {
@@ -406,6 +403,29 @@ public class OrganizationResource {
 				}
 			}
 			UserRepository oUserRepository = new UserRepository();
+			boolean bIsRiseAdmin = oUser.getRole().equals(UserRole.RISE_ADMIN);
+			
+			// Validate all the users before deleting any of them
+			for (UserViewModel oUserViewModel : aoUsersToDelete) {
+				
+				if (oUserViewModel.userId.equals(oUser.getUserId())) {
+					RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: a user cannot remove himself");
+					return Response.status(Status.FORBIDDEN).build();
+				}
+				
+				User oUserToDelete = oUserRepository.getUser(oUserViewModel.userId);
+				
+				if (oUserToDelete == null) {
+					RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: user " + oUserViewModel.userId + " not found");
+					return Response.status(Status.BAD_REQUEST).build();
+				}
+				
+				if (!bIsRiseAdmin && (Utils.isNullOrEmpty(oUser.getOrganizationId()) || !oUser.getOrganizationId().equals(oUserToDelete.getOrganizationId()))) {
+					RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: user " + oUserViewModel.userId + " does not belong to the organization of " + oUser.getUserId());
+					return Response.status(Status.FORBIDDEN).build();
+				}
+			}
+			
 			for (UserViewModel oUserViewModel : aoUsersToDelete) {
 				oUserRepository.deleteByUserId(oUserViewModel.userId);
 			}
@@ -427,9 +447,10 @@ public class OrganizationResource {
 				RiseLog.warnLog("OrganizationResource.deleteOrganzation: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
+			
 			if (!PermissionsUtils.isAdmin(oUser)) {
-				RiseLog.warnLog("OrganizationResource.removeUsersFromOrganzation: not an admin");
-				return Response.status(Status.UNAUTHORIZED).build();
+				RiseLog.warnLog("OrganizationResource.deleteOrganization: not an admin");
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			// create otp
 
@@ -494,20 +515,24 @@ public class OrganizationResource {
 	@Path("verify-delete-org")
 	public Response verifyDeleteOrg(@HeaderParam("x-session-token") String sSessionId, OTPVerifyViewModel oOTPVerifyVM) {
 		try {
+			User oUser = Rise.getUserFromSession(sSessionId);
+			if (oUser == null) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}			
 
 			// Validate inputs
 			if (oOTPVerifyVM == null) {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: OTP info null, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.BAD_REQUEST).build();
 			}
 			if (Utils.isNullOrEmpty(oOTPVerifyVM.id)) {
-				RiseLog.warnLog(
-						"OrganizationResource.verifyDeleteOrg: operation id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).build();
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: operation id null or empty, user not authenticated");
+				return Response.status(Status.BAD_REQUEST).build();
 			}
 			if (Utils.isNullOrEmpty(oOTPVerifyVM.userId)) {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: user Id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.BAD_REQUEST).build();
 			}
 			OTPRepository oOTPRepository = new OTPRepository();
 
@@ -515,36 +540,41 @@ public class OrganizationResource {
 
 			if (oDbOTP == null) {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: otp not found, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.BAD_REQUEST).build();
 			}
 
 			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: otp user id does not match, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (!oDbOTP.isValidated()) {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: otp not validated, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (!oDbOTP.getOperation().equals(OTPOperations.DELETE_ORG.name())) {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: otp action not correct, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			// Check if we have a user
 			UserRepository oUserRepository = new UserRepository();
-			User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
+			User oOtpUser = oUserRepository.getUser(oOTPVerifyVM.userId);
 
-			if (oUser == null) {
+			if (oOtpUser == null) {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: user not found");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
+			}
+			
+			if (oOtpUser.getUserId().equals(oUser.getUserId()) == false) {
+				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: user does not match");
+				return Response.status(Status.FORBIDDEN).build();				
 			}
 
 			if (!PermissionsUtils.isAdmin(oUser)) {
 				RiseLog.warnLog("OrganizationResource.verifyDeleteOrg: user not admin");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			oOTPRepository.delete(oOTPVerifyVM.id);

@@ -77,12 +77,11 @@ public class SubscriptionResource {
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("SubscriptionResource.getList: cannot handle subscriptions");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			// valid true by default
-			if (bValid == null)
-				bValid = true;
+			if (bValid == null) bValid = true;
 			
 			SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
 			
@@ -151,7 +150,7 @@ public class SubscriptionResource {
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("SubscriptionResource.getAvailable: cannot handle subscriptions");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
@@ -227,7 +226,7 @@ public class SubscriptionResource {
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("SubscriptionResource.getById: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (Utils.isNullOrEmpty(sId)) {
@@ -287,7 +286,7 @@ public class SubscriptionResource {
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("SubscriptionResource.update: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (oSubscriptionViewModel == null) {
@@ -339,8 +338,8 @@ public class SubscriptionResource {
 	 * @return
 	 */
 	public double getSubscriptionPrice(Subscription oSubscription) {
-		if (oSubscription == null)
-			return -1;
+		
+		if (oSubscription == null) return -1;
 		
 		SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
 		SubscriptionType oSubscriptionType = oSubscriptionTypeRepository.getByType(oSubscription.getType());
@@ -401,7 +400,7 @@ public class SubscriptionResource {
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("SubscriptionResource.getPrice: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (oSubscriptionViewModel == null) {
@@ -447,7 +446,7 @@ public class SubscriptionResource {
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("SubscriptionResource.getTypes: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			SubscriptionTypeRepository oSubscriptionTypeRepository = new SubscriptionTypeRepository();
@@ -487,7 +486,7 @@ public class SubscriptionResource {
 			// We need an admin here!
 			if (!PermissionsUtils.hasHQRights(oUser)) {
 				RiseLog.warnLog("SubscriptionResource.createSubscription: not an HQ level");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (oSubscriptionViewModel == null) {

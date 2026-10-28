@@ -85,7 +85,7 @@ public class PluginResource {
 			
 			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
 				RiseLog.warnLog("PluginResource.getListByArea: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
     		
     		// get the active plugins of the area

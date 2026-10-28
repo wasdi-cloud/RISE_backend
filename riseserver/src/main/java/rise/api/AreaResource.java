@@ -49,7 +49,7 @@ public class AreaResource {
             // We need an admin here!
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.getCount: cannot handle area");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             AreaRepository oAreaRepository = new AreaRepository();
@@ -87,11 +87,11 @@ public class AreaResource {
             // We need an admin here!
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.getList: cannot handle area");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             AreaRepository oAreaRepository = new AreaRepository();
-            List<Area> aoAreas = oAreaRepository.getByOrganization(oUser.getOrganizationId());
+            List<Area> aoAreas = oAreaRepository.getByOrganization(oUser.getOrganizationId(), false);
 
             // Get the areas of this org
             // Create VM list
@@ -230,7 +230,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
                 RiseLog.warnLog("AreaResource.getById: user cannot access area");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             AreaViewModel oAreaViewModel = (AreaViewModel) RiseViewModel.getFromEntity(AreaViewModel.class.getName(), oArea);
@@ -257,7 +257,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.update: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             if (oAreaViewModel == null) {
@@ -281,7 +281,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.canUserWriteArea(oFromDbArea, oUser)) {
                 RiseLog.warnLog("AreaResource.update: user cannot write area");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             // Create the updated entity
@@ -340,7 +340,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.add: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             if (oAreaViewModel == null) {
@@ -365,13 +365,13 @@ public class AreaResource {
                 if (!bCanAddAreas) {
                     RiseLog.warnLog("AreaResource.add: the org does not have more free areas");
                     ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
-                    return Response.status(Status.UNAUTHORIZED).entity(oError).build();
+                    return Response.status(Status.FORBIDDEN).entity(oError).build();
                 }
 
                 if (oAreaViewModel.supportArchive && !PermissionsUtils.canAreaSupportFullArchive(oUser)) {
                     RiseLog.warnLog("AreaResource.add: the sub does not support full archive");
                     ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
-                    return Response.status(Status.UNAUTHORIZED).entity(oError).build();
+                    return Response.status(Status.FORBIDDEN).entity(oError).build();
                 }            	
             }
 
@@ -426,7 +426,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.canAdd: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             boolean bCanAddAreas = PermissionsUtils.canUserAddArea(oUser);
@@ -434,7 +434,7 @@ public class AreaResource {
             if (!bCanAddAreas) {
                 RiseLog.warnLog("AreaResource.canAdd: the org does not have more free areas");
                 ErrorViewModel oError = new ErrorViewModel(StringCodes.ERROR_API_NO_VALID_SUBSCRIPTION.name());
-                return Response.status(Status.UNAUTHORIZED).entity(oError).build();
+                return Response.status(Status.FORBIDDEN).entity(oError).build();
             }
             
             CanAddViewModel oCanAdd = new CanAddViewModel();
@@ -464,7 +464,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.getUsers: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             if (Utils.isNullOrEmpty(sId)) {
@@ -483,7 +483,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
                 RiseLog.warnLog("AreaResource.getUsers: user cannot access area");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             UserRepository oUserRepository = new UserRepository();
@@ -574,7 +574,7 @@ public class AreaResource {
             // We need an admin here!
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.addUser: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             if (Utils.isNullOrEmpty(sId)) {
@@ -603,7 +603,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
                 RiseLog.warnLog("AreaResource.addUser: user cannot access area");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             UserRepository oUserRepository = new UserRepository();
@@ -651,7 +651,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.getFieldOperators: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             if (Utils.isNullOrEmpty(sId)) {
@@ -670,7 +670,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
                 RiseLog.warnLog("AreaResource.getFieldOperators: user cannot access area");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
             // return the list to the client
             return Response.ok(oArea.getFieldOperators()).build();
@@ -683,8 +683,7 @@ public class AreaResource {
     @DELETE
     @Path("users")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteUser(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId,
-                               UserOfAreaViewModel oUserToDelete) {
+    public Response deleteUser(@HeaderParam("x-session-token") String sSessionId, @QueryParam("id") String sId, UserOfAreaViewModel oUserToDelete) {
 
         try {
             // Check the session
@@ -698,7 +697,7 @@ public class AreaResource {
             // We need some one that can handle the area here
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.deleteUser: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             if (Utils.isNullOrEmpty(sId)) {
@@ -727,7 +726,7 @@ public class AreaResource {
 
             if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
                 RiseLog.warnLog("AreaResource.deleteUser: user cannot access area");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             UserRepository oUserRepository = new UserRepository();
@@ -771,7 +770,7 @@ public class AreaResource {
             // We need some one that can handle the area here
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.getOverlappingAreas: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             if (Utils.isNullOrEmpty(sId)) {
@@ -852,7 +851,7 @@ public class AreaResource {
             // We need an admin here!
             if (!PermissionsUtils.hasHQRights(oUser)) {
                 RiseLog.warnLog("AreaResource.deleteArea: not an HQ level");
-                return Response.status(Status.UNAUTHORIZED).build();
+                return Response.status(Status.FORBIDDEN).build();
             }
 
             if (Utils.isNullOrEmpty(sAreaId)) {

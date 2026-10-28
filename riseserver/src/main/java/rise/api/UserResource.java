@@ -81,7 +81,25 @@ public class UserResource {
 			if (!Utils.isNullOrEmpty(oUserViewModel.name)) {
 				oUser.setName(oUserViewModel.name);
 			}
-			if (!Utils.isNullOrEmpty(oUserViewModel.userId)) {
+			String sOldUserId = oUser.getUserId();
+			boolean bUserIdChanged = !Utils.isNullOrEmpty(oUserViewModel.userId) && !oUserViewModel.userId.equals(sOldUserId);
+			
+			if (bUserIdChanged) {
+				PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
+				
+				if (!oPasswordAuthentication.isValidUserId(oUserViewModel.userId)) {
+					RiseLog.warnLog("UserResource.updateUser: new user id is not valid");
+					return Response.status(Status.BAD_REQUEST).build();
+				}
+				
+				UserRepository oUserRepository = new UserRepository();
+				
+				if (oUserRepository.getUser(oUserViewModel.userId) != null) {
+					RiseLog.warnLog("UserResource.updateUser: user id already in use");
+					ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_USERID_ALREADY_EXISTS.name(), Status.CONFLICT.getStatusCode());
+					return Response.status(Status.CONFLICT).entity(oErrorViewModel).build();
+				}
+				
 				oUser.setUserId(oUserViewModel.userId);
 			}
 			if (!Utils.isNullOrEmpty(oUserViewModel.surname)) {
@@ -101,6 +119,13 @@ public class UserResource {
 			
 			UserRepository oUserRepository = new UserRepository();
 			oUserRepository.updateUserByEmail(oUser);
+			
+			if (bUserIdChanged) {
+				// Sessions are bound to the old user id: invalidate them, the user must login again
+				SessionRepository oSessionRepository = new SessionRepository();
+				oSessionRepository.deleteSessionsByUserId(sOldUserId);
+			}
+			
 			return Response.ok().build();
 		} catch (Exception oEx) {
 			RiseLog.errorLog("UserResource.updateUser: " + oEx);
@@ -308,8 +333,7 @@ public class UserResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("change_password")
-	public Response changeUserPassword(@HeaderParam("x-session-token") String sSessionId,
-			ChangePasswordRequestViewModel oRequestVM) {
+	public Response changeUserPassword(@HeaderParam("x-session-token") String sSessionId, ChangePasswordRequestViewModel oRequestVM) {
 		try {
 
 			User oUser = Rise.getUserFromSession(sSessionId);
@@ -334,7 +358,7 @@ public class UserResource {
 			PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
 			if (!oPasswordAuthentication.authenticate(oRequestVM.oldPassword.toCharArray(), oUser.getPassword())) {
 				RiseLog.warnLog("UserResource.changeUserPassword: old password not valid");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.BAD_REQUEST).build();
 			}
 			// check the new password
 			if (!oPasswordAuthentication.isValidPassword(oRequestVM.newPassword)) {
@@ -411,25 +435,31 @@ public class UserResource {
 
 	@POST
 	@Path("change_password_verify")
-	public Response verifyPasswordChange(OTPVerifyViewModel oOTPVerifyVM) {
+	public Response verifyPasswordChange(@HeaderParam("x-session-token") String sSessionId, OTPVerifyViewModel oOTPVerifyVM) {
 
 		try {
+			
+			User oUser = Rise.getUserFromSession(sSessionId);
 
-			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(),
-					Status.UNAUTHORIZED.getStatusCode());
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+			
+
+			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.BAD_REQUEST.getStatusCode());
 			// Validate inputs
 			if (oOTPVerifyVM == null) {
 				RiseLog.warnLog("UserResource.verifyPasswordChange: OTP info null, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 			if (Utils.isNullOrEmpty(oOTPVerifyVM.id)) {
-				RiseLog.warnLog(
-						"UserResource.verifyPasswordChange: operation id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				RiseLog.warnLog("UserResource.verifyPasswordChange: operation id null or empty, user not authenticated");
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 			if (Utils.isNullOrEmpty(oOTPVerifyVM.userId)) {
 				RiseLog.warnLog("UserResource.verifyPasswordChange: user Id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			OTPRepository oOTPRepository = new OTPRepository();
@@ -438,45 +468,56 @@ public class UserResource {
 
 			if (oDbOTP == null) {
 				RiseLog.warnLog("UserResource.verifyPasswordChange: otp not found, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
-				RiseLog.warnLog(
-						"UserResource.verifyPasswordChange: otp user id does not match, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				RiseLog.warnLog("UserResource.verifyPasswordChange: otp user id does not match, user not authenticated");
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.isValidated()) {
 				RiseLog.warnLog("UserResource.verifyPasswordChange: otp not validated, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.getOperation().equals(OTPOperations.CHANGE_PASSWORD.name())) {
 				RiseLog.warnLog("UserResource.verifyPasswordChange: otp action not correct, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			// Check if we have a user
 			UserRepository oUserRepository = new UserRepository();
-			User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
+			User oOtpUser = oUserRepository.getUser(oOTPVerifyVM.userId);
 
-			if (oUser == null) {
+			if (oOtpUser == null) {
 				RiseLog.warnLog("UserResource.verifyPasswordChange: user not found");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
+			
+			if (!oOtpUser.getUserId().equals(oUser.getUserId())) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: Otp user does not match the session one");
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();				
+			}
+			
 			PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
 			PasswordChangeRequestRepository oPasswordChangeRequestRepository = new PasswordChangeRequestRepository();
 			PasswordChangeRequest oChangeRequest = oPasswordChangeRequestRepository
 					.getPasswordChangeRequestByOTPId(oOTPVerifyVM.id);
+			
+			if (oChangeRequest == null || Utils.isNullOrEmpty(oChangeRequest.getPassword())) {
+				RiseLog.warnLog("UserResource.verifyPasswordChange: password change request not found");
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
+			}
+			
 			oUser.setPassword(oPasswordAuthentication.hash(oChangeRequest.getPassword().toCharArray()));
 			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
 			oOTPRepository.delete(oOTPVerifyVM.id);
 			oUserRepository.updateUser(oUser);
 			
-			// Invalidate all the existing sessions of the user
+			// Invalidate all the other sessions of the user, keeping the current one alive
 			SessionRepository oSessionRepository = new SessionRepository();
-			oSessionRepository.deleteSessionsByUserId(oUser.getUserId());
+			oSessionRepository.deleteOtherSessionsOfUser(oUser.getUserId(), sSessionId);
 			
 			RiseLog.debugLog("UserResource.verifyPasswordChange");
 			return Response.ok().build();
@@ -581,22 +622,27 @@ public class UserResource {
 	@Path("verify_delete_user")
 	public Response verifyDeleteUser(@HeaderParam("x-session-token") String sSessionId, OTPVerifyViewModel oOTPVerifyVM) {
 		try {
+			User oUser = Rise.getUserFromSession(sSessionId);
 
-			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(),
-					Status.UNAUTHORIZED.getStatusCode());
+			if (oUser == null) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.BAD_REQUEST.getStatusCode());
 
 			// Validate inputs
 			if (oOTPVerifyVM == null) {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: OTP info null, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 			if (Utils.isNullOrEmpty(oOTPVerifyVM.id)) {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: operation id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 			if (Utils.isNullOrEmpty(oOTPVerifyVM.userId)) {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: user Id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			OTPRepository oOTPRepository = new OTPRepository();
@@ -605,34 +651,37 @@ public class UserResource {
 
 			if (oDbOTP == null) {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: otp not found, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: otp user id does not match, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.isValidated()) {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: otp not validated, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.getOperation().equals(OTPOperations.DELETE_USER.name())) {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: otp action not correct, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 
 			// Check if we have a user
 			UserRepository oUserRepository = new UserRepository();
-			User oUser = oUserRepository.getUser(oOTPVerifyVM.userId);
+			User oOtpUser = oUserRepository.getUser(oOTPVerifyVM.userId);
 
-			if (oUser == null) {
+			if (oOtpUser == null) {
 				RiseLog.warnLog("UserResource.verifyDeleteUser: user not found");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.BAD_REQUEST).entity(oErrorViewModel).build();
 			}
 			
-			oOTPRepository.delete(oOTPVerifyVM.id);			
+			if (!oOtpUser.getUserId().equals(oUser.getUserId())) {
+				RiseLog.warnLog("UserResource.verifyDeleteUser: OTP user does not match session user");
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();				
+			}
 			
 			boolean bIsAdmin = PermissionsUtils.isAdmin(oUser);
 			
@@ -659,6 +708,8 @@ public class UserResource {
 				}
 				
 			}
+			
+			oOTPRepository.delete(oOTPVerifyVM.id);
 			
 			UserResourcePermissionRepository oUserResourcePermissionRepository = new UserResourcePermissionRepository();
 			
@@ -691,19 +742,13 @@ public class UserResource {
 			Organization oOrg=oOrganizationRepository.getOrganization(oUser.getOrganizationId());
 			//replace organization name and username in a message
 
-			if(!Utils.isNullOrEmpty(oOrg.getName())){
-				sMessage=sMessage.replace("%%ORG_NAME%%",oOrg.getName());
-			}else{
-				RiseLog.warnLog("UserResource.verifyDeleteUser: the user's organization does not have a name therefore we cant send an email");
-				return Response.status(Status.NOT_FOUND).build();
-			}
-			if(!Utils.isNullOrEmpty(oUser.getName())){
-				sMessage=sMessage.replace("%%USER_NAME%%",oUser.getName());
-			}else{
-				RiseLog.warnLog("UserResource.verifyDeleteUser: the user does not have a name therefore we cant send an email");
-				return Response.status(Status.NOT_FOUND).build();
-			}
-			// And we email the user waiting for him to confirm!
+			// The org may have been already deleted (personal org): the user is already deleted, so never fail here
+			String sOrgName = (oOrg != null && !Utils.isNullOrEmpty(oOrg.getName())) ? oOrg.getName() : "";
+			String sUserName = !Utils.isNullOrEmpty(oUser.getName()) ? oUser.getName() : oUser.getUserId();
+			
+			sMessage = sMessage.replace("%%ORG_NAME%%", sOrgName);
+			sMessage = sMessage.replace("%%USER_NAME%%", sUserName);
+						// And we email the user waiting for him to confirm!
 			MailUtils.sendEmail(RiseConfig.Current.notifications.riseAdminMail, oUser.getEmail(), sTitle, sMessage, true);
 
 			return Response.ok().build();
@@ -723,9 +768,12 @@ public class UserResource {
 				RiseLog.warnLog("OrganizationResource.changeUserRole: invalid Session");
 				return Response.status(Status.UNAUTHORIZED).build();
 			}
-			if (!oUser.getRole().equals(UserRole.ADMIN)) {
+			
+			boolean bIsRiseAdmin = PermissionsUtils.isRiseAdmin(oUser);
+			
+			if (!(PermissionsUtils.isAdmin(oUser) || bIsRiseAdmin)) {
 				RiseLog.warnLog("OrganizationResource.changeUserRole: not an admin");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			if (oUserViewModel == null) {
 				RiseLog.warnLog("OrganizationResource.changeUserRole: user vm is null");
@@ -743,8 +791,30 @@ public class UserResource {
 				RiseLog.warnLog("OrganizationResource.changeUserRole: user role is unvalid");
 				return Response.status(Status.BAD_REQUEST).build();
 			}
+			
+			if (oUserViewModel.role.equals(UserRole.RISE_ADMIN) && !bIsRiseAdmin) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: only RISE admin can promote other rise admins");
+				return Response.status(Status.FORBIDDEN).build();				
+			}
+			
 			UserRepository oUserRepository = new UserRepository();
 			User oUserToBeChanged = oUserRepository.getUser(oUserViewModel.userId);
+			
+			if (oUserToBeChanged == null) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: target user does not exists");
+				return Response.status(Status.BAD_REQUEST).build();				
+			}
+			
+			if (oUserToBeChanged.getUserId().equals(oUser.getUserId())) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: a user cannot change his own role");
+				return Response.status(Status.FORBIDDEN).build();				
+			}
+			
+			if (!bIsRiseAdmin && (Utils.isNullOrEmpty(oUser.getOrganizationId()) || !oUser.getOrganizationId().equals(oUserToBeChanged.getOrganizationId()))) {
+				RiseLog.warnLog("OrganizationResource.changeUserRole: target user not of same org");
+				return Response.status(Status.FORBIDDEN).build();				
+			}
+			
 			oUserToBeChanged.setRole(oUserViewModel.role);
 			oUserRepository.updateUser(oUserToBeChanged);
 			return Response.ok().build();
@@ -773,7 +843,7 @@ public class UserResource {
 			
 			if (oUser == null) {
 				RiseLog.warnLog("UserResource.changeExpiredPassword: user does not exists in the database");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 			
 			if (Utils.isNullOrEmpty(oRequestVM.password)) {
@@ -863,22 +933,21 @@ public class UserResource {
 
 		try {
 
-			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(),
-					Status.UNAUTHORIZED.getStatusCode());
+			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.FORBIDDEN.getStatusCode());
 			
 			// Validate inputs
 			if (oOTPVerifyVM == null) {
 				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: OTP info null, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			if (Utils.isNullOrEmpty(oOTPVerifyVM.id)) {
 				RiseLog.warnLog(
 						"UserResource.verifyExpiredPasswordChange: operation id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			if (Utils.isNullOrEmpty(oOTPVerifyVM.userId)) {
 				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: user Id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 
 			OTPRepository oOTPRepository = new OTPRepository();
@@ -887,23 +956,22 @@ public class UserResource {
 
 			if (oDbOTP == null) {
 				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: otp not found, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
-				RiseLog.warnLog(
-						"UserResource.verifyExpiredPasswordChange: otp user id does not match, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: otp user id does not match, user not authenticated");
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.isValidated()) {
 				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: otp not validated, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 
 			if (!oDbOTP.getOperation().equals(OTPOperations.CHANGE_EXPIRED_PASSWORD.name())) {
 				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: otp action not correct, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 
 			// Check if we have a user
@@ -918,14 +986,11 @@ public class UserResource {
 			
 			if (oUser == null) {
 				RiseLog.warnLog("UserResource.verifyExpiredPasswordChange: user not found");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			
-			PasswordAuthentication oPasswordAuthentication = new PasswordAuthentication();
-			
 			PasswordChangeRequestRepository oPasswordChangeRequestRepository = new PasswordChangeRequestRepository();
-			PasswordChangeRequest oChangeRequest = oPasswordChangeRequestRepository
-					.getPasswordChangeRequestByOTPId(oOTPVerifyVM.id);
+			PasswordChangeRequest oChangeRequest = oPasswordChangeRequestRepository.getPasswordChangeRequestByOTPId(oOTPVerifyVM.id);
 
 			oUser.setPassword(oChangeRequest.getPassword());
 			oUser.setLastPasswordUpdateDate(DateUtils.getNowAsDouble());
@@ -960,7 +1025,7 @@ public class UserResource {
 	@Path("forget-password")
 	public Response forgetPassword(@QueryParam("userId") String sUserId) {
 		try {
-			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_USERID_NOT_FOUND.name(), Status.UNAUTHORIZED.getStatusCode());
+			ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_USERID_NOT_FOUND.name(), Status.FORBIDDEN.getStatusCode());
 			if (Utils.isNullOrEmpty(sUserId)) {
 				RiseLog.warnLog("UserResource.forgetPassword: user id"+sUserId+" is null");
 				return Response.status(Status.BAD_REQUEST).build();
@@ -969,7 +1034,7 @@ public class UserResource {
 			User oUser = oUserRepository.getUser(sUserId);
 			if (oUser == null) {
 				RiseLog.warnLog("UserResource.forgetPassword: user is not found");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			// Generate the Confirmation Code
 			String sConfirmationCode = Utils.getRandomName();

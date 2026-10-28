@@ -80,7 +80,7 @@ public class LayerResource {
 
 			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
 				RiseLog.warnLog("LayerResource.getLayer: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (Utils.isNullOrEmpty(sMapId)) {
@@ -169,7 +169,7 @@ public class LayerResource {
 
 			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
 				RiseLog.warnLog("LayerResource.getLayerPOST: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			if (Utils.isNullOrEmpty(sMapIds) && Utils.isNullOrEmpty(sPluginId)) {
@@ -401,7 +401,7 @@ public class LayerResource {
 
 			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
 				RiseLog.warnLog("LayerResource.areaHasLayers: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();
+				return Response.status(Status.FORBIDDEN).build();
 			}
 
 			LayerRepository oLayerRepository = new LayerRepository();

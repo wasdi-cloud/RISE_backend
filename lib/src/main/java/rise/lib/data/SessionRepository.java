@@ -120,5 +120,24 @@ public class SessionRepository extends MongoRepository {
 		
 		return deleteMany(oCriteria);
 	}
+	
+	/**
+	 * Delete all the sessions of a user except one (usually the one in use)
+	 * @param sUserId User Id
+	 * @param sTokenToKeep Token of the session to preserve
+	 * @return number of deleted sessions
+	 */
+	public int deleteOtherSessionsOfUser(String sUserId, String sTokenToKeep) {
+		
+		if (Utils.isNullOrEmpty(sUserId)) return 0;
+		
+		if (Utils.isNullOrEmpty(sTokenToKeep)) return deleteSessionsByUserId(sUserId);
+		
+		BasicDBObject oCriteria = new BasicDBObject();
+		oCriteria.append("userId", sUserId);
+		oCriteria.append("token", new BasicDBObject("$ne", sTokenToKeep));
+		
+		return deleteMany(oCriteria);
+	}
 		
 }

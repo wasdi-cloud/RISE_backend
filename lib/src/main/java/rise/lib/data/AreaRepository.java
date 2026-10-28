@@ -19,6 +19,10 @@ public class AreaRepository extends MongoRepository {
 	}
 	
 	public List<Area> getByOrganization(String sOrganizationId) {
+		return getByOrganization(sOrganizationId, true);
+	}
+	
+	public List<Area> getByOrganization(String sOrganizationId, boolean bBuySuccessOnly) {
     	List<Area> aoReturnList = new ArrayList<Area>();
 
         try {
@@ -35,7 +39,7 @@ public class AreaRepository extends MongoRepository {
         }
 
         return aoReturnList;			
-	}
+	}	
 	
 	public List<Area> getBySubscription(String sSubscriptionId) {
     	List<Area> aoReturnList = new ArrayList<Area>();

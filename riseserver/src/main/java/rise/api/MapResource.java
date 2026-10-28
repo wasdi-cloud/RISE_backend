@@ -56,7 +56,7 @@ public class MapResource {
     		
     		if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
 				RiseLog.warnLog("MapResource.getMapsForArea: user cannot access area");
-				return Response.status(Status.UNAUTHORIZED).build();     			
+				return Response.status(Status.FORBIDDEN).build();     			
     		}
     		
     		PluginRepository oPluginRepository = new PluginRepository();

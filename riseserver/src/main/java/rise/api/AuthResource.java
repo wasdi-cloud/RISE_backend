@@ -1,17 +1,30 @@
 package rise.api;
 
-import jakarta.ws.rs.*;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-import rise.lib.business.*;
+import rise.lib.business.OTP;
+import rise.lib.business.OTPOperations;
+import rise.lib.business.Organization;
+import rise.lib.business.Session;
+import rise.lib.business.User;
+import rise.lib.business.UserRole;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.OTPRepository;
 import rise.lib.data.OrganizationRepository;
 import rise.lib.data.SessionRepository;
 import rise.lib.data.UserRepository;
 import rise.lib.utils.PasswordAuthentication;
-import rise.lib.utils.RiseFileUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.date.DateUtils;
 import rise.lib.utils.i8n.LangUtils;
@@ -19,12 +32,14 @@ import rise.lib.utils.i8n.Languages;
 import rise.lib.utils.i8n.StringCodes;
 import rise.lib.utils.log.RiseLog;
 import rise.lib.utils.mail.MailUtils;
-import rise.lib.viewmodels.*;
-
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import rise.lib.viewmodels.ConfirmInviteViewModel;
+import rise.lib.viewmodels.ErrorViewModel;
+import rise.lib.viewmodels.OTPVerifyViewModel;
+import rise.lib.viewmodels.OTPViewModel;
+import rise.lib.viewmodels.RegisterViewModel;
+import rise.lib.viewmodels.RiseViewModel;
+import rise.lib.viewmodels.SessionTokenViewModel;
+import rise.lib.viewmodels.UserCredentialsViewModel;
 /**
  * User's related APIs
  * 
@@ -166,24 +181,24 @@ public class AuthResource {
     @Path("otp")
     public Response otp(OTPViewModel oOTPVM) {
     	try {
-    		ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.UNAUTHORIZED.getStatusCode());
+    		ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.FORBIDDEN.getStatusCode());
     		
 			// Validate inputs
 			if (oOTPVM == null) {
 				RiseLog.warnLog("AuthResource.otp: otp null, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			if(Utils.isNullOrEmpty(oOTPVM.id)){
 				RiseLog.warnLog("AuthResource.otp: otp id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			if(Utils.isNullOrEmpty(oOTPVM.operation)){
 				RiseLog.warnLog("AuthResource.otp: otp operation null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			if(Utils.isNullOrEmpty(oOTPVM.userProvidedCode)){
 				RiseLog.warnLog("AuthResource.otp: otp user provided code null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
     		
 			OTPRepository oOTPRepository = new OTPRepository();
@@ -195,22 +210,22 @@ public class AuthResource {
 				if (!Utils.isNullOrEmpty(oOTPVM.userId)) sUserId = oOTPVM.userId;
 				
 				RiseLog.warnLog("AuthResource.otp: otp not found, user not authenticated UserId=" + sUserId);
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			
 			if (!oDbOTP.getUserId().equals(oOTPVM.userId)) {
 				RiseLog.warnLog("AuthResource.otp: otp user id does not match, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();				
 			}			
 			
 			if (!oDbOTP.getOperation().equals(oOTPVM.operation)) {
 				RiseLog.warnLog("AuthResource.otp: otp operation does not match, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();				
 			}
 			
 			if (!oDbOTP.getSecretCode().equals(oOTPVM.userProvidedCode)) {
 				RiseLog.warnLog("AuthResource.otp: otp code does not match, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();				
 			}
 			
 			Double dNow = DateUtils.getNowAsDouble();
@@ -221,7 +236,7 @@ public class AuthResource {
 				
 				oOTPRepository.delete(oOTPVM.id);
 				
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();								
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();								
 			}
 			
 			// If we are here, user, operation and code are the same!
@@ -246,20 +261,20 @@ public class AuthResource {
     	
     	try {
     		
-    		ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.UNAUTHORIZED.getStatusCode());
+    		ErrorViewModel oErrorViewModel = new ErrorViewModel(StringCodes.ERROR_API_WRONG_OTP.name(), Status.FORBIDDEN.getStatusCode());
     		
 			// Validate inputs
 			if (oOTPVerifyVM == null) {
 				RiseLog.warnLog("AuthResource.login_verify: OTP info null, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			if(Utils.isNullOrEmpty(oOTPVerifyVM.id)){
 				RiseLog.warnLog("AuthResource.login_verify: operation id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			if(Utils.isNullOrEmpty(oOTPVerifyVM.userId)){
 				RiseLog.warnLog("AuthResource.login_verify: user Id null or empty, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			
 			OTPRepository oOTPRepository = new OTPRepository();
@@ -268,22 +283,22 @@ public class AuthResource {
 			
 			if (oDbOTP == null) {
 				RiseLog.warnLog("AuthResource.login_verify: otp not found, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
 			}
 			
 			if (!oDbOTP.getUserId().equals(oOTPVerifyVM.userId)) {
 				RiseLog.warnLog("AuthResource.login_verify: otp user id does not match, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();				
 			}
 			
 			if (!oDbOTP.isValidated()) {
 				RiseLog.warnLog("AuthResource.login_verify: otp not validated, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();				
 			}
 			
 			if (!oDbOTP.getOperation().equals(OTPOperations.LOGIN.name())) {
 				RiseLog.warnLog("AuthResource.login_verify: otp action not correct, user not authenticated");
-				return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();				
+				return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();				
 			}
 			
 	    	// Check if we have a user
@@ -292,19 +307,19 @@ public class AuthResource {
 	    	
 	    	if (oUser == null) {
 	    		RiseLog.warnLog("AuthResource.login_verify: user not found");
-	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();
-	    	}			
-			
-			oOTPRepository.delete(oOTPVerifyVM.id);
-	    	
-	    	RiseLog.debugLog("AuthResource.login_verify");	
+	    		return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();
+	    	}
 	    	
 	    	// Check if is confirmed
 	    	if (oUser.getConfirmationDate() == null) {
 	    		RiseLog.warnLog("AuthResource.login_verify: user not confirmed yet");
-	    		return Response.status(Status.UNAUTHORIZED).entity(oErrorViewModel).build();	    		
-	    	}
+	    		return Response.status(Status.FORBIDDEN).entity(oErrorViewModel).build();	    		
+	    	}	    	
+			
+			oOTPRepository.delete(oOTPVerifyVM.id);
 	    	
+	    	RiseLog.debugLog("AuthResource.login_verify");	
+	    		    	
 	    	oUser.setLastLoginDate(DateUtils.getNowAsDouble());
 	    	if (!oUserRepository.updateUser(oUser)) {
 	    		RiseLog.warnLog("AuthResource.login_verify: Error updating users' last login");
