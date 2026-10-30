@@ -56,7 +56,7 @@ public class MapsParametersRepository extends MongoRepository {
 		
 	    try {
 		    Document oResult =  getCollection(m_sThisCollection).find(oFilter)
-		            .sort(Sorts.descending("timestamp"))
+		            .sort(Sorts.descending("lastModifyTimestamp"))
 		            .limit(1)
 		            .first();
 		    if (oResult != null) {
