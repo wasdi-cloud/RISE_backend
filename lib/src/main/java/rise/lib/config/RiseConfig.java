@@ -118,6 +118,8 @@ public class RiseConfig {
 	 */
 	public int maxWidgetsDaysAge = 7;
 	
+	public ImpactsConfig impactsConfig = new ImpactsConfig();
+	
 	
 	
 	protected boolean loadLanguageMessages(LanguageConfig oLangConfig) {
