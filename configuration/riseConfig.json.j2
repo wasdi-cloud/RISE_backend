@@ -4,7 +4,7 @@
 	"shellExecLocally": true,
 	"mongoMain": {
 		"address": "{{ aoWasdiConfiguration['mongoMain']['address'] }}",
-		"dbName": "rise",
+		"dbName": "{{ sRiseMongoMainDatabaseName }}",
 		"replicaName": "{{ aoWasdiConfiguration['mongoMain']['replicaName'] }}",
         "user": "{{ aoRiseConfiguration['mongoMain']['user'] }}",
         "password": "{{ aoRiseConfiguration['mongoMain']['password'] }}"

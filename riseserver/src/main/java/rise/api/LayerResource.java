@@ -293,6 +293,158 @@ public class LayerResource {
 		}
 	}		
 
+	@POST
+	@Path("impacts")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getImpactLayers(@HeaderParam("x-session-token") String sSessionId,
+			@QueryParam("area_id") String sAreaId, @QueryParam("date") Long oDate) {
+		try {
+			// Check the session
+			User oUser = Rise.getUserFromSession(sSessionId);
+
+			if (oUser == null) {
+				RiseLog.warnLog("LayerResource.getImpactLayers: invalid Session");
+				return Response.status(Status.UNAUTHORIZED).build();
+			}
+
+			if (Utils.isNullOrEmpty(sAreaId)) {
+				RiseLog.warnLog("LayerResource.getImpactLayers: Area id null");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			// Check if we have this subscription
+			AreaRepository oAreaRepository = new AreaRepository();
+			Area oArea = (Area) oAreaRepository.get(sAreaId);
+
+			if (oArea == null) {
+				RiseLog.warnLog("LayerResource.getImpactLayers: Area with this id " + sAreaId + " not found");
+				return Response.status(Status.BAD_REQUEST).build();
+			}
+
+			if (!PermissionsUtils.canUserAccessArea(oArea, oUser)) {
+				RiseLog.warnLog("LayerResource.getImpactLayers: user cannot access area");
+				return Response.status(Status.FORBIDDEN).build();
+			}
+
+			// Prepare the date
+			if (oDate == null)
+				oDate = 0L;
+
+			double dDate = (double) oDate;
+
+			if (dDate <= 0.0) {
+				dDate = DateUtils.getNowAsDouble();	
+			}
+
+			// Get the impacts plugin from the area
+			ArrayList<String> asPluginIds = oArea.getPlugins();
+			if (asPluginIds == null || asPluginIds.isEmpty()) {
+				RiseLog.debugLog("LayerResource.getImpactLayers: Area has no plugins");
+				return Response.ok(new ArrayList<LayerMapViewModel>()).build();
+			}
+
+			// Find the impacts plugin
+			PluginRepository oPluginRepository = new PluginRepository();
+			Plugin oImpactsPlugin = null;
+			
+			String sPluginId = RiseConfig.Current.impactsConfig.impactPlugin;
+			
+			if (asPluginIds.contains(sPluginId)) {
+				Plugin oPlugin = (Plugin) oPluginRepository.get(sPluginId);
+				if (oPlugin != null) {
+					oImpactsPlugin = oPlugin;
+				}				
+			}
+			
+
+			if (oImpactsPlugin == null) {
+				RiseLog.debugLog("LayerResource.getImpactLayers: Impacts plugin not found in area");
+				return Response.ok(new ArrayList<LayerMapViewModel>()).build();
+			}
+
+			// Get maps from impacts plugin
+			ArrayList<String> asMapIds = oImpactsPlugin.getMaps();
+			if (asMapIds == null || asMapIds.isEmpty()) {
+				RiseLog.debugLog("LayerResource.getImpactLayers: Impacts plugin has no maps");
+				return Response.ok(new ArrayList<LayerMapViewModel>()).build();
+			}
+
+			// Query layers for these maps
+			MapRepository oMapRepository = new MapRepository();
+			LayerRepository oLayerRepository = new LayerRepository();
+			
+			ArrayList<LayerMapViewModel> aoAllImpactLayers = new ArrayList<>();
+			java.util.Map<String, Map> aoMapsDictionary = oMapRepository.getMapsByIds(new ArrayList<String>(asMapIds));
+
+			for (String sMapId : asMapIds) {
+				
+				if (!RiseConfig.Current.impactsConfig.impactFeaturesMaps.contains(sMapId)) continue;
+				
+				Map oMap = (Map) aoMapsDictionary.get(sMapId);
+
+					if (oMap == null || oMap.isHidden()) {
+					continue;
+				}
+
+				Layer oLayer = null;
+				
+				if (oMap.isDateFiltered()) {
+					oLayer = oLayerRepository.getLayerByAreaMapTime(sAreaId, sMapId, dDate/1000.0);
+				}
+				else {
+					oLayer = oLayerRepository.getLayerByAreaMap(sAreaId, sMapId);
+				}
+
+				if (oLayer != null) {
+					// Check if it is in the valid range
+					if (oMap.getMaxAgeDays() >= 0 && oMap.isDateFiltered()) {
+						long lReference = Double.valueOf(dDate).longValue();
+						long lDistance = Math.abs(lReference - oLayer.getReferenceDate().longValue()*1000l);
+						long lMaxAge = oMap.getMaxAgeDays()*24l*60l*60l*1000l;
+
+						if (lDistance > lMaxAge) {
+							RiseLog.debugLog("LayerResource.getImpactLayers: found a layer but is too old, discard it");
+							oLayer = null;
+						}
+					}
+				}
+				
+				if (oLayer != null) {
+					LayerMapViewModel oLayerViewModel = (LayerMapViewModel) RiseViewModel.getFromEntity(LayerMapViewModel.class.getName(), oLayer);
+					oLayerViewModel.name = oMap.getName();
+					oLayerViewModel.icon = oMap.getIcon();
+					oLayerViewModel.disabled = false;
+					oLayerViewModel.description = oMap.getDescription();
+					aoAllImpactLayers.add(oLayerViewModel);
+				}
+			}
+
+			// Deduplicate: exposure and markers are the same layer with different styles
+			// Keep only one if both exist with same layerId + geoserverUrl
+			ArrayList<LayerMapViewModel> aoDedupImpactLayers = new ArrayList<>();
+			java.util.Set<String> asSeenKeys = new java.util.HashSet<>();
+
+			for (LayerMapViewModel oLayer : aoAllImpactLayers) {
+				String sKey = oLayer.geoserverUrl + "|" + oLayer.layerId;
+				
+				// Skip if we've already seen this layer (dedup exposure/markers)
+				if (asSeenKeys.contains(sKey)) {
+					RiseLog.debugLog("LayerResource.getImpactLayers: Deduplicating layer " + sKey);
+					continue;
+				}
+				
+				asSeenKeys.add(sKey);
+				aoDedupImpactLayers.add(oLayer);
+			}
+
+			return Response.ok(aoDedupImpactLayers).build();
+
+		} catch (Exception oEx) {
+			RiseLog.errorLog("LayerResource.getImpactLayers: " + oEx);
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
 	@GET
 	@Path("download_layer")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)

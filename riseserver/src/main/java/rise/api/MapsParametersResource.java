@@ -22,15 +22,11 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import rise.Rise;
 import rise.lib.business.Area;
-import rise.lib.business.Map;
 import rise.lib.business.MapsParameters;
-import rise.lib.business.Plugin;
 import rise.lib.business.User;
 import rise.lib.config.RiseConfig;
 import rise.lib.data.AreaRepository;
-import rise.lib.data.MapRepository;
 import rise.lib.data.MapsParametersRepository;
-import rise.lib.data.PluginRepository;
 import rise.lib.utils.PermissionsUtils;
 import rise.lib.utils.Utils;
 import rise.lib.utils.log.RiseLog;
@@ -44,7 +40,7 @@ public class MapsParametersResource {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getParameters(@HeaderParam("x-session-token") String sSessionId, @QueryParam("area_id") String sAreaId, @QueryParam("map_id") String sMapId) {
+	public Response getParameters(@HeaderParam("x-session-token") String sSessionId, @QueryParam("area_id") String sAreaId, @QueryParam("map_id") String sMapId, @QueryParam("plugin_id") String sRequestedPluginId) {
 		try {
 			// Check the session
 			User oUser = Rise.getUserFromSession(sSessionId);
@@ -72,17 +68,7 @@ public class MapsParametersResource {
 				return Response.status(Status.FORBIDDEN).build();
 			}
 			
-			
-			// Check if we have this map id
-			MapRepository oMapRepository = new MapRepository();
-			Map oMap = (Map) oMapRepository.get(sMapId);
-			
-			if (oMap == null) {
-				RiseLog.warnLog("MapResource.getParameters: Map with id " + sMapId + " not found");
-				return Response.status(Status.BAD_REQUEST).build();
-			}
-			
-			// get the active plugins of the area
+			// Resolve the map from the plugin configuration. Maps need not have a DB map record.
 			ArrayList<String> asPlugins = oArea.getPlugins();
 			
 			if (asPlugins == null || asPlugins.size() == 0) {
@@ -90,25 +76,26 @@ public class MapsParametersResource {
 				return Response.status(Status.NOT_FOUND).build();
 			}
 			
-			// find the pluging containing that map
-			PluginRepository oPluginRepository = new PluginRepository();
-			String sPluginId = null;
-			
-			for (String sId : asPlugins) {
-				if (oPluginRepository.hasMap(sId, sMapId)) {
-					sPluginId = sId;
-					break;
-				}
-			}
-			
+			String sPluginId = sRequestedPluginId;
 			if (Utils.isNullOrEmpty(sPluginId)) {
-				RiseLog.warnLog("MapResource.getParameters: map " + sMapId + " not found among active plugins of area " + sAreaId);
+				sPluginId = findPluginIdForMap(asPlugins, sMapId);
+			} else if (!asPlugins.contains(sPluginId)) {
+				RiseLog.warnLog("MapResource.getParameters: plugin " + sPluginId + " is not active for area " + sAreaId);
 				return Response.status(Status.NOT_FOUND).build();
 			}
 			
-			ObjectMapper oMapper = new ObjectMapper();
+			if (Utils.isNullOrEmpty(sPluginId)) {
+				RiseLog.warnLog("MapResource.getParameters: map " + sMapId + " not found in active plugin configurations for area " + sAreaId);
+				return Response.status(Status.NOT_FOUND).build();
+			}
 			
-			// first try to get the area from some parameters stored in the db
+			JsonNode oMapJsonConfig = getPluginMapConfig(sPluginId, sMapId);
+			if (oMapJsonConfig == null) {
+				RiseLog.warnLog("MapResource.getParameters: map " + sMapId + " is not configured for plugin " + sPluginId);
+				return Response.status(Status.NOT_FOUND).build();
+			}
+			
+			// Saved area parameters override the plugin's default parameters.
 			MapsParametersRepository oParametersRepository = new MapsParametersRepository();
 			MapsParameters oMapParameters = oParametersRepository.getMostRecentParameters(sAreaId, sPluginId, sMapId);
 			
@@ -118,63 +105,16 @@ public class MapsParametersResource {
 				return Response.ok(oMapParameterViewModel).build();
 			}
 			
-			// if we are here, it means that we need to read the default parameters from the configuration file of the plugin
-			RiseLog.debugLog("MapResource.getParameters: no overloaded parameters found. Will proceed with the default ones");
-			String sPluginConfigFileName = sPluginId + ".json";
-			java.nio.file.Path oPath = Paths.get(RiseConfig.Current.paths.riseConfigPath).getParent();
-			
-			if (oPath == null) {
-				RiseLog.warnLog("MapResource.getParameters: base folder of Rise not found");
-				return Response.status(Status.NOT_FOUND).build();
-			}
-			
-			String sRiseBaseFolder = oPath.toString();
-			
-			if (!sRiseBaseFolder.endsWith(File.separator)) sRiseBaseFolder += File.separator;
-			
-			String sPluginFilePath = sRiseBaseFolder + sPluginConfigFileName;
-			
-			File oFile = new File(sPluginFilePath);
-			
-			if (!oFile.exists()) {
-				RiseLog.warnLog("MapResource.getParameters: the plugin configuration file " + sPluginFilePath + " does not exist");
-				return Response.status(Status.NOT_FOUND).build();
-			}
-			
-			
-			JsonNode oJson = oMapper.readTree(oFile);
-			JsonNode oJsonMaps = oJson.get("maps");
-			
-			if (oJsonMaps == null) {
-				RiseLog.warnLog("MapResource.getParameters: 'maps' entry not found in configuration of plugin " + sPluginId);
-				return Response.status(Status.NOT_FOUND).build();
-			}
-			
-			Iterator<JsonNode> oMapsIterator = oJsonMaps.elements();
-			JsonNode oMapJsonConfig = null;
-			while (oMapsIterator.hasNext()) {
-				JsonNode oJsonMap = oMapsIterator.next();
-				JsonNode oJsonId = oJsonMap.get("id");
-				if (oJsonId == null) continue;
-				if (oJsonId.asText().equals(sMapId)) {
-					oMapJsonConfig = oJsonMap;
-					break;
-				}
-			}
-			
-			if (oMapJsonConfig == null) {
-				RiseLog.warnLog("MapResource.getParameters. No configuration for map " + sMapId + " found in plugin config file " + sPluginFilePath);
-				return Response.status(Status.NOT_FOUND).build();
-			}
-			
+			RiseLog.debugLog("MapResource.getParameters: no overloaded parameters found; returning plugin defaults");
 			JsonNode oMapJsonParams = oMapJsonConfig.get("params");
 			if (oMapJsonParams == null) {
-				RiseLog.warnLog("MapResource.getParameters. No parameters found for map "+ sMapId + " found in plugin config file " + sPluginFilePath);
+				RiseLog.warnLog("MapResource.getParameters: no default parameters found for map " + sMapId + " in plugin " + sPluginId);
 				return Response.status(Status.NOT_FOUND).build();
 			}
 			
 			MapsParametersViewModel oMapsParametersVM = new MapsParametersViewModel();
 			oMapsParametersVM.areaId = sAreaId;
+			oMapsParametersVM.pluginId = sPluginId;
 			oMapsParametersVM.mapId = sMapId;
 			oMapsParametersVM.payload = oMapJsonParams.toString();
 			
@@ -229,32 +169,39 @@ public class MapsParametersResource {
 				return Response.status(Status.FORBIDDEN).build();
 			}
 			
-			// Check if we have this map id
 			String sMapId = oMapParametersViewModel.mapId;
-			MapRepository oMapRepository = new MapRepository();
-			Map oMap = (Map) oMapRepository.get(sMapId);
-			
-			if (oMap == null) {
-				RiseLog.warnLog("MapResource.add: Map with id " + sMapId + " not found");
+
+			ArrayList<String> asActivePluginIds = oArea.getPlugins();
+			if (asActivePluginIds == null || asActivePluginIds.isEmpty()) {
+				RiseLog.warnLog("MapResource.add: no plugins found for area " + sAreaId);
+				return Response.status(Status.NOT_FOUND).build();
+			}
+
+			String sPluginId = oMapParametersViewModel.pluginId;
+			if (Utils.isNullOrEmpty(sPluginId)) {
+				sPluginId = findPluginIdForMap(asActivePluginIds, sMapId);
+			} else if (!asActivePluginIds.contains(sPluginId)) {
+				RiseLog.warnLog("MapResource.add: plugin " + sPluginId + " is not active for area " + sAreaId);
 				return Response.status(Status.BAD_REQUEST).build();
 			}
-			
-			PluginRepository oPluginRepository = new PluginRepository();
-			Plugin oPlugin = oPluginRepository.getPluginFromMapId(sMapId);
-			
-			if (oPlugin == null) {
-				RiseLog.warnLog("MapResource.add: plugin for map " + sMapId + " not found");
+
+			if (Utils.isNullOrEmpty(sPluginId) || getPluginMapConfig(sPluginId, sMapId) == null) {
+				RiseLog.warnLog("MapResource.add: map " + sMapId + " is not configured for an active plugin of area " + sAreaId);
 				return Response.status(Status.NOT_FOUND).build();
 			}
 			
-			// if there is already a map parameter document stored in the db for the same area and map, we stop 
-			// the user
 			MapsParametersRepository oMapsParametersRepo = new MapsParametersRepository();
-			if (oMapsParametersRepo.getMostRecentParameters(sAreaId, oPlugin.getId(), sMapId) != null) {
-				RiseLog.warnLog("MapResource.add: another set of parameters for map " + sMapId + " and area " + sAreaId + " already exist");
-				return Response.status(Status.CONFLICT).build();
+			MapsParameters oMapParameter = oMapsParametersRepo.getMostRecentParameters(sAreaId, sPluginId, sMapId);
+			if (oMapParameter != null) {
+				oMapParameter.setPayload(oMapParametersViewModel.payload);
+				oMapParameter.setLastModifyUserId(oUser.getUserId());
+				oMapParameter.setLastModifyTimestamp(Instant.now().toEpochMilli());
+				if (!oMapsParametersRepo.update(oMapParameter, oMapParameter.getId())) {
+					RiseLog.warnLog("MapResource.add: existing map parameters were not updated");
+					return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+				}
+				return Response.ok().build();
 			}
-			
 			
 			String sMapParameterId = Utils.getRandomName();
 			while (oMapsParametersRepo.get(sMapParameterId) != null) {
@@ -265,7 +212,7 @@ public class MapsParametersResource {
 			oMapParameters.setId(sMapParameterId);
 			oMapParameters.setAreaId(sAreaId);
 			oMapParameters.setMapId(sMapId);
-			oMapParameters.setPluginId(oPlugin.getId());
+			oMapParameters.setPluginId(sPluginId);
 			oMapParameters.setPayload(oMapParametersViewModel.payload);
 			oMapParameters.setCreationUserId(oUser.getUserId());
 			long lNow = Instant.now().toEpochMilli();
@@ -284,7 +231,6 @@ public class MapsParametersResource {
 			RiseLog.errorLog("MapResource.add: exception " + oE.getMessage());
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
-				
 	}
 	
 	@PUT
@@ -352,7 +298,6 @@ public class MapsParametersResource {
 			RiseLog.errorLog("MapResource.update: exception " + oE.getMessage());
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
-				
 	}
 	
 	@DELETE
@@ -414,6 +359,46 @@ public class MapsParametersResource {
 				
 	}
 	
+	private String findPluginIdForMap(ArrayList<String> asPluginIds, String sMapId) throws Exception {
+		for (String sPluginId : asPluginIds) {
+			if (!Utils.isNullOrEmpty(sPluginId) && getPluginMapConfig(sPluginId, sMapId) != null) {
+				return sPluginId;
+			}
+		}
+		return null;
+	}
+
+	private JsonNode getPluginMapConfig(String sPluginId, String sMapId) throws Exception {
+		if (Utils.isNullOrEmpty(sPluginId) || Utils.isNullOrEmpty(sMapId)
+				|| RiseConfig.Current == null || RiseConfig.Current.paths == null
+				|| Utils.isNullOrEmpty(RiseConfig.Current.paths.riseConfigPath)) {
+			return null;
+		}
+
+		java.nio.file.Path oConfigPath = Paths.get(RiseConfig.Current.paths.riseConfigPath).getParent();
+		if (oConfigPath == null) {
+			return null;
+		}
+
+		File oPluginConfigFile = oConfigPath.resolve(sPluginId + ".json").toFile();
+		if (!oPluginConfigFile.isFile()) {
+			return null;
+		}
+
+		JsonNode oMaps = new ObjectMapper().readTree(oPluginConfigFile).get("maps");
+		if (oMaps == null || !oMaps.isArray()) {
+			return null;
+		}
+
+		Iterator<JsonNode> oMapsIterator = oMaps.elements();
+		while (oMapsIterator.hasNext()) {
+			JsonNode oMapConfig = oMapsIterator.next();
+			JsonNode oMapId = oMapConfig.get("id");
+			if (oMapId != null && sMapId.equals(oMapId.asText())) {
+				return oMapConfig;
+			}
+		}
+		return null;
+	}
 
 }
-

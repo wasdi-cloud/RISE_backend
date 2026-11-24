@@ -314,7 +314,7 @@
 				"bareSoilMapThreeState": true,
 				"inputBareSoilMap": "",
 				"outputBareSoilMap": null,
-				"waterMap": "HighResWaterMap.tif",
+				"WATER_MAP": "HighResWaterMap.tif",
 				"newBaseName": "PW"
 			},
 			"processor": "edrift_auto_urban_flood",
