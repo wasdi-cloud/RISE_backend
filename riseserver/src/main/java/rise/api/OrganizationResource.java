@@ -354,17 +354,15 @@ public class OrganizationResource {
 			String sOrganizationId = oUser.getOrganizationId();
 			UserRepository oUserRepository = new UserRepository();
 			List<User> aoUsers = oUserRepository.getUsersByOrganizationId(sOrganizationId);
+			double dNow = DateUtils.getNowAsDouble();
 			for (User oUserFromList : aoUsers) {
-				
-				//check to see if it is activated ( for invited users)
-				if(oUserFromList.getConfirmationDate()==null) {
-					continue;
-				}
+
 				//check if it is current user
-				if(oUserFromList.getUserId().equals(oUser.getUserId())) {
+				if(oUser.getUserId().equals(oUserFromList.getUserId())) {
 					continue;
 				}
 				UserViewModel oUserViewModel = (UserViewModel) RiseViewModel.getFromEntity(UserViewModel.class.getName(), oUserFromList);
+				oUserViewModel.invitationStatus = getInvitationStatus(oUserFromList, dNow, RiseConfig.Current.security.maxConfirmationAgeSeconds);
 				
 				aoOrgUsers.add(oUserViewModel);
 			}
@@ -373,6 +371,16 @@ public class OrganizationResource {
 			RiseLog.errorLog("OrganizationResource.getOrganizationUsers: " + oEx);
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
+	}
+
+	static String getInvitationStatus(User oUser, double dNow, double dMaxAgeSeconds) {
+		if (oUser.getConfirmationDate() != null) {
+			return null;
+		}
+		if (oUser.getRegistrationDate() == null) {
+			throw new IllegalStateException("Unconfirmed organization user has no registration date");
+		}
+		return dNow - oUser.getRegistrationDate() > dMaxAgeSeconds * 1000 ? "EXPIRED" : "PENDING";
 	}
 
 	@DELETE

@@ -34,4 +34,6 @@ public class UserViewModel extends RiseViewModel {
 	public String defaultLanguage;
 	
 	public String organizationId;
+
+	public String invitationStatus;
 }
