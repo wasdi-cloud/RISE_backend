@@ -17,3 +17,4 @@ configuration/riseLocalTESTConfig.json
 configuration/rise_drought_plugin.json
 configuration/riseLocalPRODConfig.json
 .vscode/settings.json
+lib/target/classes/
